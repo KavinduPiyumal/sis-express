@@ -28,12 +28,7 @@ const changePasswordValidation = [
 ];
 
 
-// Password reset routes
-router.post('/forgot-password', [body('email').isEmail().withMessage('Valid email is required')], validate, authController.forgotPassword);
-router.post('/reset-password', [
-  body('token').notEmpty().withMessage('Token is required'),
-  body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters')
-], validate, authController.resetPassword);
+
 
 // Existing routes
 router.post('/register', registerValidation, validate, auditLogger('create', 'user'), authController.register);
@@ -43,5 +38,12 @@ router.get('/me', authenticate, authController.getProfile);
 router.put('/profile', authenticate, auditLogger('update', 'user'), authController.updateProfile);
 router.put('/change-password', authenticate, changePasswordValidation, validate, auditLogger('change_password', 'user'), authController.changePassword);
 router.post('/verify-token', authController.verifyToken);
+
+// Password reset routes
+router.post('/forgot-password', [body('email').isEmail().withMessage('Valid email is required')], validate, authController.forgotPassword);
+router.post('/reset-password', [
+  body('token').notEmpty().withMessage('Token is required'),
+  body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters')
+], validate, authController.resetPassword);
 
 module.exports = router;

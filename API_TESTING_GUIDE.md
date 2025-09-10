@@ -89,6 +89,19 @@ curl -X PUT http://localhost:3000/api/auth/change-password \
   }'
 ```
 
+### forgot password
+```bash
+curl -X POST http://localhost:3000/api/auth/forgot-password ^
+  -H "Content-Type: application/json" ^
+  -d "{\"email\": \"user@example.com\"}"
+```
+
+### reset password
+```bash
+curl -X POST http://localhost:3000/api/auth/reset-password ^
+  -H "Content-Type: application/json" ^
+  -d "{\"token\": \"PASTE_TOKEN_FROM_EMAIL\", \"newPassword\": \"yourNewPassword123\"}"
+```
 ### Logout
 ```bash
 curl -X POST http://localhost:3000/api/auth/logout \

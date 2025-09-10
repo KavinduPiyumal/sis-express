@@ -9,7 +9,7 @@ class AuthController {
   register = async (req, res, next) => {
     try {
       const user = await this.authUseCase.register(req.body);
-      
+
       res.status(201).json({
         success: true,
         message: 'User registered successfully',
@@ -43,7 +43,7 @@ class AuthController {
   getProfile = async (req, res, next) => {
     try {
       const user = await this.authUseCase.getProfile(req.user.id);
-      
+
       res.json({
         success: true,
         data: user
@@ -56,7 +56,7 @@ class AuthController {
   updateProfile = async (req, res, next) => {
     try {
       const user = await this.authUseCase.updateProfile(req.user.id, req.body);
-      
+
       res.json({
         success: true,
         message: 'Profile updated successfully',
@@ -76,7 +76,7 @@ class AuthController {
         newPassword,
         otp
       );
-      
+
       res.json({
         success: true,
         message: result.message
@@ -88,10 +88,12 @@ class AuthController {
 
   logout = async (req, res, next) => {
     try {
-      // In a stateless JWT implementation, logout is handled client-side
-      // But we can log the logout action
       logger.info(`User ${req.user.id} logged out`);
-      
+      res.clearCookie('token', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
+      });
       res.json({
         success: true,
         message: 'Logout successful'
@@ -105,7 +107,7 @@ class AuthController {
     try {
       const { token } = req.body;
       const user = await this.authUseCase.verifyToken(token);
-      
+
       res.json({
         success: true,
         data: user

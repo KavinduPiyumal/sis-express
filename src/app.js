@@ -49,8 +49,17 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Cookie parser for JWT HttpOnly cookies
 app.use(cookieParser());
 
-// Static file serving for uploads
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+// Static file serving for uploads with dynamic CORS headers for images
+app.use('/uploads', (req, res, next) => {
+  const allowedOrigins = config.corsOriginList;
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Vary', 'Origin');
+  }
+  res.header('Access-Control-Allow-Credentials', 'true');
+  next();
+}, express.static(path.join(__dirname, '../uploads')));
 
 // API routes
 app.use('/api/auth', authRoutes);

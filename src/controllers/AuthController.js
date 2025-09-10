@@ -55,7 +55,16 @@ class AuthController {
 
   updateProfile = async (req, res, next) => {
     try {
-      const user = await this.authUseCase.updateProfile(req.user.id, req.body);
+      // Merge req.body and file info if present
+      const updateData = { ...req.body };
+      if (req.file) {
+        if (process.env.UPLOAD_DRIVER === 's3' && req.file.location) {
+          updateData.profileImage = req.file.location; // S3 URL
+        } else {
+          updateData.profileImage = req.file.filename; // Local filename
+        }
+      }
+      const user = await this.authUseCase.updateProfile(req.user.id, updateData);
 
       res.json({
         success: true,

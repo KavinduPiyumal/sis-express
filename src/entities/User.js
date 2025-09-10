@@ -59,6 +59,11 @@ const User = sequelize.define('User', {
     allowNull: true
   }
   ,
+  profileImage: {
+    type: DataTypes.STRING,
+    allowNull: true
+  }
+  ,
   resetPasswordToken: {
     type: DataTypes.STRING,
     allowNull: true

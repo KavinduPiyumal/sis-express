@@ -117,7 +117,8 @@ class AuthUseCase {
       // Remove password and sensitive fields from update data
       const { password, role, isActive, ...allowedUpdates } = updateData;
 
-      const updatedUser = await this.userRepository.update(allowedUpdates, { id: userId });
+      // profileImage is now allowed to be updated
+      await this.userRepository.update(allowedUpdates, { id: userId });
       const refreshedUser = await this.userRepository.findById(userId);
 
       return new UserDTO(refreshedUser);
@@ -232,7 +233,7 @@ class AuthUseCase {
       'Change Password OTP',
       `<p>Your OTP for password change is: <b>${otp}</b></p><p>This code will expire in 5 minutes.</p>`
     );
-    logger.info(`Change password OTP sent to ${user.email}`);
+    logger.info(`Change password OTP sent to ${user.email} otp: ${otp}`);
   }
 }
 

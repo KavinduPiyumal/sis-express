@@ -29,8 +29,16 @@ module.exports = {
 
   // File Upload Configuration
   upload: {
+    driver: process.env.UPLOAD_DRIVER || 'local',
     path: process.env.UPLOAD_PATH || 'uploads/',
-    maxFileSize: process.env.MAX_FILE_SIZE || 5242880 // 5MB
+    maxFileSize: process.env.MAX_FILE_SIZE || 5242880, // 5MB
+    s3: {
+      bucket: process.env.S3_BUCKET,
+      region: process.env.S3_REGION,
+      accessKey: process.env.S3_ACCESS_KEY,
+      secretKey: process.env.S3_SECRET_KEY
+    },
+    baseUrl: process.env.CDN_URL || 'http://localhost:3000'
   },
 
   // Socket.IO Configuration

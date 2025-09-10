@@ -2,6 +2,8 @@
 const express = require('express');
 const { body } = require('express-validator');
 const authController = require('../controllers/AuthController');
+const getUploadMiddleware = require('../infrastructure/upload');
+const upload = getUploadMiddleware();
 const authenticate = require('../middlewares/auth');
 const validate = require('../middlewares/validate');
 const auditLogger = require('../middlewares/auditLogger');
@@ -36,7 +38,7 @@ router.post('/register', registerValidation, validate, auditLogger('create', 'us
 router.post('/login', loginValidation, validate, auditLogger('login', 'user'), authController.login);
 router.post('/logout', authenticate, auditLogger('logout', 'user'), authController.logout);
 router.get('/me', authenticate, authController.getProfile);
-router.put('/profile', authenticate, auditLogger('update', 'user'), authController.updateProfile);
+router.put('/profile', authenticate, upload.single('profileImage'), auditLogger('update', 'user'), authController.updateProfile);
 router.put('/change-password', authenticate, changePasswordValidation, validate, auditLogger('change_password', 'user'), authController.changePassword);
 // Send OTP for password change (must be authenticated)
 router.post('/send-change-password-otp', authenticate, authController.sendChangePasswordOtp);

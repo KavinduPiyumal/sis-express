@@ -171,6 +171,50 @@ class AuthUseCase {
       throw error;
     }
   }
+
+  // Forgot password: generate token, save to user, send email
+  async forgotPassword(email, req) {
+    const user = await this.userRepository.findByEmail(email);
+    if (!user) {
+      // Do not reveal if user exists
+      return;
+    }
+    // Generate secure token
+    const resetToken = require('crypto').randomBytes(32).toString('hex');
+    const resetTokenExpiry = Date.now() + 5 * 60 * 1000; // 5 minutes
+    // Save token and expiry to user
+    await this.userRepository.update({
+      resetPasswordToken: resetToken,
+      resetPasswordExpires: new Date(resetTokenExpiry)
+    }, { id: user.id });
+    // Send email
+    await emailService.sendPasswordResetEmail(user, resetToken);
+    logger.info(`Password reset email sent to ${user.email}`);
+  }
+
+  // Reset password: verify token, set new password
+  async resetPassword(token, newPassword) {
+    // Find user by token and expiry
+    const user = await this.userRepository.model.findOne({
+      where: {
+        resetPasswordToken: token,
+        resetPasswordExpires: { [require('sequelize').Op.gt]: new Date() }
+      }
+    });
+    if (!user) {
+      throw new Error('Invalid or expired reset token');
+    }
+    // Hash new password
+    const saltRounds = 12;
+    const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
+    // Update password and clear token
+    await this.userRepository.update({
+      password: hashedNewPassword,
+      resetPasswordToken: null,
+      resetPasswordExpires: null
+    }, { id: user.id });
+    logger.info(`Password reset for user ${user.email}`);
+  }
 }
 
 module.exports = AuthUseCase;

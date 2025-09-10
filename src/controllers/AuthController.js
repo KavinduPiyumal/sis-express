@@ -107,6 +107,31 @@ class AuthController {
       next(error);
     }
   };
+
+  forgotPassword = async (req, res, next) => {
+    try {
+      await this.authUseCase.forgotPassword(req.body.email, req);
+      res.json({
+        success: true,
+        message: 'If that email exists, a reset link has been sent.'
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  resetPassword = async (req, res, next) => {
+    try {
+      const { token, newPassword } = req.body;
+      await this.authUseCase.resetPassword(token, newPassword);
+      res.json({
+        success: true,
+        message: 'Password has been reset successfully.'
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 
 module.exports = new AuthController();

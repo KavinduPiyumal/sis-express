@@ -106,7 +106,8 @@ class EmailService {
         <p>Best regards,<br>SIS Team</p>
       </div>
     `;
-
+    logger.info(`Sending password reset email to ${user.email} with token ${resetToken} and reset URL ${resetUrl}`);
+    logger.info('Email Content:', { subject, html });
     return await this.sendEmail(user.email, subject, html);
   }
 

@@ -1,3 +1,4 @@
+
 const express = require('express');
 const { body } = require('express-validator');
 const authController = require('../controllers/AuthController');
@@ -37,6 +38,8 @@ router.post('/logout', authenticate, auditLogger('logout', 'user'), authControll
 router.get('/me', authenticate, authController.getProfile);
 router.put('/profile', authenticate, auditLogger('update', 'user'), authController.updateProfile);
 router.put('/change-password', authenticate, changePasswordValidation, validate, auditLogger('change_password', 'user'), authController.changePassword);
+// Send OTP for password change (must be authenticated)
+router.post('/send-change-password-otp', authenticate, authController.sendChangePasswordOtp);
 router.post('/verify-token', authController.verifyToken);
 
 // Password reset routes

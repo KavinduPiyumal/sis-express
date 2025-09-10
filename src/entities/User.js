@@ -67,6 +67,15 @@ const User = sequelize.define('User', {
     type: DataTypes.DATE,
     allowNull: true
   }
+  ,
+  changePasswordOtp: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  changePasswordOtpExpires: {
+    type: DataTypes.DATE,
+    allowNull: true
+  }
 }, {
   tableName: 'users',
   timestamps: true,

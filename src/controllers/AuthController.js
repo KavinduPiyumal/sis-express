@@ -23,11 +23,17 @@ class AuthController {
   login = async (req, res, next) => {
     try {
       const result = await this.authUseCase.login(req.body);
-      
+      // Set JWT as HttpOnly cookie
+      res.cookie('token', result.jwtToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 1000 * 60 * 60 * 24 // 1 day
+      });
       res.json({
         success: true,
         message: 'Login successful',
-        data: result
+        data: result.user
       });
     } catch (error) {
       next(error);
@@ -63,11 +69,12 @@ class AuthController {
 
   changePassword = async (req, res, next) => {
     try {
-      const { currentPassword, newPassword } = req.body;
+      const { currentPassword, newPassword, otp } = req.body;
       const result = await this.authUseCase.changePassword(
         req.user.id,
         currentPassword,
-        newPassword
+        newPassword,
+        otp
       );
       
       res.json({
@@ -127,6 +134,18 @@ class AuthController {
       res.json({
         success: true,
         message: 'Password has been reset successfully.'
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  sendChangePasswordOtp = async (req, res, next) => {
+    try {
+      await this.authUseCase.sendChangePasswordOtp(req.user.id);
+      res.json({
+        success: true,
+        message: 'OTP sent to your email.'
       });
     } catch (error) {
       next(error);

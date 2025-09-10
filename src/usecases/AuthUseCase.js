@@ -82,9 +82,10 @@ class AuthUseCase {
         { expiresIn: config.jwt.expiresIn }
       );
 
+      // Do not return token, only user
       return {
         user: new UserDTO(user),
-        token
+        jwtToken: token // for controller to set cookie, not for response
       };
     } catch (error) {
       logger.error('Login error:', error);
@@ -126,34 +127,33 @@ class AuthUseCase {
     }
   }
 
-  async changePassword(userId, currentPassword, newPassword) {
-    try {
-      const user = await this.userRepository.findById(userId);
-      if (!user) {
-        throw new Error('User not found');
-      }
-
-      // Verify current password
-      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
-      if (!isCurrentPasswordValid) {
-        throw new Error('Current password is incorrect');
-      }
-
-      // Hash new password
-      const saltRounds = 12;
-      const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
-
-      // Update password
-      await this.userRepository.update(
-        { password: hashedNewPassword },
-        { id: userId }
-      );
-
-      return { message: 'Password changed successfully' };
-    } catch (error) {
-      logger.error('Change password error:', error);
-      throw error;
+  async changePassword(userId, currentPassword, newPassword, otp) {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
     }
+    // OTP validation
+    if (!otp || user.changePasswordOtp !== otp || !user.changePasswordOtpExpires || user.changePasswordOtpExpires < new Date()) {
+      throw new Error('Invalid or expired OTP');
+    }
+    // Verify current password
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isCurrentPasswordValid) {
+      throw new Error('Current password is incorrect');
+    }
+    // Hash new password
+    const saltRounds = 12;
+    const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
+    // Update password and clear OTP
+    await this.userRepository.update(
+      {
+        password: hashedNewPassword,
+        changePasswordOtp: null,
+        changePasswordOtpExpires: null
+      },
+      { id: userId }
+    );
+    return { message: 'Password changed successfully' };
   }
 
   async verifyToken(token) {
@@ -214,6 +214,25 @@ class AuthUseCase {
       resetPasswordExpires: null
     }, { id: user.id });
     logger.info(`Password reset for user ${user.email}`);
+  }
+
+  // Send OTP to user email for password change verification
+  async sendChangePasswordOtp(userId) {
+    const user = await this.userRepository.findById(userId);
+    if (!user) throw new Error('User not found');
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpiry = Date.now() + 5 * 60 * 1000; // 5 minutes
+    await this.userRepository.update({
+      changePasswordOtp: otp,
+      changePasswordOtpExpires: new Date(otpExpiry)
+    }, { id: user.id });
+    await emailService.sendEmail(
+      user.email,
+      'Change Password OTP',
+      `<p>Your OTP for password change is: <b>${otp}</b></p><p>This code will expire in 5 minutes.</p>`
+    );
+    logger.info(`Change password OTP sent to ${user.email}`);
   }
 }
 

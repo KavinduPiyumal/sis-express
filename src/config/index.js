@@ -36,5 +36,9 @@ module.exports = {
   // Socket.IO Configuration
   socket: {
     corsOrigin: process.env.SOCKET_CORS_ORIGIN || 'http://localhost:3001'
-  }
+  },
+  
+  corsOriginList: process.env.CORS_ORIGIN_LIST ? process.env.CORS_ORIGIN_LIST.split(',') : ['http://localhost:3001', 'http://localhost:5173'],
+
+  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
 };

@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const http = require('http');
 const path = require('path');
+const cookieParser = require('cookie-parser');
 
 // Import configuration and services
 const config = require('./config');
@@ -30,7 +31,7 @@ socketService.initialize(server);
 // Security middleware
 app.use(helmet());
 app.use(cors({
-  origin: config.socket.corsOrigin,
+  origin: config.corsOriginList,
   credentials: true
 }));
 
@@ -44,6 +45,9 @@ app.use(limiter);
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Cookie parser for JWT HttpOnly cookies
+app.use(cookieParser());
 
 // Static file serving for uploads
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));

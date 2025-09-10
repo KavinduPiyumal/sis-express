@@ -1,4 +1,4 @@
-# API Testing Guide with cURL Commands
+# API Testing Guide (Updated for HttpOnly Cookie JWT Auth)
 
 This document provides comprehensive cURL commands to test all APIs in the Student Information System.
 
@@ -23,9 +23,9 @@ curl -X POST http://localhost:3000/api/auth/register \
   }'
 ```
 
-### 2. Login to Get JWT Token
+### 2. Login (JWT is set as HttpOnly Cookie)
 ```bash
-curl -X POST http://localhost:3000/api/auth/login \
+curl -i -c cookies.txt -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "admin@sis.com",
@@ -33,42 +33,30 @@ curl -X POST http://localhost:3000/api/auth/login \
   }'
 ```
 
-**Response will contain a token - save this for subsequent requests:**
-```json
-{
-  "success": true,
-  "message": "Login successful",
-  "data": {
-    "user": {...},
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-  }
-}
-```
+**Response:**
+- The server will set a `token` cookie (HttpOnly, Secure, SameSite=strict) in the `Set-Cookie` header.
+- The response body will only contain user info, NOT the token.
+- You do NOT need to save or use a token variable.
 
-### 3. Set Token as Environment Variable (for easier testing)
+**For all subsequent requests, use the saved cookies:**
 ```bash
-# Linux/Mac
-export TOKEN="your_jwt_token_here"
-
-# Windows CMD
-set TOKEN=your_jwt_token_here
-
-# Windows PowerShell
-$env:TOKEN="your_jwt_token_here"
+curl -b cookies.txt -X GET http://localhost:3000/api/auth/me
 ```
+
+> All authentication is now handled via the `token` cookie. Do NOT use the Authorization header or a token variable.
 
 ## Authentication Endpoints
 
 ### Get Current User Profile
 ```bash
 curl -X GET http://localhost:3000/api/auth/me \
-  -H "Authorization: Bearer $TOKEN"
+  -b cookies.txt
 ```
 
 ### Update Profile
 ```bash
 curl -X PUT http://localhost:3000/api/auth/profile \
-  -H "Authorization: Bearer $TOKEN" \
+  -b cookies.txt \
   -H "Content-Type: application/json" \
   -d '{
     "firstName": "Updated",
@@ -78,15 +66,19 @@ curl -X PUT http://localhost:3000/api/auth/profile \
   }'
 ```
 
-### Change Password
+### Send Change Password OTP
 ```bash
-curl -X PUT http://localhost:3000/api/auth/change-password \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "currentPassword": "admin123",
-    "newPassword": "newpassword123"
-  }'
+curl -X POST http://localhost:3000/api/auth/send-change-password-otp ^
+  -b cookies.txt ^
+  -H "Content-Type: application/json"
+```
+
+### Change Password (with OTP)
+```bash
+curl -X PUT http://localhost:3000/api/auth/change-password ^
+  -b cookies.txt ^
+  -H "Content-Type: application/json" ^
+  -d "{\"currentPassword\": \"oldPassword123\", \"newPassword\": \"newPassword456\", \"otp\": \"123456\"}"
 ```
 
 ### forgot password
@@ -105,7 +97,7 @@ curl -X POST http://localhost:3000/api/auth/reset-password ^
 ### Logout
 ```bash
 curl -X POST http://localhost:3000/api/auth/logout \
-  -H "Authorization: Bearer $TOKEN"
+  -b cookies.txt
 ```
 
 ## User Management Endpoints (Super Admin Required)
@@ -113,7 +105,7 @@ curl -X POST http://localhost:3000/api/auth/logout \
 ### Create a New Admin
 ```bash
 curl -X POST http://localhost:3000/api/users \
-  -H "Authorization: Bearer $TOKEN" \
+  -b cookies.txt \
   -H "Content-Type: application/json" \
   -d '{
     "firstName": "John",
@@ -126,7 +118,7 @@ curl -X POST http://localhost:3000/api/users \
 ### Create a New Student
 ```bash
 curl -X POST http://localhost:3000/api/users \
-  -H "Authorization: Bearer $TOKEN" \
+  -b cookies.txt \
   -H "Content-Type: application/json" \
   -d '{
     "firstName": "Jane",
@@ -141,37 +133,37 @@ curl -X POST http://localhost:3000/api/users \
 ### Get All Users (with pagination and filters)
 ```bash
 curl -X GET "http://localhost:3000/api/users?page=1&limit=10&search=jane&role=student" \
-  -H "Authorization: Bearer $TOKEN"
+  -b cookies.txt
 ```
 
 ### Get User Statistics
 ```bash
 curl -X GET http://localhost:3000/api/users/stats \
-  -H "Authorization: Bearer $TOKEN"
+  -b cookies.txt
 ```
 
 ### Get All Students
 ```bash
 curl -X GET http://localhost:3000/api/users/students \
-  -H "Authorization: Bearer $TOKEN"
+  -b cookies.txt
 ```
 
 ### Get All Admins
 ```bash
 curl -X GET http://localhost:3000/api/users/admins \
-  -H "Authorization: Bearer $TOKEN"
+  -b cookies.txt
 ```
 
 ### Get User by ID
 ```bash
 curl -X GET http://localhost:3000/api/users/USER_ID_HERE \
-  -H "Authorization: Bearer $TOKEN"
+  -b cookies.txt
 ```
 
 ### Update User
 ```bash
 curl -X PUT http://localhost:3000/api/users/USER_ID_HERE \
-  -H "Authorization: Bearer $TOKEN" \
+  -b cookies.txt \
   -H "Content-Type: application/json" \
   -d '{
     "firstName": "Updated",
@@ -184,7 +176,7 @@ curl -X PUT http://localhost:3000/api/users/USER_ID_HERE \
 ### Delete User (Soft Delete)
 ```bash
 curl -X DELETE http://localhost:3000/api/users/USER_ID_HERE \
-  -H "Authorization: Bearer $TOKEN"
+  -b cookies.txt
 ```
 
 ## Attendance Endpoints
@@ -192,7 +184,7 @@ curl -X DELETE http://localhost:3000/api/users/USER_ID_HERE \
 ### Record Attendance (Admin Required)
 ```bash
 curl -X POST http://localhost:3000/api/attendance \
-  -H "Authorization: Bearer $TOKEN" \
+  -b cookies.txt \
   -H "Content-Type: application/json" \
   -d '{
     "studentId": "STUDENT_ID_HERE",
@@ -206,7 +198,7 @@ curl -X POST http://localhost:3000/api/attendance \
 ### Record Bulk Attendance
 ```bash
 curl -X POST http://localhost:3000/api/attendance/bulk \
-  -H "Authorization: Bearer $TOKEN" \
+  -b cookies.txt \
   -H "Content-Type: application/json" \
   -d '{
     "attendanceRecords": [
@@ -229,25 +221,25 @@ curl -X POST http://localhost:3000/api/attendance/bulk \
 ### Get All Attendance Records (Admin View)
 ```bash
 curl -X GET "http://localhost:3000/api/attendance?page=1&limit=10&date=2024-01-15&status=present" \
-  -H "Authorization: Bearer $TOKEN"
+  -b cookies.txt
 ```
 
 ### Get Student Attendance
 ```bash
 curl -X GET "http://localhost:3000/api/attendance/STUDENT_ID_HERE?startDate=2024-01-01&endDate=2024-01-31" \
-  -H "Authorization: Bearer $TOKEN"
+  -b cookies.txt
 ```
 
 ### Get Attendance Statistics
 ```bash
 curl -X GET "http://localhost:3000/api/attendance/STUDENT_ID_HERE/stats?startDate=2024-01-01&endDate=2024-01-31" \
-  -H "Authorization: Bearer $TOKEN"
+  -b cookies.txt
 ```
 
 ### Update Attendance Record
 ```bash
 curl -X PUT http://localhost:3000/api/attendance/ATTENDANCE_ID_HERE \
-  -H "Authorization: Bearer $TOKEN" \
+  -b cookies.txt \
   -H "Content-Type: application/json" \
   -d '{
     "status": "late",
@@ -301,19 +293,15 @@ LOGIN_RESPONSE=$(curl -s -X POST $BASE_URL/api/auth/login \
   }')
 echo $LOGIN_RESPONSE | jq '.'
 
-# Extract token
-TOKEN=$(echo $LOGIN_RESPONSE | jq -r '.data.token')
-echo "Token: $TOKEN"
-
 # 4. Get Profile
 echo "4. Getting Profile..."
 curl -s -X GET $BASE_URL/api/auth/me \
-  -H "Authorization: Bearer $TOKEN" | jq '.'
+  -b cookies.txt | jq '.'
 
 # 5. Create Student
 echo "5. Creating Student..."
 STUDENT_RESPONSE=$(curl -s -X POST $BASE_URL/api/users \
-  -H "Authorization: Bearer $TOKEN" \
+  -b cookies.txt \
   -H "Content-Type: application/json" \
   -d '{
     "firstName": "Jane",
@@ -331,7 +319,7 @@ echo "Student ID: $STUDENT_ID"
 # 6. Record Attendance
 echo "6. Recording Attendance..."
 curl -s -X POST $BASE_URL/api/attendance \
-  -H "Authorization: Bearer $TOKEN" \
+  -b cookies.txt \
   -H "Content-Type: application/json" \
   -d "{
     \"studentId\": \"$STUDENT_ID\",

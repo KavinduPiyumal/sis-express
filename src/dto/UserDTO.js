@@ -21,15 +21,19 @@ class UserDTO {
         // S3: construct S3 URL if not already a full URL
         const s3Bucket = process.env.S3_BUCKET || '';
         const s3Region = process.env.S3_REGION || '';
-        if (s3Bucket && s3Region) {
-          this.profileImage = `https://${s3Bucket}.s3.${s3Region}.amazonaws.com/profileImages/${user.profileImage}`;
+        if (s3Bucket && s3Region && user.id) {
+          this.profileImage = `https://${s3Bucket}.s3.${s3Region}.amazonaws.com/uploads/${user.id}/profileImages/${user.profileImage}`;
         } else {
           this.profileImage = user.profileImage;
         }
       } else {
         // Local file: construct full URL using CDN_URL
         const cdnUrl = process.env.CDN_URL || '';
-        this.profileImage = `${cdnUrl}/uploads/profileImages/${user.profileImage}`;
+        if (user.id) {
+          this.profileImage = `${cdnUrl}/uploads/${user.id}/profileImages/${user.profileImage}`;
+        } else {
+          this.profileImage = `${cdnUrl}/uploads/profileImages/${user.profileImage}`;
+        }
       }
     } else {
       this.profileImage = null;

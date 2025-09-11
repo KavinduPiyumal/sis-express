@@ -2,6 +2,7 @@ const AuthUseCase = require('../usecases/AuthUseCase');
 const logger = require('../config/logger');
 
 class AuthController {
+
   constructor() {
     this.authUseCase = new AuthUseCase();
   }
@@ -53,13 +54,42 @@ class AuthController {
     }
   };
 
+  // Pre-signed S3 download URL endpoint
+  getPresignedUrl = (req, res, next) => {
+    const { key } = req.query;
+    if (!key) {
+      return res.status(400).json({ success: false, message: 'Missing file key' });
+    }
+    try {
+      const { getS3DownloadUrl } = require('../infrastructure/s3PresignedUrl');
+      const url = getS3DownloadUrl(key);
+      res.json({ success: true, url });
+    } catch (err) {
+      res.status(500).json({ success: false, message: 'Failed to generate pre-signed URL', error: err.message });
+    }
+  };
+
+  getPresignedUploadUrl = (req, res) => {
+  const { key, fileType } = req.query;
+  if (!key || !fileType) {
+    return res.status(400).json({ success: false, message: 'Missing key or fileType' });
+  }
+  try {
+    const { getS3UploadUrl } = require('../infrastructure/s3PresignedUrl');
+    const url = getS3UploadUrl(key, fileType);
+    res.json({ success: true, url });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to generate pre-signed upload URL', error: err.message });
+  }
+};
+
   updateProfile = async (req, res, next) => {
     try {
       // Merge req.body and file info if present
       const updateData = { ...req.body };
       if (req.file) {
         if (process.env.UPLOAD_DRIVER === 's3' && req.file.location) {
-          updateData.profileImage = req.file.location; // S3 URL
+          // updateData.profileImage = req.file.location; // S3 URL
         } else {
           updateData.profileImage = req.file.filename; // Local filename
         }

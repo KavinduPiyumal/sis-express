@@ -18,21 +18,26 @@ class UserDTO {
         // Already a full URL (S3 or external)
         this.profileImage = user.profileImage;
       } else if (process.env.UPLOAD_DRIVER === 's3') {
-        // S3: use pre-signed download URL utility
-        // const { getS3DownloadUrl } = require('../infrastructure/s3PresignedUrl');
-        // if (user.id) {
-        //   this.profileImage = getS3DownloadUrl(`uploads/${user.id}/profileImages/${user.profileImage}`);
-        // } else {
-        //   this.profileImage = getS3DownloadUrl(`uploads/profileImages/${user.profileImage}`);
-        // }
-        // S3: construct S3 URL if not already a full URL
-        const s3Bucket = process.env.S3_BUCKET || '';
-        const s3Region = process.env.S3_REGION || '';
-        if (s3Bucket && s3Region && user.id) {
-          this.profileImage = `https://${s3Bucket}.s3.${s3Region}.amazonaws.com/uploads/${user.id}/profileImages/${user.profileImage}`;
-        } else {
-          this.profileImage = user.profileImage;
+        if (process.env.S3_IS_PRE_SIGNED === 'true') {
+          // S3: use pre-signed download URL utility
+          const { getS3DownloadUrl } = require('../infrastructure/s3PresignedUrl');
+          if (user.id) {
+            this.profileImage = getS3DownloadUrl(`uploads/${user.id}/profileImages/${user.profileImage}`);
+          } else {
+            this.profileImage = getS3DownloadUrl(`uploads/profileImages/${user.profileImage}`);
+          }
         }
+        else {
+          // S3: construct S3 URL if not already a full URL
+          const s3Bucket = process.env.S3_BUCKET || '';
+          const s3Region = process.env.S3_REGION || '';
+          if (s3Bucket && s3Region && user.id) {
+            this.profileImage = `https://${s3Bucket}.s3.${s3Region}.amazonaws.com/uploads/${user.id}/profileImages/${user.profileImage}`;
+          } else {
+            this.profileImage = user.profileImage;
+          }
+        }
+
       } else {
         // Local file: construct full URL using CDN_URL
         const cdnUrl = process.env.CDN_URL || '';

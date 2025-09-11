@@ -30,6 +30,7 @@ module.exports = {
   // File Upload Configuration
   upload: {
     driver: process.env.UPLOAD_DRIVER || 'local',
+    s3IsPreSigned: process.env.S3_IS_PRE_SIGNED || false,
     path: process.env.UPLOAD_PATH || 'uploads/',
     maxFileSize: process.env.MAX_FILE_SIZE || 5242880, // 5MB
     s3: {

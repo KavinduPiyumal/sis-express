@@ -15,7 +15,7 @@ function getUploadMiddleware() {
       storage: multerS3({
         s3,
         bucket: process.env.S3_BUCKET,
-        acl: 'public-read',
+        ...(process.env.S3_IS_PRE_SIGNED === 'false' ? { acl: 'public-read' } : {}),
         key: (req, file, cb) => {
           let userId = req.user && req.user.id ? req.user.id : (req.body && req.body.id ? req.body.id : 'unknown');
           cb(null, `uploads/${userId}/profileImages/${Date.now()}-${file.originalname}`);

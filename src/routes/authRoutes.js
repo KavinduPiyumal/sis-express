@@ -1,4 +1,5 @@
 
+
 const express = require('express');
 const { body } = require('express-validator');
 const authController = require('../controllers/AuthController');
@@ -38,7 +39,15 @@ router.post('/register', registerValidation, validate, auditLogger('create', 'us
 router.post('/login', loginValidation, validate, auditLogger('login', 'user'), authController.login);
 router.post('/logout', authenticate, auditLogger('logout', 'user'), authController.logout);
 router.get('/me', authenticate, authController.getProfile);
-router.put('/profile', authenticate, upload.single('profileImage'), auditLogger('update', 'user'), authController.updateProfile);
+router.get('/presigned-url', authenticate, authController.getPresignedUrl);
+router.get('/presigned-upload-url', authenticate, authController.getPresignedUploadUrl);
+if (process.env.UPLOAD_DRIVER === 's3' && process.env.S3_IS_PRE_SIGNED === 'true') {
+  // Pre-signed S3: expect profileImageKey in body, no multer
+  router.put('/profile', authenticate, auditLogger('update', 'user'), authController.updateProfile);
+} else {
+  // Normal upload: use multer
+  router.put('/profile', authenticate, upload.single('profileImage'), auditLogger('update', 'user'), authController.updateProfile);
+}
 router.put('/change-password', authenticate, changePasswordValidation, validate, auditLogger('change_password', 'user'), authController.changePassword);
 // Send OTP for password change (must be authenticated)
 router.post('/send-change-password-otp', authenticate, authController.sendChangePasswordOtp);

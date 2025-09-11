@@ -18,6 +18,13 @@ class UserDTO {
         // Already a full URL (S3 or external)
         this.profileImage = user.profileImage;
       } else if (process.env.UPLOAD_DRIVER === 's3') {
+        // S3: use pre-signed download URL utility
+        // const { getS3DownloadUrl } = require('../infrastructure/s3PresignedUrl');
+        // if (user.id) {
+        //   this.profileImage = getS3DownloadUrl(`uploads/${user.id}/profileImages/${user.profileImage}`);
+        // } else {
+        //   this.profileImage = getS3DownloadUrl(`uploads/profileImages/${user.profileImage}`);
+        // }
         // S3: construct S3 URL if not already a full URL
         const s3Bucket = process.env.S3_BUCKET || '';
         const s3Region = process.env.S3_REGION || '';

@@ -1,5 +1,4 @@
 node_modules/
-.env
 uploads/
 logs/
 *.log
@@ -8,3 +7,6 @@ logs/
 coverage/
 dist/
 build/
+.env
+.env.local
+.env.production

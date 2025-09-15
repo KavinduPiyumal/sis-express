@@ -16,7 +16,10 @@ class UserRepository extends BaseRepository {
   }
 
   async findByRole(role, options = {}) {
-    return await this.findAll({ where: { role }, ...options });
+    // Merge role and any additional where filters
+    const where = { role, ...(options.where || {}) };
+    const opts = { ...options, where };
+    return await this.findAll(opts);
   }
 
   async findActiveUsers(options = {}) {

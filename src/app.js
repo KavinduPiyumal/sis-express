@@ -1,3 +1,4 @@
+// ...existing code...
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -14,10 +15,22 @@ const { connectDB } = require('./infrastructure/database');
 const socketService = require('./infrastructure/socketService');
 const errorHandler = require('./middlewares/errorHandler');
 
+
 // Import routes
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const attendanceRoutes = require('./routes/attendanceRoutes');
+const facultyRoutes = require('./routes/facultyRoutes');
+const degreeProgramRoutes = require('./routes/degreeProgramRoutes');
+const subjectRoutes = require('./routes/subjectRoutes');
+const classSectionRoutes = require('./routes/classSectionRoutes');
+const semesterRoutes = require('./routes/semesterRoutes');
+const enrollmentRoutes = require('./routes/enrollmentRoutes');
+const semesterGPARoutes = require('./routes/semesterGPARoutes');
+const cgpaRoutes = require('./routes/cgpaRoutes');
+const gradingSystemRoutes = require('./routes/gradingSystemRoutes');
+const degreeRuleRoutes = require('./routes/degreeRuleRoutes');
+const transcriptRoutes = require('./routes/transcriptRoutes');
 
 // Import models to initialize associations
 require('./entities');
@@ -65,6 +78,19 @@ app.use('/uploads', (req, res, next) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/attendance', attendanceRoutes);
+app.use('/api/faculties', facultyRoutes);
+app.use('/api/degree-programs', degreeProgramRoutes);
+app.use('/api/subjects', subjectRoutes);
+app.use('/api/class-sections', classSectionRoutes);
+app.use('/api/semesters', semesterRoutes);
+app.use('/api/enrollments', enrollmentRoutes);
+app.use('/api/semester-gpas', semesterGPARoutes);
+app.use('/api/cgpas', cgpaRoutes);
+app.use('/api/grading-systems', gradingSystemRoutes);
+app.use('/api/degree-rules', degreeRuleRoutes);
+app.use('/api/transcripts', transcriptRoutes);
+const medicalReportRoutes = require('./routes/medicalReportRoutes');
+app.use('/api/medical-reports', medicalReportRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

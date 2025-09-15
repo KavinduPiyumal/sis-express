@@ -1,0 +1,27 @@
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../infrastructure/database');
+
+const Semester = sequelize.define('Semester', {
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true
+  },
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  startDate: {
+    type: DataTypes.DATEONLY,
+    allowNull: false
+  },
+  endDate: {
+    type: DataTypes.DATEONLY,
+    allowNull: false
+  }
+}, {
+  tableName: 'semesters',
+  timestamps: true
+});
+
+module.exports = Semester;

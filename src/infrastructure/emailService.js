@@ -92,6 +92,7 @@ class EmailService {
   }
 
   async sendPasswordResetEmail(user, resetToken) {
+    logger.info(`Preparing to send password reset email to ${user.email} with token ${resetToken}`);
     const subject = 'Password Reset Request';
     const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3001'}/reset-password?token=${resetToken}`;
     const html = `

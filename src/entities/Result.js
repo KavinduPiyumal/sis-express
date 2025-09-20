@@ -11,23 +11,19 @@ const Result = sequelize.define('Result', {
     type: DataTypes.UUID,
     allowNull: false,
     references: {
-      model: 'users',
+      model: 'students',
       key: 'id'
     }
   },
-  subject: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-  examType: {
-    type: DataTypes.ENUM('assignment', 'quiz', 'midterm', 'final', 'project'),
-    allowNull: false
+  courseOfferingId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: 'course_offerings',
+      key: 'id'
+    }
   },
   marks: {
-    type: DataTypes.DECIMAL(5, 2),
-    allowNull: false
-  },
-  totalMarks: {
     type: DataTypes.DECIMAL(5, 2),
     allowNull: false
   },
@@ -35,40 +31,26 @@ const Result = sequelize.define('Result', {
     type: DataTypes.STRING,
     allowNull: true
   },
-  examDate: {
-    type: DataTypes.DATEONLY,
-    allowNull: false
-  },
-  semester: {
-    type: DataTypes.STRING,
+  gradePoint: {
+    type: DataTypes.DECIMAL(3,2),
     allowNull: true
   },
-  academicYear: {
-    type: DataTypes.STRING,
-    allowNull: true
-  },
-  remarks: {
-    type: DataTypes.TEXT,
-    allowNull: true
-  },
-  uploadedBy: {
+  enteredBy: {
     type: DataTypes.UUID,
     allowNull: false,
     references: {
       model: 'users',
       key: 'id'
     }
+  },
+  enteredAt: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: DataTypes.NOW
   }
 }, {
   tableName: 'results',
-  timestamps: true,
-  indexes: [
-    { fields: ['studentId'] },
-    { fields: ['subject'] },
-    { fields: ['examType'] },
-    { fields: ['examDate'] },
-    { fields: ['semester'] }
-  ]
+  timestamps: true
 });
 
 module.exports = Result;

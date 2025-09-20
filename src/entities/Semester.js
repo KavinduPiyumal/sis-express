@@ -11,6 +11,14 @@ const Semester = sequelize.define('Semester', {
     type: DataTypes.STRING,
     allowNull: false
   },
+  batchId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: 'batches',
+      key: 'id'
+    }
+  },
   startDate: {
     type: DataTypes.DATEONLY,
     allowNull: false

@@ -12,34 +12,26 @@ const Enrollment = sequelize.define('Enrollment', {
     type: DataTypes.UUID,
     allowNull: false,
     references: {
-      model: 'users',
+      model: 'students',
       key: 'id'
     }
   },
-  classSectionId: {
+  courseOfferingId: {
     type: DataTypes.UUID,
     allowNull: false,
     references: {
-      model: 'class_sections',
+      model: 'course_offerings',
       key: 'id'
     }
-  },
-  enrollmentDate: {
-    type: DataTypes.DATEONLY,
-    allowNull: false
   },
   status: {
-    type: DataTypes.ENUM('pending', 'approved', 'rejected'),
+    type: DataTypes.ENUM('active', 'dropped', 'completed', 'failed', 'retake'),
     allowNull: false,
-    defaultValue: 'pending'
+    defaultValue: 'active'
   },
-  approvedBy: {
-    type: DataTypes.UUID,
-    allowNull: true,
-    references: {
-      model: 'users',
-      key: 'id'
-    }
+  enrolledDate: {
+    type: DataTypes.DATEONLY,
+    allowNull: false
   }
 }, {
   tableName: 'enrollments',

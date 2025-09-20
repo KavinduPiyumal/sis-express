@@ -5,6 +5,10 @@ class EnrollmentRepository extends BaseRepository {
   constructor() {
     super(Enrollment);
   }
+
+  async findByStudentAndOffering(studentId, courseOfferingId) {
+    return await this.findOne({ studentId, courseOfferingId });
+  }
 }
 
 module.exports = EnrollmentRepository;

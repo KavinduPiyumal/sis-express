@@ -1,112 +1,104 @@
-const User = require('./User');
-const Attendance = require('./Attendance');
-const MedicalReport = require('./MedicalReport');
-const Notice = require('./Notice');
-const Payment = require('./Payment');
-const Result = require('./Result');
-const Log = require('./Log');
-const Link = require('./Link');
-const Notification = require('./Notification');
+
 const Faculty = require('./Faculty');
 const DegreeProgram = require('./DegreeProgram');
-const Subject = require('./Subject');
-const ClassSection = require('./ClassSection');
 const Semester = require('./Semester');
+const Subject = require('./Subject');
+const User = require('./User');
+const Student = require('./Student');
+const Lecturer = require('./Lecturer');
+const Department = require('./Department');
+const Batch = require('./Batch');
+const CourseOffering = require('./CourseOffering');
+const ClassSession = require('./ClassSession');
+const Medical = require('./Medical');
+const Result = require('./Result');
+const Attendance = require('./Attendance');
 const Enrollment = require('./Enrollment');
-const SemesterGPA = require('./SemesterGPA');
-const CGPA = require('./CGPA');
-const GradingSystem = require('./GradingSystem');
-const DegreeRule = require('./DegreeRule');
-const Transcript = require('./Transcript');
 
+// Associations for new SIS structure
+Faculty.hasMany(Department, { foreignKey: 'facultyId', as: 'departments' });
+Department.belongsTo(Faculty, { foreignKey: 'facultyId', as: 'faculty' });
 
-// Existing associations
-User.hasMany(Attendance, { foreignKey: 'studentId', as: 'attendances' });
-Attendance.belongsTo(User, { foreignKey: 'studentId', as: 'student' });
-Attendance.belongsTo(User, { foreignKey: 'recordedBy', as: 'recorder' });
-
-User.hasMany(MedicalReport, { foreignKey: 'studentId', as: 'medicalReports' });
-MedicalReport.belongsTo(User, { foreignKey: 'studentId', as: 'student' });
-MedicalReport.belongsTo(User, { foreignKey: 'reviewedBy', as: 'reviewer' });
-
-User.hasMany(Payment, { foreignKey: 'studentId', as: 'payments' });
-Payment.belongsTo(User, { foreignKey: 'studentId', as: 'student' });
-Payment.belongsTo(User, { foreignKey: 'reviewedBy', as: 'reviewer' });
-
-User.hasMany(Result, { foreignKey: 'studentId', as: 'results' });
-Result.belongsTo(User, { foreignKey: 'studentId', as: 'student' });
-Result.belongsTo(User, { foreignKey: 'uploadedBy', as: 'uploader' });
-
-User.hasMany(Notice, { foreignKey: 'createdBy', as: 'notices' });
-Notice.belongsTo(User, { foreignKey: 'createdBy', as: 'creator' });
-
-User.hasMany(Link, { foreignKey: 'createdBy', as: 'links' });
-Link.belongsTo(User, { foreignKey: 'createdBy', as: 'creator' });
-
-User.hasMany(Log, { foreignKey: 'userId', as: 'logs' });
-Log.belongsTo(User, { foreignKey: 'userId', as: 'user' });
-
-User.hasMany(Notification, { foreignKey: 'userId', as: 'notifications' });
-Notification.belongsTo(User, { foreignKey: 'userId', as: 'user' });
-
-
-Faculty.hasMany(DegreeProgram, { foreignKey: 'facultyId', as: 'degreePrograms' });
+Faculty.hasMany(DegreeProgram, { foreignKey: 'facultyId', as: 'programs' });
 DegreeProgram.belongsTo(Faculty, { foreignKey: 'facultyId', as: 'faculty' });
+DegreeProgram.belongsTo(Department, { foreignKey: 'departmentId', as: 'department' });
+Department.hasMany(DegreeProgram, { foreignKey: 'departmentId', as: 'programs' });
 
-DegreeProgram.hasMany(Subject, { foreignKey: 'degreeProgramId', as: 'subjects' });
-Subject.belongsTo(DegreeProgram, { foreignKey: 'degreeProgramId', as: 'degreeProgram' });
+DegreeProgram.hasMany(Batch, { foreignKey: 'programId', as: 'batches' });
+Batch.belongsTo(DegreeProgram, { foreignKey: 'programId', as: 'program' });
 
-Subject.hasMany(ClassSection, { foreignKey: 'subjectId', as: 'classSections' });
-ClassSection.belongsTo(Subject, { foreignKey: 'subjectId', as: 'subject' });
+Batch.hasMany(Semester, { foreignKey: 'batchId', as: 'semesters' });
+Semester.belongsTo(Batch, { foreignKey: 'batchId', as: 'batch' });
 
-Faculty.hasMany(User, { foreignKey: 'facultyId', as: 'lecturers' }); // Lecturer is a User
-User.belongsTo(Faculty, { foreignKey: 'facultyId', as: 'faculty' });
+Batch.hasMany(Student, { foreignKey: 'batchId', as: 'students' });
+Student.belongsTo(Batch, { foreignKey: 'batchId', as: 'batch' });
 
-DegreeProgram.hasMany(User, { foreignKey: 'degreeProgramId', as: 'students' }); // Student is a User
-User.belongsTo(DegreeProgram, { foreignKey: 'degreeProgramId', as: 'degreeProgram' });
+User.hasOne(Student, { foreignKey: 'userId', as: 'studentProfile' });
+Student.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
-ClassSection.hasMany(Enrollment, { foreignKey: 'classSectionId', as: 'enrollments' });
-Enrollment.belongsTo(ClassSection, { foreignKey: 'classSectionId', as: 'classSection' });
-User.hasMany(Enrollment, { foreignKey: 'studentId', as: 'enrollments' });
-Enrollment.belongsTo(User, { foreignKey: 'studentId', as: 'student' });
+User.hasOne(Lecturer, { foreignKey: 'userId', as: 'lecturerProfile' });
+Lecturer.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
-Semester.hasMany(ClassSection, { foreignKey: 'semesterId', as: 'classSections' });
-ClassSection.belongsTo(Semester, { foreignKey: 'semesterId', as: 'semester' });
+Department.hasMany(Lecturer, { foreignKey: 'departmentId', as: 'lecturers' });
+Lecturer.belongsTo(Department, { foreignKey: 'departmentId', as: 'department' });
 
-User.hasMany(SemesterGPA, { foreignKey: 'studentId', as: 'semesterGPAs' });
-SemesterGPA.belongsTo(User, { foreignKey: 'studentId', as: 'student' });
-Semester.hasMany(SemesterGPA, { foreignKey: 'semesterId', as: 'semesterGPAs' });
-SemesterGPA.belongsTo(Semester, { foreignKey: 'semesterId', as: 'semester' });
+Subject.hasMany(CourseOffering, { foreignKey: 'subjectId', as: 'offerings' });
+CourseOffering.belongsTo(Subject, { foreignKey: 'subjectId', as: 'subject' });
 
-User.hasOne(CGPA, { foreignKey: 'studentId', as: 'cgpa' });
-CGPA.belongsTo(User, { foreignKey: 'studentId', as: 'student' });
+Semester.hasMany(CourseOffering, { foreignKey: 'semesterId', as: 'offerings' });
+CourseOffering.belongsTo(Semester, { foreignKey: 'semesterId', as: 'semester' });
 
+Batch.hasMany(CourseOffering, { foreignKey: 'batchId', as: 'offerings' });
+CourseOffering.belongsTo(Batch, { foreignKey: 'batchId', as: 'batch' });
 
-DegreeProgram.hasOne(DegreeRule, { foreignKey: 'degreeProgramId', as: 'degreeRule' });
-DegreeRule.belongsTo(DegreeProgram, { foreignKey: 'degreeProgramId', as: 'degreeProgram' });
+User.hasMany(CourseOffering, { foreignKey: 'lecturerId', as: 'lecturerOfferings' });
+CourseOffering.belongsTo(User, { foreignKey: 'lecturerId', as: 'lecturer' });
 
-User.hasOne(Transcript, { foreignKey: 'studentId', as: 'transcript' });
-Transcript.belongsTo(User, { foreignKey: 'studentId', as: 'student' });
+CourseOffering.hasMany(ClassSession, { foreignKey: 'courseOfferingId', as: 'sessions' });
+ClassSession.belongsTo(CourseOffering, { foreignKey: 'courseOfferingId', as: 'courseOffering' });
+
+CourseOffering.hasMany(Enrollment, { foreignKey: 'courseOfferingId', as: 'enrollments' });
+Enrollment.belongsTo(CourseOffering, { foreignKey: 'courseOfferingId', as: 'courseOffering' });
+
+Student.hasMany(Enrollment, { foreignKey: 'studentId', as: 'enrollments' });
+Enrollment.belongsTo(Student, { foreignKey: 'studentId', as: 'student' });
+
+CourseOffering.hasMany(Result, { foreignKey: 'courseOfferingId', as: 'results' });
+Result.belongsTo(CourseOffering, { foreignKey: 'courseOfferingId', as: 'courseOffering' });
+
+Student.hasMany(Result, { foreignKey: 'studentId', as: 'results' });
+Result.belongsTo(Student, { foreignKey: 'studentId', as: 'student' });
+
+CourseOffering.hasMany(Attendance, { foreignKey: 'courseOfferingId', as: 'attendances' });
+Attendance.belongsTo(CourseOffering, { foreignKey: 'courseOfferingId', as: 'courseOffering' });
+
+ClassSession.hasMany(Attendance, { foreignKey: 'classSessionId', as: 'attendances' });
+Attendance.belongsTo(ClassSession, { foreignKey: 'classSessionId', as: 'classSession' });
+
+Student.hasMany(Attendance, { foreignKey: 'studentId', as: 'attendances' });
+Attendance.belongsTo(Student, { foreignKey: 'studentId', as: 'student' });
+
+Student.hasMany(Medical, { foreignKey: 'studentId', as: 'medicals' });
+Medical.belongsTo(Student, { foreignKey: 'studentId', as: 'student' });
+
+Medical.hasMany(Attendance, { foreignKey: 'medicalId', as: 'excusedAttendances' });
+Attendance.belongsTo(Medical, { foreignKey: 'medicalId', as: 'medical' });
 
 module.exports = {
   User,
-  Attendance,
-  MedicalReport,
-  Notice,
-  Payment,
-  Result,
-  Log,
-  Link,
-  Notification,
+  Student,
+  Lecturer,
+  Department,
+  Batch,
   Faculty,
   DegreeProgram,
-  Subject,
-  ClassSection,
   Semester,
+  Subject,
+  CourseOffering,
+  ClassSession,
   Enrollment,
-  SemesterGPA,
-  CGPA,
-  GradingSystem,
-  DegreeRule,
-  Transcript
+  Attendance,
+  Medical,
+  Result
+  // ...other entities as needed
 };

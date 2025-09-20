@@ -22,6 +22,14 @@ const DegreeProgram = sequelize.define('DegreeProgram', {
       model: 'faculties',
       key: 'id'
     }
+  },
+  departmentId: {
+    type: DataTypes.UUID,
+    allowNull: true,
+    references: {
+      model: 'departments',
+      key: 'id'
+    }
   }
 }, {
   tableName: 'degree_programs',

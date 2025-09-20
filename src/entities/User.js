@@ -42,6 +42,14 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: true
   },
+    profileId: {
+      type: DataTypes.UUID,
+      allowNull: true
+    },
+    permissions: {
+      type: DataTypes.ARRAY(DataTypes.STRING),
+      allowNull: true
+    },
   address: {
     type: DataTypes.TEXT,
     allowNull: true

@@ -18,7 +18,7 @@ const Faculty = sequelize.define('Faculty', {
   contactInfo: {
     type: DataTypes.STRING,
     allowNull: true
-  },
+  }
 }, {
   tableName: 'faculties',
   timestamps: true

@@ -2,8 +2,9 @@ class EnrollmentDTO {
   constructor(data) {
     this.id = data.id;
     this.studentId = data.studentId;
-    this.classSectionId = data.classSectionId;
-    this.enrollmentDate = data.enrollmentDate;
+    this.courseOfferingId = data.courseOfferingId;
+    this.status = data.status;
+    this.enrolledDate = data.enrolledDate;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
   }

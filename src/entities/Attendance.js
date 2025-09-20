@@ -7,7 +7,40 @@ const Attendance = sequelize.define('Attendance', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
+  classSessionId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: 'class_sessions',
+      key: 'id'
+    }
+  },
+  courseOfferingId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: 'course_offerings',
+      key: 'id'
+    }
+  },
   studentId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: 'students',
+      key: 'id'
+    }
+  },
+  status: {
+    type: DataTypes.ENUM('present', 'absent', 'late', 'excused'),
+    allowNull: false,
+    defaultValue: 'present'
+  },
+  remarks: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  markedBy: {
     type: DataTypes.UUID,
     allowNull: false,
     references: {
@@ -15,39 +48,22 @@ const Attendance = sequelize.define('Attendance', {
       key: 'id'
     }
   },
-  date: {
-    type: DataTypes.DATEONLY,
-    allowNull: false
-  },
-  status: {
-    type: DataTypes.ENUM('present', 'absent', 'late'),
+  markedAt: {
+    type: DataTypes.DATE,
     allowNull: false,
-    defaultValue: 'present'
+    defaultValue: DataTypes.NOW
   },
-  subject: {
-    type: DataTypes.STRING,
-    allowNull: true
-  },
-  notes: {
-    type: DataTypes.TEXT,
-    allowNull: true
-  },
-  recordedBy: {
+  medicalId: {
     type: DataTypes.UUID,
-    allowNull: false,
+    allowNull: true,
     references: {
-      model: 'users',
+      model: 'medicals',
       key: 'id'
     }
   }
 }, {
   tableName: 'attendances',
-  timestamps: true,
-  indexes: [
-    { fields: ['studentId', 'date'] },
-    { fields: ['date'] },
-    { fields: ['status'] }
-  ]
+  timestamps: true
 });
 
 module.exports = Attendance;

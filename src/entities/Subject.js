@@ -7,25 +7,22 @@ const Subject = sequelize.define('Subject', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
+  code: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true
+  },
   name: {
     type: DataTypes.STRING,
     allowNull: false
   },
-  creditHours: {
+  credits: {
     type: DataTypes.INTEGER,
     allowNull: false
   },
-  semesterOffered: {
-    type: DataTypes.STRING,
+  description: {
+    type: DataTypes.TEXT,
     allowNull: true
-  },
-  degreeProgramId: {
-    type: DataTypes.UUID,
-    allowNull: false,
-    references: {
-      model: 'degree_programs',
-      key: 'id'
-    }
   }
 }, {
   tableName: 'subjects',

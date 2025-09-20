@@ -1,0 +1,276 @@
+{
+  "info": {
+    "_postman_id": "b1e1e1e1-0000-0000-0000-000000000000",
+    "name": "SIS API Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Student Information System (SIS) API collection for Postman. Import and test all endpoints."
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        { "name": "Register", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": { "raw": "http://localhost:3000/api/auth/register", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "auth", "register"] }, "body": { "mode": "raw", "raw": "{\n  \"firstName\": \"Kavindu\",\n  \"lastName\": \"Piyumal\",\n  \"email\": \"kavindu@uni.lk\",\n  \"password\": \"password123\",\n  \"role\": \"student\",\n  \"studentId\": \"2022/ICT/045\"\n}" } } },
+        { "name": "Login", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": { "raw": "http://localhost:3000/api/auth/login", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "auth", "login"] }, "body": { "mode": "raw", "raw": "{\n  \"email\": \"kavindu@uni.lk\",\n  \"password\": \"password123\"\n}" } } },
+        { "name": "Logout", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/auth/logout", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "auth", "logout"] } } },
+        { "name": "Get Profile", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/auth/me", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "auth", "me"] } } },
+        { "name": "Change Password", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "url": { "raw": "http://localhost:3000/api/auth/change-password", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "auth", "change-password"] }, "body": { "mode": "raw", "raw": "{\n  \"currentPassword\": \"password123\",\n  \"newPassword\": \"newpass456\"\n}" } } },
+        { "name": "Send Change Password OTP", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/auth/send-change-password-otp", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "auth", "send-change-password-otp"] } } },
+        { "name": "Verify Token", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": { "raw": "http://localhost:3000/api/auth/verify-token", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "auth", "verify-token"] }, "body": { "mode": "raw", "raw": "{\n  \"token\": \"...\"\n}" } } }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        { "name": "Register", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": { "raw": "http://localhost:3000/api/auth/register", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "auth", "register"] }, "body": { "mode": "raw", "raw": "{\n  \"firstName\": \"Kavindu\",\n  \"lastName\": \"Piyumal\",\n  \"email\": \"kavindu@uni.lk\",\n  \"password\": \"password123\",\n  \"role\": \"student\",\n  \"studentId\": \"2022/ICT/045\"\n}" } } },
+        { "name": "Login", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": { "raw": "http://localhost:3000/api/auth/login", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "auth", "login"] }, "body": { "mode": "raw", "raw": "{\n  \"email\": \"kavindu@uni.lk\",\n  \"password\": \"password123\"\n}" } } },
+        { "name": "Logout", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/auth/logout", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "auth", "logout"] } } },
+        { "name": "Get Profile", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/auth/me", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "auth", "me"] } } },
+        { "name": "Presigned URL", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/auth/presigned-url", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "auth", "presigned-url"] } } },
+        { "name": "Presigned Upload URL", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/auth/presigned-upload-url", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "auth", "presigned-upload-url"] } } },
+        { "name": "Change Password", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "url": { "raw": "http://localhost:3000/api/auth/change-password", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "auth", "change-password"] }, "body": { "mode": "raw", "raw": "{\n  \"currentPassword\": \"password123\",\n  \"newPassword\": \"newpass456\"\n}" } } },
+        { "name": "Send Change Password OTP", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/auth/send-change-password-otp", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "auth", "send-change-password-otp"] } } },
+        { "name": "Verify Token", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": { "raw": "http://localhost:3000/api/auth/verify-token", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "auth", "verify-token"] }, "body": { "mode": "raw", "raw": "{\n  \"token\": \"...\"\n}" } } }
+      ]
+    },
+    {
+      "name": "User",
+      "item": [
+        { "name": "Create User", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/users", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "users"] }, "body": { "mode": "raw", "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john@uni.lk\",\n  \"role\": \"admin\",\n  \"password\": \"adminpass\"\n}" } } },
+        { "name": "Get All Users", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/users", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "users"] } } },
+        { "name": "Get User By ID", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/users/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "users", ":id"] } } },
+        { "name": "Update User", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/users/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "users", ":id"] }, "body": { "mode": "raw", "raw": "{\n  \"firstName\": \"Updated\",\n  \"lastName\": \"User\"\n}" } } },
+        { "name": "Delete User", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/users/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "users", ":id"] } } },
+        { "name": "User Stats", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/users/stats", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "users", "stats"] } } },
+        { "name": "Get Students", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/users/students", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "users", "students"] } } },
+        { "name": "Get Admins", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/users/admins", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "users", "admins"] } } },
+        { "name": "Get Users By Role", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/users/role/:role", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "users", "role", ":role"] } } }
+      ]
+    },
+    {
+      "name": "Faculty",
+      "item": [
+        { "name": "Create Faculty", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/faculties", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "faculties"] }, "body": { "mode": "raw", "raw": "{\n  \"name\": \"Faculty of Science\",\n  \"deanName\": \"Prof. Silva\",\n  \"contactInfo\": \"0123456789\"\n}" } } },
+        { "name": "Get All Faculties", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/faculties", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "faculties"] } } },
+        { "name": "Get Faculty By ID", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/faculties/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "faculties", ":id"] } } },
+        { "name": "Update Faculty", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/faculties/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "faculties", ":id"] }, "body": { "mode": "raw", "raw": "{\n  \"name\": \"Updated Faculty\"\n}" } } },
+        { "name": "Delete Faculty", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/faculties/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "faculties", ":id"] } } }
+      ]
+    },
+    {
+      "name": "Department",
+      "item": [
+        { "name": "Create Department", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/departments", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "departments"] }, "body": { "mode": "raw", "raw": "{\n  \"name\": \"Department of Computer Science\",\n  \"facultyId\": \"{{facultyId}}\"\n}" } } },
+        { "name": "Get All Departments", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/departments", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "departments"] } } },
+        { "name": "Get Department By ID", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/departments/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "departments", ":id"] } } },
+        { "name": "Update Department", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/departments/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "departments", ":id"] }, "body": { "mode": "raw", "raw": "{\n  \"name\": \"Updated Department\"\n}" } } },
+        { "name": "Delete Department", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/departments/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "departments", ":id"] } } }
+      ]
+    },
+    {
+      "name": "Program",
+      "item": [
+        { "name": "Create Program", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/programs", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "programs"] }, "body": { "mode": "raw", "raw": "{\n  \"name\": \"BSc in Computer Science\",\n  \"duration\": 4,\n  \"facultyId\": \"{{facultyId}}\",\n  \"departmentId\": \"{{departmentId}}\"\n}" } } },
+        { "name": "Get All Programs", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/programs", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "programs"] } } },
+        { "name": "Get Program By ID", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/programs/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "programs", ":id"] } } },
+        { "name": "Update Program", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/programs/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "programs", ":id"] }, "body": { "mode": "raw", "raw": "{\n  \"name\": \"Updated Program\"\n}" } } },
+        { "name": "Delete Program", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/programs/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "programs", ":id"] } } }
+      ]
+    },
+    {
+      "name": "Batch",
+      "item": [
+        { "name": "Create Batch", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/batches", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "batches"] }, "body": { "mode": "raw", "raw": "{\n  \"name\": \"2022 Batch\",\n  \"programId\": \"{{programId}}\",\n  \"startYear\": 2022\n}" } } },
+        { "name": "Get All Batches", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/batches", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "batches"] } } },
+        { "name": "Get Batch By ID", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/batches/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "batches", ":id"] } } },
+        { "name": "Update Batch", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/batches/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "batches", ":id"] }, "body": { "mode": "raw", "raw": "{\n  \"name\": \"Updated Batch\"\n}" } } },
+        { "name": "Delete Batch", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/batches/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "batches", ":id"] } } }
+      ]
+    },
+    {
+      "name": "Semester",
+      "item": [
+        { "name": "Create Semester", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/semesters", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "semesters"] }, "body": { "mode": "raw", "raw": "{\n  \"name\": \"Semester 1\",\n  \"batchId\": \"{{batchId}}\",\n  \"startDate\": \"2025-01-01\",\n  \"endDate\": \"2025-06-01\"\n}" } } },
+        { "name": "Get All Semesters", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/semesters", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "semesters"] } } },
+        { "name": "Get Semester By ID", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/semesters/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "semesters", ":id"] } } },
+        { "name": "Update Semester", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/semesters/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "semesters", ":id"] }, "body": { "mode": "raw", "raw": "{\n  \"name\": \"Updated Semester\"\n}" } } },
+        { "name": "Delete Semester", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/semesters/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "semesters", ":id"] } } }
+      ]
+    },
+    {
+      "name": "Subject",
+      "item": [
+        { "name": "Create Subject", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/subjects", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "subjects"] }, "body": { "mode": "raw", "raw": "{\n  \"code\": \"CS101\",\n  \"name\": \"Intro to Programming\",\n  \"credits\": 3,\n  \"description\": \"Fundamentals of programming.\"\n}" } } },
+        { "name": "Get All Subjects", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/subjects", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "subjects"] } } },
+        { "name": "Get Subject By ID", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/subjects/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "subjects", ":id"] } } },
+        { "name": "Update Subject", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/subjects/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "subjects", ":id"] }, "body": { "mode": "raw", "raw": "{\n  \"name\": \"Updated Subject\"\n}" } } },
+        { "name": "Delete Subject", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/subjects/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "subjects", ":id"] } } }
+      ]
+    },
+    {
+      "name": "Course Offering",
+      "item": [
+        { "name": "Create Course Offering", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/course-offerings", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "course-offerings"] }, "body": { "mode": "raw", "raw": "{\n  \"subjectId\": \"{{subjectId}}\",\n  \"semesterId\": \"{{semesterId}}\",\n  \"batchId\": \"{{batchId}}\",\n  \"lecturerId\": \"{{lecturerId}}\",\n  \"year\": 2025,\n  \"mode\": \"lecture\",\n  \"capacity\": 100\n}" } } },
+        { "name": "Get All Course Offerings", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/course-offerings", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "course-offerings"] } } },
+        { "name": "Get Course Offering By ID", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/course-offerings/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "course-offerings", ":id"] } } },
+        { "name": "Update Course Offering", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/course-offerings/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "course-offerings", ":id"] }, "body": { "mode": "raw", "raw": "{\n  \"mode\": \"updated\"\n}" } } },
+        { "name": "Delete Course Offering", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/course-offerings/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "course-offerings", ":id"] } } }
+      ]
+    },
+    {
+      "name": "Class Session",
+      "item": [
+        { "name": "Create Class Session", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/class-sessions", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "class-sessions"] }, "body": { "mode": "raw", "raw": "{\n  \"courseOfferingId\": \"{{courseOfferingId}}\",\n  \"date\": \"2025-02-01T09:00:00Z\",\n  \"topic\": \"Intro\",\n  \"location\": \"Room 101\",\n  \"durationMinutes\": 90\n}" } } },
+        { "name": "Get All Class Sessions", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/class-sessions", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "class-sessions"] } } },
+        { "name": "Get Class Session By ID", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/class-sessions/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "class-sessions", ":id"] } } },
+        { "name": "Update Class Session", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/class-sessions/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "class-sessions", ":id"] }, "body": { "mode": "raw", "raw": "{\n  \"topic\": \"Updated Topic\"\n}" } } },
+        { "name": "Delete Class Session", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/class-sessions/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "class-sessions", ":id"] } } }
+      ]
+    },
+    {
+      "name": "Student",
+      "item": [
+        { "name": "Create Student", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/students", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "students"] }, "body": { "mode": "raw", "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"studentNo\": \"2022/ICT/045\",\n  \"fullName\": \"Kavindu Piyumal\",\n  \"email\": \"kavindu@uni.lk\",\n  \"batchId\": \"{{batchId}}\",\n  \"status\": \"active\"\n}" } } },
+        { "name": "Get All Students", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/students", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "students"] } } },
+        { "name": "Get Student By ID", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/students/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "students", ":id"] } } },
+        { "name": "Update Student", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/students/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "students", ":id"] }, "body": { "mode": "raw", "raw": "{\n  \"fullName\": \"Updated Name\"\n}" } } },
+        { "name": "Delete Student", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/students/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "students", ":id"] } } }
+      ]
+    },
+    {
+      "name": "Lecturer",
+      "item": [
+        { "name": "Create Lecturer", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/lecturers", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "lecturers"] }, "body": { "mode": "raw", "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"fullName\": \"Dr. Perera\",\n  \"email\": \"perera@uni.lk\",\n  \"departmentId\": \"{{departmentId}}\"\n}" } } },
+        { "name": "Get All Lecturers", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/lecturers", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "lecturers"] } } },
+        { "name": "Get Lecturer By ID", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/lecturers/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "lecturers", ":id"] } } },
+        { "name": "Update Lecturer", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/lecturers/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "lecturers", ":id"] }, "body": { "mode": "raw", "raw": "{\n  \"fullName\": \"Updated Lecturer\"\n}" } } },
+        { "name": "Delete Lecturer", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/lecturers/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "lecturers", ":id"] } } }
+      ]
+    },
+    {
+      "name": "Enrollment",
+      "item": [
+        { "name": "Request Enrollment (Student)", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/enrollments/request", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "enrollments", "request"] }, "body": { "mode": "raw", "raw": "{\n  \"studentId\": \"{{studentId}}\",\n  \"courseOfferingId\": \"{{courseOfferingId}}\"\n}" } } },
+        { "name": "Approve Enrollment (Admin)", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/enrollments/:id/approve", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "enrollments", ":id", "approve"] } } },
+        { "name": "Create Enrollment (Admin)", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/enrollments", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "enrollments"] }, "body": { "mode": "raw", "raw": "{\n  \"studentId\": \"{{studentId}}\",\n  \"courseOfferingId\": \"{{courseOfferingId}}\",\n  \"status\": \"active\",\n  \"enrolledDate\": \"2025-02-01\"\n}" } } },
+        { "name": "Get All Enrollments", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/enrollments", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "enrollments"] } } },
+        { "name": "Get Enrollment By ID", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/enrollments/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "enrollments", ":id"] } } },
+        { "name": "Update Enrollment", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/enrollments/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "enrollments", ":id"] }, "body": { "mode": "raw", "raw": "{\n  \"status\": \"updated\"\n}" } } },
+        { "name": "Delete Enrollment", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/enrollments/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "enrollments", ":id"] } } }
+      ]
+    },
+    {
+      "name": "Attendance",
+      "item": [
+        { "name": "Create Attendance", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/attendances", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "attendances"] }, "body": { "mode": "raw", "raw": "{\n  \"studentId\": \"{{studentId}}\",\n  \"date\": \"2025-09-20\",\n  \"status\": \"present\",\n  \"subject\": \"CS101\",\n  \"notes\": \"On time\"\n}" } } },
+        { "name": "Bulk Create Attendance", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/attendances/bulk", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "attendances", "bulk"] }, "body": { "mode": "raw", "raw": "{\n  \"attendanceRecords\": [\n    {\n      \"studentId\": \"{{studentId}}\",\n      \"date\": \"2025-09-20\",\n      \"status\": \"present\"\n    }\n  ]\n}" } } },
+        { "name": "Get All Attendance", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/attendances", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "attendances"] } } },
+        { "name": "Get Attendance By ID", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/attendances/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "attendances", ":id"] } } },
+        { "name": "Update Attendance", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/attendances/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "attendances", ":id"] }, "body": { "mode": "raw", "raw": "{\n  \"status\": \"late\"\n}" } } },
+        { "name": "Delete Attendance", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/attendances/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "attendances", ":id"] } } }
+      ]
+    },
+    {
+      "name": "Medical",
+      "item": [
+        { "name": "Create Medical (Student)", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/medicals", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "medicals"] }, "body": { "mode": "raw", "raw": "{\n  \"studentId\": \"{{studentId}}\",\n  \"submittedDate\": \"2025-09-21\",\n  \"fromDate\": \"2025-09-18\",\n  \"toDate\": \"2025-09-20\",\n  \"reason\": \"Fever\",\n  \"attachments\": [\"url-to-pdf\"],\n  \"status\": \"pending\"\n}" } } },
+        { "name": "Get All Medicals (Admin)", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/medicals", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "medicals"] } } },
+        { "name": "Get Medical By ID", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/medicals/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "medicals", ":id"] } } },
+        { "name": "Update Medical (Admin)", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/medicals/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "medicals", ":id"] }, "body": { "mode": "raw", "raw": "{\n  \"status\": \"approved\"\n}" } } },
+        { "name": "Delete Medical (Admin)", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/medicals/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "medicals", ":id"] } } }
+      ]
+    },
+    {
+      "name": "Medical Report",
+      "item": [
+        { "name": "Submit Medical Report (Student)", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/medical-reports", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "medical-reports"] }, "body": { "mode": "raw", "raw": "{\n  \"studentId\": \"{{studentId}}\",\n  \"submittedDate\": \"2025-09-21\",\n  \"fromDate\": \"2025-09-18\",\n  \"toDate\": \"2025-09-20\",\n  \"reason\": \"Fever\",\n  \"attachments\": [\"url-to-pdf\"],\n  \"status\": \"pending\"\n}" } } },
+        { "name": "Review Medical Report (Admin)", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/medical-reports/:id/review", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "medical-reports", ":id", "review"] }, "body": { "mode": "raw", "raw": "{\n  \"status\": \"approved\"\n}" } } },
+        { "name": "Get Medical Reports by Student", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/medical-reports/student/:studentId", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "medical-reports", "student", ":studentId"] } } },
+        { "name": "Get All Medical Reports (Admin)", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/medical-reports", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "medical-reports"] } } }
+      ]
+    },
+    {
+      "name": "Result",
+      "item": [
+        { "name": "Enter Result", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/results", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "results"] }, "body": { "mode": "raw", "raw": "{\n  \"studentId\": \"{{studentId}}\",\n  \"courseOfferingId\": \"{{courseOfferingId}}\",\n  \"marks\": 45,\n  \"grade\": \"F\",\n  \"gradePoint\": 0.0,\n  \"enteredBy\": \"{{lecturerId}}\",\n  \"enteredAt\": \"2025-05-20\"\n}" } } },
+        { "name": "Get All Results", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/results", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "results"] } } },
+        { "name": "Get Result By ID", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/results/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "results", ":id"] } } },
+        { "name": "Update Result", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/results/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "results", ":id"] }, "body": { "mode": "raw", "raw": "{\n  \"marks\": 50\n}" } } },
+        { "name": "Delete Result", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/results/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "results", ":id"] } } }
+      ]
+    },
+    {
+      "name": "CGPA",
+      "item": [
+        { "name": "Create CGPA", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/cgpas", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "cgpas"] }, "body": { "mode": "raw", "raw": "{\n  \"studentId\": \"{{studentId}}\",\n  \"cgpa\": 3.5\n}" } } },
+        { "name": "Get All CGPAs", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/cgpas", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "cgpas"] } } },
+        { "name": "Get CGPA By ID", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/cgpas/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "cgpas", ":id"] } } },
+        { "name": "Update CGPA", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/cgpas/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "cgpas", ":id"] }, "body": { "mode": "raw", "raw": "{\n  \"cgpa\": 3.8\n}" } } },
+        { "name": "Delete CGPA", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/cgpas/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "cgpas", ":id"] } } }
+      ]
+    },
+    {
+      "name": "Semester GPA",
+      "item": [
+        { "name": "Create Semester GPA", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/semester-gpas", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "semester-gpas"] }, "body": { "mode": "raw", "raw": "{\n  \"studentId\": \"{{studentId}}\",\n  \"semesterId\": \"{{semesterId}}\",\n  \"gpa\": 3.7\n}" } } },
+        { "name": "Get All Semester GPAs", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/semester-gpas", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "semester-gpas"] } } },
+        { "name": "Get Semester GPA By ID", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/semester-gpas/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "semester-gpas", ":id"] } } },
+        { "name": "Update Semester GPA", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/semester-gpas/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "semester-gpas", ":id"] }, "body": { "mode": "raw", "raw": "{\n  \"gpa\": 3.9\n}" } } },
+        { "name": "Delete Semester GPA", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/semester-gpas/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "semester-gpas", ":id"] } } }
+      ]
+    },
+    {
+      "name": "Degree Rule",
+      "item": [
+        { "name": "Create Degree Rule", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/degree-rules", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "degree-rules"] }, "body": { "mode": "raw", "raw": "{\n  \"name\": \"Rule 1\",\n  \"description\": \"Description\"\n}" } } },
+        { "name": "Get All Degree Rules", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/degree-rules", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "degree-rules"] } } },
+        { "name": "Get Degree Rule By ID", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/degree-rules/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "degree-rules", ":id"] } } },
+        { "name": "Update Degree Rule", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/degree-rules/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "degree-rules", ":id"] }, "body": { "mode": "raw", "raw": "{\n  \"name\": \"Updated Rule\"\n}" } } },
+        { "name": "Delete Degree Rule", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/degree-rules/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "degree-rules", ":id"] } } }
+      ]
+    },
+    {
+      "name": "Transcript",
+      "item": [
+        { "name": "Create Transcript", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/transcripts", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "transcripts"] }, "body": { "mode": "raw", "raw": "{\n  \"studentId\": \"{{studentId}}\",\n  \"details\": \"Transcript details\"\n}" } } },
+        { "name": "Get All Transcripts", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/transcripts", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "transcripts"] } } },
+        { "name": "Get Transcript By ID", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/transcripts/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "transcripts", ":id"] } } },
+        { "name": "Update Transcript", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/transcripts/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "transcripts", ":id"] }, "body": { "mode": "raw", "raw": "{\n  \"details\": \"Updated details\"\n}" } } },
+        { "name": "Delete Transcript", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/transcripts/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "transcripts", ":id"] } } }
+      ]
+    },
+    {
+      "name": "Grading System",
+      "item": [
+        { "name": "Create Grading System", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/grading-systems", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "grading-systems"] }, "body": { "mode": "raw", "raw": "{\n  \"name\": \"Standard\",\n  \"description\": \"Standard grading\"\n}" } } },
+        { "name": "Get All Grading Systems", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/grading-systems", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "grading-systems"] } } },
+        { "name": "Get Grading System By ID", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/grading-systems/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "grading-systems", ":id"] } } },
+        { "name": "Update Grading System", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/grading-systems/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "grading-systems", ":id"] }, "body": { "mode": "raw", "raw": "{\n  \"name\": \"Updated Grading\"\n}" } } },
+        { "name": "Delete Grading System", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/grading-systems/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "grading-systems", ":id"] } } }
+      ]
+    },
+    {
+      "name": "Class Section",
+      "item": [
+        { "name": "Create Class Section", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/class-sections", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "class-sections"] }, "body": { "mode": "raw", "raw": "{\n  \"name\": \"Section A\",\n  \"description\": \"Morning section\"\n}" } } },
+        { "name": "Get All Class Sections", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/class-sections", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "class-sections"] } } },
+        { "name": "Get Class Section By ID", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/class-sections/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "class-sections", ":id"] } } },
+        { "name": "Update Class Section", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/class-sections/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "class-sections", ":id"] }, "body": { "mode": "raw", "raw": "{\n  \"name\": \"Updated Section\"\n}" } } },
+        { "name": "Delete Class Section", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "http://localhost:3000/api/class-sections/:id", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api", "class-sections", ":id"] } } }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "token", "value": "" },
+    { "key": "facultyId", "value": "" },
+    { "key": "departmentId", "value": "" },
+    { "key": "programId", "value": "" },
+    { "key": "batchId", "value": "" },
+    { "key": "semesterId", "value": "" },
+    { "key": "subjectId", "value": "" },
+    { "key": "courseOfferingId", "value": "" },
+    { "key": "classSessionId", "value": "" },
+    { "key": "userId", "value": "" },
+    { "key": "studentId", "value": "" },
+    { "key": "lecturerId", "value": "" }
+  ]
+}

@@ -1,5 +1,5 @@
-const MedicalReportRepository = require('./MedicalReportRepository');
 
+const MedicalReportRepository = require('./MedicalReportRepository');
 const UserRepository = require('./UserRepository');
 const AttendanceRepository = require('./AttendanceRepository');
 const LogRepository = require('./LogRepository');
@@ -14,9 +14,13 @@ const CGPARepository = require('./CGPARepository');
 const GradingSystemRepository = require('./GradingSystemRepository');
 const DegreeRuleRepository = require('./DegreeRuleRepository');
 const TranscriptRepository = require('./TranscriptRepository');
+const StudentRepository = require('./StudentRepository');
+const LecturerRepository = require('./LecturerRepository');
 
 module.exports = {
   UserRepository,
+  StudentRepository,
+  LecturerRepository,
   AttendanceRepository,
   LogRepository,
   FacultyRepository,

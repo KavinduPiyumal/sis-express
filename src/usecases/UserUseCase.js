@@ -1,15 +1,19 @@
+
 const bcrypt = require('bcryptjs');
 const { UserRepository } = require('../repositories');
 const { UserDTO, UserCreateDTO, UserUpdateDTO } = require('../dto/UserDTO');
 const emailService = require('../infrastructure/emailService');
 const logger = require('../config/logger');
+const { sequelize } = require('../infrastructure/database');
 
 class UserUseCase {
   constructor() {
     this.userRepository = new UserRepository();
   }
 
-  async createUser(userData, creatorRole) {
+  async createUser(userData, creatorRole, extTransaction = null) {
+    const t = extTransaction || await sequelize.transaction();
+    let createdHere = !extTransaction;
     try {
       // Only super admins can create users
       if (creatorRole !== 'super_admin') {
@@ -23,7 +27,7 @@ class UserUseCase {
       }
 
       // Check if student ID already exists (for students)
-      if (userData.studentId) {
+      if (userData.role === 'student' && userData.studentId) {
         const existingStudentId = await this.userRepository.findByStudentId(userData.studentId);
         if (existingStudentId) {
           throw new Error('Student ID already exists');
@@ -44,13 +48,42 @@ class UserUseCase {
       });
 
       // Create user
-      const user = await this.userRepository.create(createUserDTO);
+  const user = await this.userRepository.model.create(createUserDTO, { transaction: t });
+
+      // Create student or lecturer record if needed
+      if (userData.role === 'student') {
+        const { StudentRepository } = require('../repositories');
+        await new StudentRepository().model.create({
+          userId: user.id,
+          studentNo: userData.studentId,
+          fullName: `${userData.firstName} ${userData.lastName}`,
+          email: userData.email,
+          batchId: userData.batchId,
+          status: 'active'
+        }, { transaction: t });
+      } else if (userData.role === 'admin') {
+        // Only create lecturer if not super_admin
+        if (userData.isLecturer) {
+          const { LecturerRepository } = require('../repositories');
+          await new LecturerRepository().model.create({
+            userId: user.id,
+            fullName: `${userData.firstName} ${userData.lastName}`,
+            email: userData.email,
+            departmentId: userData.departmentId || null
+          }, { transaction: t });
+        }
+      }
+      // For super_admin, no extra record
+
+      // Commit transaction
+  if (createdHere) await t.commit();
 
       // Send welcome email with temporary password
       await emailService.sendWelcomeEmail(user, userData.password ? null : tempPassword);
 
       return new UserDTO(user);
     } catch (error) {
+  if (createdHere) await t.rollback();
       logger.error('Create user error:', error);
       throw error;
     }
@@ -131,7 +164,18 @@ class UserUseCase {
         throw new Error('Insufficient permissions');
       }
 
-      return new UserDTO(user);
+      // Fetch student/lecturer profile if applicable
+      let profile = null;
+      if (user.role === 'student') {
+        const { StudentRepository } = require('../repositories');
+        profile = await new StudentRepository().findOne({ userId: user.id });
+      } else if (user.role === 'admin') {
+        const { LecturerRepository } = require('../repositories');
+        profile = await new LecturerRepository().findOne({ userId: user.id });
+      }
+
+      const userDto = new UserDTO(user);
+      return { ...userDto, profile };
     } catch (error) {
       logger.error('Get user by ID error:', error);
       throw error;
@@ -157,23 +201,60 @@ class UserUseCase {
 
       // Restrict what can be updated based on role
       let allowedUpdates = { ...updateData };
-      
       if (requestorRole !== 'super_admin') {
         // Non-super admins cannot change role or activation status
         delete allowedUpdates.role;
         delete allowedUpdates.isActive;
       }
-
       // Remove sensitive fields
       delete allowedUpdates.password;
       delete allowedUpdates.id;
 
       const updateUserDTO = new UserUpdateDTO(allowedUpdates);
-      
       await this.userRepository.update(updateUserDTO, { id: userId });
-      const updatedUser = await this.userRepository.findById(userId);
 
-      return new UserDTO(updatedUser);
+      // Update student/lecturer profile if relevant fields are present
+      if (user.role === 'student') {
+        const { StudentRepository } = require('../repositories');
+        const studentRepo = new StudentRepository();
+        const studentProfile = await studentRepo.findOne({ userId });
+        if (studentProfile) {
+          const studentFields = {};
+          if (updateData.batchId) studentFields.batchId = updateData.batchId;
+          if (updateData.status) studentFields.status = updateData.status;
+          if (updateData.fullName) studentFields.fullName = updateData.fullName;
+          if (updateData.email) studentFields.email = updateData.email;
+          if (Object.keys(studentFields).length > 0) {
+            await studentRepo.update(studentFields, { userId });
+          }
+        }
+      } else if (user.role === 'admin') {
+        const { LecturerRepository } = require('../repositories');
+        const lecturerRepo = new LecturerRepository();
+        const lecturerProfile = await lecturerRepo.findOne({ userId });
+        if (lecturerProfile) {
+          const lecturerFields = {};
+          if (updateData.departmentId) lecturerFields.departmentId = updateData.departmentId;
+          if (updateData.fullName) lecturerFields.fullName = updateData.fullName;
+          if (updateData.email) lecturerFields.email = updateData.email;
+          if (Object.keys(lecturerFields).length > 0) {
+            await lecturerRepo.update(lecturerFields, { userId });
+          }
+        }
+      }
+
+      const updatedUser = await this.userRepository.findById(userId);
+      // Return with profile
+      let profile = null;
+      if (updatedUser.role === 'student') {
+        const { StudentRepository } = require('../repositories');
+        profile = await new StudentRepository().findOne({ userId });
+      } else if (updatedUser.role === 'admin') {
+        const { LecturerRepository } = require('../repositories');
+        profile = await new LecturerRepository().findOne({ userId });
+      }
+      const userDto = new UserDTO(updatedUser);
+      return { ...userDto, profile };
     } catch (error) {
       logger.error('Update user error:', error);
       throw error;
@@ -192,8 +273,26 @@ class UserUseCase {
         throw new Error('User not found');
       }
 
-      // Soft delete by deactivating
+      // Soft delete by deactivating user
       await this.userRepository.deactivateUser(userId);
+
+      // Also deactivate student/lecturer profile if exists
+      if (user.role === 'student') {
+        const { StudentRepository } = require('../repositories');
+        const studentRepo = new StudentRepository();
+        const studentProfile = await studentRepo.findOne({ userId });
+        if (studentProfile) {
+          await studentRepo.update({ status: 'inactive' }, { userId });
+        }
+      } else if (user.role === 'admin') {
+        const { LecturerRepository } = require('../repositories');
+        const lecturerRepo = new LecturerRepository();
+        const lecturerProfile = await lecturerRepo.findOne({ userId });
+        if (lecturerProfile) {
+          // No status field, so just set email to null or handle as needed
+          await lecturerRepo.update({ email: null }, { userId });
+        }
+      }
 
       return { message: 'User deleted successfully' };
     } catch (error) {

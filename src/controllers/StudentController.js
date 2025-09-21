@@ -1,14 +1,7 @@
 const { Student } = require('../entities');
 
 module.exports = {
-  async create(req, res) {
-    try {
-      const student = await Student.create(req.body);
-      res.status(201).json(student);
-    } catch (err) {
-      res.status(400).json({ error: err.message });
-    }
-  },
+  // create method removed; use user creation route
   async getAll(req, res) {
     try {
       const students = await Student.findAll();

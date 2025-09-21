@@ -31,6 +31,9 @@ const cgpaRoutes = require('./routes/cgpaRoutes');
 const gradingSystemRoutes = require('./routes/gradingSystemRoutes');
 const degreeRuleRoutes = require('./routes/degreeRuleRoutes');
 const transcriptRoutes = require('./routes/transcriptRoutes');
+const medicalReportRoutes = require('./routes/medicalReportRoutes');
+const departmentsRoutes = require('./routes/departmentRoutes');
+const batchRoutes = require('./routes/batchRoutes');
 
 // Import models to initialize associations
 require('./entities');
@@ -80,6 +83,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/faculties', facultyRoutes);
 app.use('/api/degree-programs', degreeProgramRoutes);
+app.use('/api/batches', batchRoutes);
 app.use('/api/subjects', subjectRoutes);
 app.use('/api/class-sections', classSectionRoutes);
 app.use('/api/semesters', semesterRoutes);
@@ -89,8 +93,8 @@ app.use('/api/cgpas', cgpaRoutes);
 app.use('/api/grading-systems', gradingSystemRoutes);
 app.use('/api/degree-rules', degreeRuleRoutes);
 app.use('/api/transcripts', transcriptRoutes);
-const medicalReportRoutes = require('./routes/medicalReportRoutes');
 app.use('/api/medical-reports', medicalReportRoutes);
+app.use('/api/departments', departmentsRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

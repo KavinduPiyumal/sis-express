@@ -1,3 +1,4 @@
+
 const UserUseCase = require('../usecases/UserUseCase');
 
 class UserController {
@@ -136,6 +137,69 @@ class UserController {
         success: true,
         data: stats
       });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+    // Bulk create students
+  bulkCreateStudents = async (req, res, next) => {
+    try {
+      const { students } = req.body;
+      if (!Array.isArray(students) || students.length === 0) {
+        return res.status(400).json({ success: false, message: 'students array required' });
+      }
+      const created = [];
+      const failed = [];
+      for (const studentData of students) {
+        try {
+          const user = await this.userUseCase.createUser({ ...studentData, role: 'student' }, req.user.role);
+          created.push(user);
+        } catch (err) {
+          failed.push({ error: err.message, data: studentData });
+        }
+      }
+      res.status(201).json({ success: true, created, failed });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // Bulk create lecturers
+  bulkCreateLecturers = async (req, res, next) => {
+    const { sequelize } = require('../infrastructure/database');
+    try {
+      const { lecturers } = req.body;
+      if (!Array.isArray(lecturers) || lecturers.length === 0) {
+        return res.status(400).json({ success: false, message: 'lecturers array required' });
+      }
+      const created = [];
+      const failed = [];
+      for (const lecturerData of lecturers) {
+        // Per-lecturer validation
+        let errors = [];
+        if (!lecturerData.firstName) errors.push({ field: 'firstName', message: 'First name is required' });
+        if (!lecturerData.lastName) errors.push({ field: 'lastName', message: 'Last name is required' });
+        if (!lecturerData.email || !/^\S+@\S+\.\S+$/.test(lecturerData.email)) errors.push({ field: 'email', message: 'Valid email is required' });
+        if (!['student', 'admin', 'super_admin'].includes(lecturerData.role || 'admin')) errors.push({ field: 'role', message: 'Invalid role' });
+        if ((lecturerData.role === 'admin' || !lecturerData.role) && lecturerData.isLecturer === true && !lecturerData.departmentId) errors.push({ field: 'departmentId', message: 'Department ID is required for lecturers' });
+        if (lecturerData.password && lecturerData.password.length < 6) errors.push({ field: 'password', message: 'Password must be at least 6 characters' });
+        if (errors.length > 0) {
+          failed.push({ errors, data: lecturerData });
+          continue;
+        }
+        let transaction;
+        try {
+          transaction = await sequelize.transaction();
+          const user = await this.userUseCase.createUser({ ...lecturerData, role: 'admin', isLecturer: true }, req.user.role, transaction);
+          await transaction.commit();
+          created.push(user);
+        } catch (err) {
+          if (transaction) await transaction.rollback();
+          failed.push({ error: err.message, data: lecturerData });
+        }
+      }
+      res.status(201).json({ success: true, created, failed });
     } catch (error) {
       next(error);
     }

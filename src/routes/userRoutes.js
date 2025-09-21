@@ -13,8 +13,13 @@ const createUserValidation = [
   body('firstName').notEmpty().withMessage('First name is required'),
   body('lastName').notEmpty().withMessage('Last name is required'),
   body('email').isEmail().withMessage('Valid email is required'),
-  body('role').isIn(['student', 'admin']).withMessage('Invalid role'),
-  body('studentId').optional().notEmpty().withMessage('Student ID cannot be empty if provided'),
+  body('role').isIn(['student', 'admin', 'super_admin']).withMessage('Invalid role'),
+  body('studentId')
+    .if(body('role').equals('student'))
+    .notEmpty().withMessage('Student ID is required for students'),
+  body('departmentId')
+    .if((value, { req }) => req.body.role === 'admin' && req.body.isLecturer === true)
+    .notEmpty().withMessage('Department ID is required for lecturers'),
   body('password').optional().isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
 ];
 
@@ -36,6 +41,10 @@ const roleValidation = [
 
 // Routes
 router.post('/', authenticate, requireSuperAdmin, createUserValidation, validate, auditLogger('create', 'user'), userController.createUser);
+
+// Bulk creation endpoints
+router.post('/bulk/students', authenticate, requireSuperAdmin, userController.bulkCreateStudents);
+router.post('/bulk/lecturers', authenticate, requireSuperAdmin, userController.bulkCreateLecturers);
 router.get('/', authenticate, requireSuperAdmin, userController.getAllUsers);
 router.get('/stats', authenticate, requireSuperAdmin, userController.getUserStats);
 router.get('/students', authenticate, requireAdminOrSuperAdmin, userController.getStudents);

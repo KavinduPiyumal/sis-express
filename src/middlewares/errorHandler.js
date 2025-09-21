@@ -7,14 +7,17 @@ const errorHandler = (err, req, res, next) => {
   // Log error
   logger.error(err);
 
+
   // Sequelize validation error
   if (err.name === 'SequelizeValidationError') {
-    const messages = err.errors.map(error => error.message);
-    error.message = messages.join(', ');
+    const formattedErrors = err.errors.map(error => ({
+      field: error.path,
+      message: error.message
+    }));
     return res.status(400).json({
       success: false,
       message: 'Validation Error',
-      errors: messages
+      errors: formattedErrors
     });
   }
 
@@ -24,7 +27,8 @@ const errorHandler = (err, req, res, next) => {
     error.message = `${field} already exists`;
     return res.status(400).json({
       success: false,
-      message: error.message
+      message: 'Validation Error',
+      errors: [{ field, message: error.message }]
     });
   }
 
@@ -33,7 +37,8 @@ const errorHandler = (err, req, res, next) => {
     error.message = 'Invalid reference to related resource';
     return res.status(400).json({
       success: false,
-      message: error.message
+      message: 'Validation Error',
+      errors: [{ message: error.message }]
     });
   }
 
@@ -42,7 +47,8 @@ const errorHandler = (err, req, res, next) => {
     error.message = 'Invalid token';
     return res.status(401).json({
       success: false,
-      message: error.message
+      message: 'Authentication Error',
+      errors: [{ message: error.message }]
     });
   }
 
@@ -50,7 +56,8 @@ const errorHandler = (err, req, res, next) => {
     error.message = 'Token expired';
     return res.status(401).json({
       success: false,
-      message: error.message
+      message: 'Authentication Error',
+      errors: [{ message: error.message }]
     });
   }
 
@@ -59,7 +66,8 @@ const errorHandler = (err, req, res, next) => {
     error.message = 'File size too large';
     return res.status(400).json({
       success: false,
-      message: error.message
+      message: 'Validation Error',
+      errors: [{ message: error.message }]
     });
   }
 
@@ -67,14 +75,16 @@ const errorHandler = (err, req, res, next) => {
     error.message = 'Invalid file field';
     return res.status(400).json({
       success: false,
-      message: error.message
+      message: 'Validation Error',
+      errors: [{ message: error.message }]
     });
   }
 
   // Default error
   res.status(error.statusCode || 500).json({
     success: false,
-    message: error.message || 'Internal Server Error'
+    message: error.message || 'Internal Server Error',
+    errors: [{ message: error.message || 'Internal Server Error' }]
   });
 };
 

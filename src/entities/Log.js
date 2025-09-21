@@ -1,6 +1,7 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../infrastructure/database');
 
+
 const Log = sequelize.define('Log', {
   id: {
     type: DataTypes.UUID,
@@ -25,6 +26,22 @@ const Log = sequelize.define('Log', {
   },
   entityId: {
     type: DataTypes.UUID,
+    allowNull: true
+  },
+  module: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  status: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  description: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  entityType: {
+    type: DataTypes.STRING,
     allowNull: true
   },
   details: {

@@ -35,20 +35,20 @@ const changePasswordValidation = [
 
 
 // Existing routes
-router.post('/register', registerValidation, validate, auditLogger('create', 'user'), authController.register);
-router.post('/login', loginValidation, validate, auditLogger('login', 'user'), authController.login);
-router.post('/logout', authenticate, auditLogger('logout', 'user'), authController.logout);
+router.post('/register', registerValidation, validate, auditLogger('create', 'user', { module: 'auth', description: 'User registered', entityType: 'User' }), authController.register);
+router.post('/login', loginValidation, validate, auditLogger('login', 'user', { module: 'auth', description: 'User login', entityType: 'User' }), authController.login);
+router.post('/logout', authenticate, auditLogger('logout', 'user', { module: 'auth', description: 'User logout', entityType: 'User' }), authController.logout);
 router.get('/me', authenticate, authController.getProfile);
 router.get('/presigned-url', authenticate, authController.getPresignedUrl);
 router.get('/presigned-upload-url', authenticate, authController.getPresignedUploadUrl);
 if (process.env.UPLOAD_DRIVER === 's3' && process.env.S3_IS_PRE_SIGNED === 'true') {
   // Pre-signed S3: expect profileImageKey in body, no multer
-  router.put('/profile', authenticate, auditLogger('update', 'user'), authController.updateProfile);
+  router.put('/profile', authenticate, auditLogger('update', 'user', { module: 'auth', description: 'User profile updated', entityType: 'User' }), authController.updateProfile);
 } else {
   // Normal upload: use multer
-  router.put('/profile', authenticate, upload.single('profileImage'), auditLogger('update', 'user'), authController.updateProfile);
+  router.put('/profile', authenticate, upload.single('profileImage'), auditLogger('update', 'user', { module: 'auth', description: 'User profile updated', entityType: 'User' }), authController.updateProfile);
 }
-router.put('/change-password', authenticate, changePasswordValidation, validate, auditLogger('change_password', 'user'), authController.changePassword);
+router.put('/change-password', authenticate, changePasswordValidation, validate, auditLogger('change_password', 'user', { module: 'auth', description: 'User password changed', entityType: 'User' }), authController.changePassword);
 // Send OTP for password change (must be authenticated)
 router.post('/send-change-password-otp', authenticate, authController.sendChangePasswordOtp);
 router.post('/verify-token', authController.verifyToken);

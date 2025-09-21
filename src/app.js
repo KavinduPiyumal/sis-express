@@ -95,6 +95,7 @@ app.use('/api/degree-rules', degreeRuleRoutes);
 app.use('/api/transcripts', transcriptRoutes);
 app.use('/api/medical-reports', medicalReportRoutes);
 app.use('/api/departments', departmentsRoutes);
+app.use('/api/logs', require('./routes/logRoutes'));
 
 // Health check endpoint
 app.get('/health', (req, res) => {

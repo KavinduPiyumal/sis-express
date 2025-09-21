@@ -3,11 +3,11 @@ const logger = require('../config/logger');
 
 const logRepository = new LogRepository();
 
-const auditLogger = (action, entity) => {
+const auditLogger = (action, entity, options = {}) => {
   return async (req, res, next) => {
     // Store original res.json
     const originalJson = res.json;
-    
+
     // Override res.json to capture response
     res.json = function(data) {
       // Only log successful operations
@@ -20,12 +20,33 @@ const auditLogger = (action, entity) => {
           entityId = req.params.id;
         }
 
+        // Extract userId: prefer req.user, fallback to data.data.id for login
+        let userId = req.user ? req.user.id : null;
+        if (!userId && action === 'login' && data.data && data.data.id) {
+          userId = data.data.id;
+        }
+
+        // Extract module, status, description, entityType from options or infer
+        const moduleName = options.module || 'auth'; // default to 'auth', can be overridden
+        const status = (typeof options.status !== 'undefined') ? options.status : (data.success === true ? 'success' : 'failure');
+        const description = options.description || data.message || `${action} ${entity} ${status}`;
+        let entityType = options.entityType;
+        if (!entityType && data.data && data.data.role) {
+          entityType = data.data.role;
+        } else if (!entityType && req.user && req.user.role) {
+          entityType = req.user.role;
+        }
+
         // Prepare log data
         const logData = {
-          userId: req.user ? req.user.id : null,
+          userId,
           action,
           entity,
           entityId,
+          module: moduleName,
+          status,
+          description,
+          entityType,
           details: {
             method: req.method,
             url: req.originalUrl,
@@ -47,11 +68,11 @@ const auditLogger = (action, entity) => {
           logger.error('Failed to create audit log:', error);
         });
       }
-      
+
       // Call original res.json
       return originalJson.call(this, data);
     };
-    
+
     next();
   };
 };

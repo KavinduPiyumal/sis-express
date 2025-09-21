@@ -39,9 +39,9 @@ const studentIdValidation = [
 ];
 
 // Routes
-router.post('/', authenticate, requireAdminOrSuperAdmin, createAttendanceValidation, validate, auditLogger('create', 'attendance'), attendanceController.createAttendance);
-router.post('/bulk', authenticate, requireAdminOrSuperAdmin, bulkAttendanceValidation, validate, auditLogger('bulk_create', 'attendance'), attendanceController.bulkCreateAttendance);
-router.put('/:id', authenticate, requireAdminOrSuperAdmin, attendanceIdValidation, updateAttendanceValidation, validate, auditLogger('update', 'attendance'), attendanceController.updateAttendance);
+router.post('/', authenticate, requireAdminOrSuperAdmin, createAttendanceValidation, validate, auditLogger('create', 'attendance', { module: 'attendance', description: 'Attendance created', entityType: 'Attendance' }), attendanceController.createAttendance);
+router.post('/bulk', authenticate, requireAdminOrSuperAdmin, bulkAttendanceValidation, validate, auditLogger('bulk_create', 'attendance', { module: 'attendance', description: 'Bulk attendance created', entityType: 'Attendance' }), attendanceController.bulkCreateAttendance);
+router.put('/:id', authenticate, requireAdminOrSuperAdmin, attendanceIdValidation, updateAttendanceValidation, validate, auditLogger('update', 'attendance', { module: 'attendance', description: 'Attendance updated', entityType: 'Attendance' }), attendanceController.updateAttendance);
 router.get('/', authenticate, requireAdminOrSuperAdmin, attendanceController.getAllAttendance);
 router.get('/:studentId', authenticate, studentIdValidation, validate, checkStudentOwnership, attendanceController.getAttendanceByStudent);
 router.get('/:studentId/stats', authenticate, studentIdValidation, validate, checkStudentOwnership, attendanceController.getAttendanceStats);

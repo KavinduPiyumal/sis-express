@@ -84,6 +84,8 @@ Medical.belongsTo(Student, { foreignKey: 'studentId', as: 'student' });
 Medical.hasMany(Attendance, { foreignKey: 'medicalId', as: 'excusedAttendances' });
 Attendance.belongsTo(Medical, { foreignKey: 'medicalId', as: 'medical' });
 
+const Log = require('./Log');
+
 module.exports = {
   User,
   Student,
@@ -99,6 +101,7 @@ module.exports = {
   Enrollment,
   Attendance,
   Medical,
-  Result
+  Result,
+  Log
   // ...other entities as needed
 };

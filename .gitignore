@@ -7,6 +7,6 @@ logs/
 coverage/
 dist/
 build/
-
+.env
 .env.local
 .env.production

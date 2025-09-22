@@ -36,24 +36,29 @@
 //   }
 // };
 require('dotenv').config();
-const { Sequelize } = require("sequelize");
-
 const sequelize = new Sequelize(
-  process.env.DB_NAME,     // postgres
-  process.env.DB_USER,     // postgres
-  process.env.DB_PASSWORD, // your password
+  process.env.DB_NAME,
+  process.env.DB_USER,
+  process.env.DB_PASSWORD,
   {
-    host: process.env.DB_HOST,   // db.blglfluhejrrhbvirihq.supabase.co
+    host: process.env.DB_HOST,
     port: process.env.DB_PORT || 5432,
     dialect: "postgres",
     logging: false,
     dialectOptions: {
       ssl: {
         require: true,
-        rejectUnauthorized: false, // Supabase requires SSL
-      },
+        rejectUnauthorized: false
+      }
     },
+    // ✅ Force IPv4
+    pool: {
+      // Sequelize passes this to pg
+      idle: 10000
+    },
+    dialectModule: require('pg'),
   }
 );
+
 
 module.exports = sequelize;

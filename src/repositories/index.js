@@ -6,7 +6,6 @@ const LogRepository = require('./LogRepository');
 const FacultyRepository = require('./FacultyRepository');
 const DegreeProgramRepository = require('./DegreeProgramRepository');
 const SubjectRepository = require('./SubjectRepository');
-const ClassSectionRepository = require('./ClassSectionRepository');
 const SemesterRepository = require('./SemesterRepository');
 const EnrollmentRepository = require('./EnrollmentRepository');
 const SemesterGPARepository = require('./SemesterGPARepository');
@@ -26,7 +25,6 @@ module.exports = {
   FacultyRepository,
   DegreeProgramRepository,
   SubjectRepository,
-  ClassSectionRepository,
   SemesterRepository,
   EnrollmentRepository,
   SemesterGPARepository,

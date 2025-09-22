@@ -4,8 +4,13 @@ const authenticate = require('../middlewares/auth');
 const { requireAdminOrSuperAdmin } = require('../middlewares/authorize');
 const router = express.Router();
 
+
+// Fetch course offerings with dynamic filters (lecturerId, subjectId, batchId, semesterId, etc.)
+// GET /api/course-offerings?lecturerId=...&subjectId=...&batchId=...&semesterId=...
+router.get('/', authenticate, controller.getByFilters);
+
+
 router.post('/', authenticate, requireAdminOrSuperAdmin, controller.create);
-router.get('/', authenticate, controller.getAll);
 router.get('/:id', authenticate, controller.getById);
 router.put('/:id', authenticate, requireAdminOrSuperAdmin, controller.update);
 router.delete('/:id', authenticate, requireAdminOrSuperAdmin, controller.delete);

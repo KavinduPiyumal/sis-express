@@ -26,6 +26,14 @@ const Semester = sequelize.define('Semester', {
   endDate: {
     type: DataTypes.DATEONLY,
     allowNull: false
+  },
+  status: {
+    type: DataTypes.ENUM('completed', 'inprogress', 'pending'),
+    allowNull: false,
+    defaultValue: 'pending',
+    validate: {
+      isIn: [['completed', 'inprogress', 'pending']]
+    }
   }
 }, {
   tableName: 'semesters',

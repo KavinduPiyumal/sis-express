@@ -25,7 +25,7 @@ const Enrollment = sequelize.define('Enrollment', {
     }
   },
   status: {
-    type: DataTypes.ENUM('active', 'dropped', 'completed', 'failed', 'retake'),
+    type: DataTypes.ENUM('pending', 'active', 'dropped', 'completed', 'failed', 'retake'),
     allowNull: false,
     defaultValue: 'active'
   },

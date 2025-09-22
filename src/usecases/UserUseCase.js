@@ -140,7 +140,25 @@ class UserUseCase {
         order: [['firstName', 'ASC']]
       });
 
-      return users.map(user => new UserDTO(user));
+      // Attach related Lecturer or Student record for each user
+      let relatedRepo = null;
+      if (targetRole === 'student') {
+        const { StudentRepository } = require('../repositories');
+        relatedRepo = new StudentRepository();
+      } else if (targetRole === 'admin') {
+        const { LecturerRepository } = require('../repositories');
+        relatedRepo = new LecturerRepository();
+      }
+
+      const results = await Promise.all(users.map(async user => {
+        let profile = null;
+        if (relatedRepo) {
+          profile = await relatedRepo.findOne({ userId: user.id });
+        }
+        return { ...new UserDTO(user), profile };
+      }));
+
+      return results;
     } catch (error) {
       logger.error('Get users by role error:', error);
       throw error;

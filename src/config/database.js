@@ -1,6 +1,6 @@
+require("pg"); // 👈 ensures pg is bundled
 const { Sequelize } = require("sequelize");
-const config = require("../config/config.js"); // adjust path if different
-const pg = require("pg");
+const config = require("../config/config.js");
 
 let sequelize;
 
@@ -17,7 +17,7 @@ function getSequelize() {
         host: dbConfig.host,
         port: dbConfig.port,
         dialect: "postgres",
-        dialectModule: pg, // explicitly tell Sequelize to use pg
+        dialectModule: require("pg"), // redundant but safe
         logging: dbConfig.logging,
         dialectOptions: dbConfig.dialectOptions || {},
       }

@@ -10,20 +10,10 @@ const logger = winston.createLogger({
   ),
   defaultMeta: { service: 'sis-backend' },
   transports: [
-    new winston.transports.File({ 
-      filename: path.join(process.cwd(), 'logs', 'error.log'), 
-      level: 'error' 
-    }),
-    new winston.transports.File({ 
-      filename: path.join(process.cwd(), 'logs', 'combined.log') 
-    }),
+    new winston.transports.Console({
+      format: winston.format.simple()
+    })
   ],
 });
-
-if (process.env.NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: winston.format.simple()
-  }));
-}
 
 module.exports = logger;

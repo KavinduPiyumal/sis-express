@@ -32,34 +32,7 @@ function getUploadMiddleware() {
       }
     });
   } else {
-    // local disk storage
-    const fs = require('fs');
-    const storage = multer.diskStorage({
-      destination: function (req, file, cb) {
-        // Use user id from req.user or req.body (for registration)
-        let userId = req.user && req.user.id ? req.user.id : (req.body && req.body.id ? req.body.id : 'unknown');
-        const userDir = path.join(__dirname, '../../uploads', userId, 'profileImages');
-        // Create the directory if it doesn't exist
-        fs.mkdirSync(userDir, { recursive: true });
-        cb(null, userDir);
-      },
-      filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, uniqueSuffix + '-' + file.originalname);
-      }
-    });
-    upload = multer({
-      storage: storage,
-      limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-      fileFilter: (req, file, cb) => {
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-        if (allowedTypes.includes(file.mimetype)) {
-          cb(null, true);
-        } else {
-          cb(new Error('Only .jpg, .jpeg, .png files are allowed!'));
-        }
-      }
-    });
+    throw new Error('Local disk uploads are not supported on Vercel. Please set UPLOAD_DRIVER=s3 in your environment variables.');
   }
   return upload;
 }

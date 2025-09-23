@@ -1,41 +1,30 @@
-require('dotenv').config();
+const { Sequelize } = require("sequelize");
+const config = require("../config/config.js"); // adjust path if different
 const pg = require("pg");
 
-module.exports = {
-  development: {
-    username: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || 'password',
-    database: process.env.DB_NAME || 'sis_database',
-    host: process.env.DB_HOST || 'localhost',
-    port: process.env.DB_PORT || 5432,
-    dialect: 'postgres',
-    dialectModule: pg,
-    logging: false,
-  },
-  test: {
-    username: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || 'password',
-    database: (process.env.DB_NAME || 'sis_database') + '_test',
-    host: process.env.DB_HOST || 'localhost',
-    port: process.env.DB_PORT || 5432,
-    dialect: 'postgres',
-    dialectModule: pg,
-    logging: false,
-  },
-  production: {
-    username: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'postgres',
-    dialectModule: pg,
-    logging: false,
-    dialectOptions: {
-      ssl: {
-        require: true,
-        rejectUnauthorized: false
+let sequelize;
+
+function getSequelize() {
+  if (!sequelize) {
+    const env = process.env.NODE_ENV || "development";
+    const dbConfig = config[env];
+
+    sequelize = new Sequelize(
+      dbConfig.database,
+      dbConfig.username,
+      dbConfig.password,
+      {
+        host: dbConfig.host,
+        port: dbConfig.port,
+        dialect: "postgres",
+        dialectModule: pg, // explicitly tell Sequelize to use pg
+        logging: dbConfig.logging,
+        dialectOptions: dbConfig.dialectOptions || {},
       }
-    }
+    );
   }
-};
+
+  return sequelize;
+}
+
+module.exports = { getSequelize };

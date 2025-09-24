@@ -10,9 +10,10 @@ class UserDTO {
     this.address = user.address;
     this.dateOfBirth = user.dateOfBirth;
     this.isActive = user.isActive;
-    this.lastLoginAt = user.lastLoginAt;
-    this.createdAt = user.createdAt;
-    this.updatedAt = user.updatedAt;
+  this.lastLoginAt = user.lastLoginAt;
+  this.createdAt = user.createdAt;
+  this.updatedAt = user.updatedAt;
+  this.gender = user.gender || null;
     if (user.profileImage) {
       if (/^https?:\/\//.test(user.profileImage)) {
         // Already a full URL (S3 or external)
@@ -64,7 +65,8 @@ class UserCreateDTO {
     this.phone = data.phone;
     this.address = data.address;
     this.dateOfBirth = data.dateOfBirth;
-    this.profileImage = data.profileImage;
+  this.profileImage = data.profileImage;
+  this.gender = data.gender || null;
   }
 }
 
@@ -77,7 +79,8 @@ class UserUpdateDTO {
     this.address = data.address;
     this.dateOfBirth = data.dateOfBirth;
     this.isActive = data.isActive;
-    this.profileImage = data.profileImage;
+  this.profileImage = data.profileImage;
+  this.gender = data.gender || null;
   }
 }
 

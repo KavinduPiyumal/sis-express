@@ -2,6 +2,7 @@
 const UserUseCase = require('../usecases/UserUseCase');
 
 class UserController {
+
   constructor() {
     this.userUseCase = new UserUseCase();
   }
@@ -44,8 +45,7 @@ class UserController {
   getUsersByRole = async (req, res, next) => {
     try {
       const { role } = req.params;
-      const users = await this.userUseCase.getUsersByRole(req.user.role, role);
-      
+      const users = await this.userUseCase.getUsersByRole(req.user.role, role, req.query);
       res.json({
         success: true,
         data: users
@@ -57,8 +57,8 @@ class UserController {
 
   getStudents = async (req, res, next) => {
     try {
-      const students = await this.userUseCase.getUsersByRole(req.user.role, 'student');
-      
+      // Pass req.query as options so limit/page are respected
+      const students = await this.userUseCase.getUsersByRole(req.user.role, 'student', req.query);
       res.json({
         success: true,
         data: students
@@ -70,8 +70,7 @@ class UserController {
 
   getAdmins = async (req, res, next) => {
     try {
-      const admins = await this.userUseCase.getUsersByRole(req.user.role, 'admin');
-      
+      const admins = await this.userUseCase.getUsersByRole(req.user.role, 'admin', req.query);
       res.json({
         success: true,
         data: admins
@@ -153,7 +152,16 @@ class UserController {
       const failed = [];
       for (const studentData of students) {
         try {
-          const user = await this.userUseCase.createUser({ ...studentData, role: 'student' }, req.user.role);
+          // Pass new fields for parent/guardian and emergency contact
+          const user = await this.userUseCase.createUser({
+            ...studentData,
+            role: 'student',
+            parentName: studentData.parentName,
+            parentPhone: studentData.parentPhone,
+            emergencyContactName: studentData.emergencyContactName,
+            emergencyContactPhone: studentData.emergencyContactPhone,
+            gender: studentData.gender
+          }, req.user.role);
           created.push(user);
         } catch (err) {
           failed.push({ error: err.message, data: studentData });
@@ -191,7 +199,7 @@ class UserController {
         let transaction;
         try {
           transaction = await sequelize.transaction();
-          const user = await this.userUseCase.createUser({ ...lecturerData, role: 'admin', isLecturer: true }, req.user.role, transaction);
+          const user = await this.userUseCase.createUser({ ...lecturerData, role: 'admin', isLecturer: true, gender: lecturerData.gender }, req.user.role, transaction);
           await transaction.commit();
           created.push(user);
         } catch (err) {

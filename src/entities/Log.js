@@ -14,7 +14,8 @@ const Log = sequelize.define('Log', {
     references: {
       model: 'users',
       key: 'id'
-    }
+      },
+      onDelete: 'CASCADE'
   },
   action: {
     type: DataTypes.STRING,

@@ -14,9 +14,24 @@ const createUserValidation = [
   body('lastName').notEmpty().withMessage('Last name is required'),
   body('email').isEmail().withMessage('Valid email is required'),
   body('role').isIn(['student', 'admin', 'super_admin']).withMessage('Invalid role'),
+  body('gender')
+    .optional({ nullable: true })
+    .isIn(['male', 'female', 'other']).withMessage('Gender must be male, female, or other'),
   body('studentId')
     .if(body('role').equals('student'))
     .notEmpty().withMessage('Student ID is required for students'),
+  body('parentName')
+    .optional({ nullable: true })
+    .isString().withMessage('Parent/Guardian Name must be a string'),
+  body('parentPhone')
+    .optional({ nullable: true })
+    .isMobilePhone().withMessage('Valid Parent/Guardian Phone is required'),
+  body('emergencyContactName')
+    .optional({ nullable: true })
+    .isString().withMessage('Emergency Contact Name must be a string'),
+  body('emergencyContactPhone')
+    .optional({ nullable: true })
+    .isMobilePhone().withMessage('Valid Emergency Contact Phone is required'),
   body('departmentId')
     .if((value, { req }) => req.body.role === 'admin' && req.body.isLecturer === true)
     .notEmpty().withMessage('Department ID is required for lecturers'),

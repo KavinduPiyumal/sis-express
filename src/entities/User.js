@@ -42,14 +42,14 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: true
   },
-    profileId: {
-      type: DataTypes.UUID,
-      allowNull: true
-    },
-    permissions: {
-      type: DataTypes.ARRAY(DataTypes.STRING),
-      allowNull: true
-    },
+  profileId: {
+    type: DataTypes.UUID,
+    allowNull: true
+  },
+  permissions: {
+    type: DataTypes.ARRAY(DataTypes.STRING),
+    allowNull: true
+  },
   address: {
     type: DataTypes.TEXT,
     allowNull: true
@@ -69,6 +69,10 @@ const User = sequelize.define('User', {
   ,
   profileImage: {
     type: DataTypes.STRING,
+    allowNull: true
+  },
+  gender: {
+    type: DataTypes.ENUM('male', 'female', 'other'),
     allowNull: true
   }
   ,
@@ -100,11 +104,11 @@ const User = sequelize.define('User', {
 });
 
 // Instance methods
-User.prototype.comparePassword = async function(candidatePassword) {
+User.prototype.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
-User.prototype.toJSON = function() {
+User.prototype.toJSON = function () {
   const values = Object.assign({}, this.get());
   delete values.password;
   return values;

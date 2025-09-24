@@ -41,6 +41,23 @@ const Student = sequelize.define('Student', {
     allowNull: false,
     defaultValue: 'active'
   }
+  ,
+  parentName: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  parentPhone: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  emergencyContactName: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  emergencyContactPhone: {
+    type: DataTypes.STRING,
+    allowNull: true
+  }
 }, {
   tableName: 'students',
   timestamps: true

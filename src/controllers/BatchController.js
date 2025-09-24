@@ -12,7 +12,10 @@ module.exports = {
   async getAll(req, res) {
     try {
       const batches = await Batch.findAll();
-      res.json(batches);
+      res.json({
+        success: true,
+        data: batches
+      });
     } catch (err) {
       res.status(500).json({ error: err.message });
     }

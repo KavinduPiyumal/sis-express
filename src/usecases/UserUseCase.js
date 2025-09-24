@@ -44,7 +44,8 @@ class UserUseCase {
       // Create user DTO
       const createUserDTO = new UserCreateDTO({
         ...userData,
-        password: hashedPassword
+        password: hashedPassword,
+        gender: userData.gender || null
       });
 
       // Create user
@@ -59,7 +60,11 @@ class UserUseCase {
           fullName: `${userData.firstName} ${userData.lastName}`,
           email: userData.email,
           batchId: userData.batchId,
-          status: 'active'
+          status: 'active',
+          parentName: userData.parentName || null,
+          parentPhone: userData.parentPhone || null,
+          emergencyContactName: userData.emergencyContactName || null,
+          emergencyContactPhone: userData.emergencyContactPhone || null
         }, { transaction: t });
       } else if (userData.role === 'admin') {
         // Only create lecturer if not super_admin
@@ -135,10 +140,26 @@ class UserUseCase {
         throw new Error('Insufficient permissions');
       }
 
-      const users = await this.userRepository.findByRole(targetRole, {
+      // Always expect options as third argument (controller should pass req.query)
+      const options = arguments[2] && typeof arguments[2] === 'object' ? arguments[2] : {};
+      let limit = options.limit !== undefined ? parseInt(options.limit) : 5;
+      let page = options.page !== undefined ? parseInt(options.page) : 1;
+
+      // Only apply limit for students if limit is set
+      let userQueryOptions = {
         where: { isActive: true },
         order: [['firstName', 'ASC']]
-      });
+      };
+      if (targetRole === 'student') {
+        if (options.limit !== undefined && options.limit !== null && options.limit !== '') {
+          userQueryOptions.limit = limit;
+          userQueryOptions.offset = ((page - 1) * limit);
+        }
+      }
+
+      const usersResult = await this.userRepository.findByRole(targetRole, userQueryOptions);
+      // Support both array and paginated result
+      const users = Array.isArray(usersResult) ? usersResult : (usersResult.rows || []);
 
       // Attach related Lecturer or Student record for each user
       let relatedRepo = null;
@@ -157,6 +178,23 @@ class UserUseCase {
         }
         return { ...new UserDTO(user), profile };
       }));
+
+      // If students, return stats from Student collection
+      if (targetRole === 'student') {
+        // Get stats from Student collection
+        const { Student } = require('../entities');
+        const total = await Student.count();
+        const active = await Student.count({ where: { status: 'active' } });
+        const inactive = await Student.count({ where: { status: 'inactive' } });
+        return {
+          students: results,
+          stats: {
+            total,
+            active,
+            inactive
+          }
+        };
+      }
 
       return results;
     } catch (error) {

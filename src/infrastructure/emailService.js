@@ -69,6 +69,8 @@ class EmailService {
       </div>
     `;
 
+    logger.info(`Sending welcome email to ${user.email} with temp password: ${tempPassword}`);
+
     return await this.sendEmail(user.email, subject, html);
   }
 

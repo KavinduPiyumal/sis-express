@@ -64,7 +64,8 @@ class UserUseCase {
           parentName: userData.parentName || null,
           parentPhone: userData.parentPhone || null,
           emergencyContactName: userData.emergencyContactName || null,
-          emergencyContactPhone: userData.emergencyContactPhone || null
+          emergencyContactPhone: userData.emergencyContactPhone || null,
+          uniRegistrationDate: userData.uniRegistrationDate || null
         }, { transaction: t });
       } else if (userData.role === 'admin') {
         // Only create lecturer if not super_admin
@@ -148,7 +149,7 @@ class UserUseCase {
       // Only apply limit for students if limit is set
       let userQueryOptions = {
         where: { isActive: true },
-        order: [['firstName', 'ASC']]
+        order: [['createdAt', 'DESC']]
       };
       if (targetRole === 'student') {
         if (options.limit !== undefined && options.limit !== null && options.limit !== '') {
@@ -181,17 +182,29 @@ class UserUseCase {
 
       // If students, return stats from Student collection
       if (targetRole === 'student') {
-        // Get stats from Student collection
-        const { Student } = require('../entities');
-        const total = await Student.count();
-        const active = await Student.count({ where: { status: 'active' } });
-        const inactive = await Student.count({ where: { status: 'inactive' } });
+        const { Student, User } = require('../entities');
+        // Get all non-deleted students (User.isActive = true)
+        const activeUsers = await User.findAll({ where: { isActive: true, role: 'student' }, attributes: ['id'] });
+        const activeUserIds = activeUsers.map(u => u.id);
+        const deletedUsers = await User.findAll({ where: { isActive: false, role: 'student' }, attributes: ['id'] });
+        const deletedUserIds = deletedUsers.map(u => u.id);
+
+        // Total = students with User.isActive true
+        const total = await Student.count({ where: { userId: activeUserIds } });
+        // Active = students with status 'active' and User.isActive true
+        const active = await Student.count({ where: { userId: activeUserIds, status: 'active' } });
+        // Inactive = students with status 'inactive' and User.isActive true
+        const inactive = await Student.count({ where: { userId: activeUserIds, status: 'inactive' } });
+        // Deleted = students with User.isActive false
+        const deleted = await Student.count({ where: { userId: deletedUserIds } });
+
         return {
           students: results,
           stats: {
             total,
             active,
-            inactive
+            inactive,
+            deleted
           }
         };
       }
@@ -280,6 +293,11 @@ class UserUseCase {
           if (updateData.status) studentFields.status = updateData.status;
           if (updateData.fullName) studentFields.fullName = updateData.fullName;
           if (updateData.email) studentFields.email = updateData.email;
+          if (updateData.uniRegistrationDate !== undefined) studentFields.uniRegistrationDate = updateData.uniRegistrationDate;
+          if (updateData.parentName !== undefined) studentFields.parentName = updateData.parentName;
+          if (updateData.parentPhone !== undefined) studentFields.parentPhone = updateData.parentPhone;
+          if (updateData.emergencyContactName !== undefined) studentFields.emergencyContactName = updateData.emergencyContactName;
+          if (updateData.emergencyContactPhone !== undefined) studentFields.emergencyContactPhone = updateData.emergencyContactPhone;
           if (Object.keys(studentFields).length > 0) {
             await studentRepo.update(studentFields, { userId });
           }

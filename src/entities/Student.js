@@ -57,6 +57,10 @@ const Student = sequelize.define('Student', {
   emergencyContactPhone: {
     type: DataTypes.STRING,
     allowNull: true
+  },
+  uniRegistrationDate: {
+    type: DataTypes.DATE,
+    allowNull: true
   }
 }, {
   tableName: 'students',

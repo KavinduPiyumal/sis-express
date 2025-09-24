@@ -23,15 +23,23 @@ const createUserValidation = [
   body('parentName')
     .optional({ nullable: true })
     .isString().withMessage('Parent/Guardian Name must be a string'),
-  body('parentPhone')
-    .optional({ nullable: true })
-    .isMobilePhone().withMessage('Valid Parent/Guardian Phone is required'),
+    body('parentPhone')
+      .optional({ nullable: true })
+      .custom((value) => {
+        if (value === undefined || value === null || value === '') return true;
+        // Only validate if not empty
+        return /^\+?\d{7,15}$/.test(value);
+      }).withMessage('Valid Parent/Guardian Phone is required'),
   body('emergencyContactName')
     .optional({ nullable: true })
     .isString().withMessage('Emergency Contact Name must be a string'),
-  body('emergencyContactPhone')
-    .optional({ nullable: true })
-    .isMobilePhone().withMessage('Valid Emergency Contact Phone is required'),
+    body('emergencyContactPhone')
+      .optional({ nullable: true })
+      .custom((value) => {
+        if (value === undefined || value === null || value === '') return true;
+        // Only validate if not empty
+        return /^\+?\d{7,15}$/.test(value);
+      }).withMessage('Valid Emergency Contact Phone is required'),
   body('departmentId')
     .if((value, { req }) => req.body.role === 'admin' && req.body.isLecturer === true)
     .notEmpty().withMessage('Department ID is required for lecturers'),

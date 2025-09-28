@@ -39,13 +39,6 @@ class UserUseCase {
           }
         }
 
-        if (userData.dateOfBirth && typeof userData.dateOfBirth === 'string') {
-          userData.dateOfBirth = new Date(userData.dateOfBirth);
-        }
-
-        if (userData.uniRegistrationDate && typeof userData.uniRegistrationDate === 'string') {
-          userData.uniRegistrationDate = new Date(userData.uniRegistrationDate);
-        }
 
         // Generate temporary password if not provided
         const tempPassword = userData.password || this.generateTempPassword();
@@ -279,16 +272,10 @@ class UserUseCase {
       delete allowedUpdates.password;
       delete allowedUpdates.id;
 
-      if (updateData.dateOfBirth && typeof updateData.dateOfBirth === 'string') {
-        updateData.dateOfBirth = new Date(updateData.dateOfBirth);
-      }
 
       const updateUserDTO = new UserUpdateDTO(allowedUpdates);
       await this.userRepository.update(updateUserDTO, { id: userId });
 
-      if (updateData.uniRegistrationDate && typeof updateData.uniRegistrationDate === 'string') {
-        updateData.uniRegistrationDate = new Date(updateData.uniRegistrationDate);
-      }
       // Update student/lecturer profile if relevant fields are present
       if (user.role === 'student') {
         const { StudentRepository } = require('../repositories');

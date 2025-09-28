@@ -14,15 +14,27 @@ class StudentRepository {
   }
 
   async create(data) {
-    return await prisma.student.create({ data });
+    const userData = { ...data };
+    if (userData.uniRegistrationDate && typeof userData.uniRegistrationDate === 'string') {
+      userData.uniRegistrationDate = new Date(userData.uniRegistrationDate);
+    }
+    return await prisma.student.create({ data: userData });
   }
 
   async update(id, data) {
-    return await prisma.student.update({ where: { id }, data });
+    const userData = { ...data };
+    if (userData.uniRegistrationDate && typeof userData.uniRegistrationDate === 'string') {
+      userData.uniRegistrationDate = new Date(userData.uniRegistrationDate);
+    }
+    return await prisma.student.update({ where: { id }, data: userData });
   }
 
   async updateUsingUserId(userId, data) {
-    return await prisma.student.update({ where: { userId }, data });
+    const userData = { ...data };
+    if (userData.uniRegistrationDate && typeof userData.uniRegistrationDate === 'string') {
+      userData.uniRegistrationDate = new Date(userData.uniRegistrationDate);
+    }
+    return await prisma.student.update({ where: { userId }, data: userData });
   }
 
   async delete(id) {

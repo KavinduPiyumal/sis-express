@@ -272,7 +272,7 @@ class UserUseCase {
       delete allowedUpdates.id;
 
       if (updateData.dateOfBirth && typeof updateData.dateOfBirth === 'string') {
-        updateData.uniRegistrationDate = new Date(updateData.dateOfBirth);
+        updateData.dateOfBirth = new Date(updateData.dateOfBirth);
       }
 
       const updateUserDTO = new UserUpdateDTO(allowedUpdates);

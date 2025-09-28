@@ -39,6 +39,14 @@ class UserUseCase {
           }
         }
 
+        if (userData.dateOfBirth && typeof userData.dateOfBirth === 'string') {
+          userData.dateOfBirth = new Date(userData.dateOfBirth);
+        }
+
+        if (userData.uniRegistrationDate && typeof userData.uniRegistrationDate === 'string') {
+          userData.uniRegistrationDate = new Date(userData.uniRegistrationDate);
+        }
+
         // Generate temporary password if not provided
         const tempPassword = userData.password || this.generateTempPassword();
 

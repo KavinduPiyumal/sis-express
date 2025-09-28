@@ -1,6 +1,4 @@
 node_modules/
-uploads/
-logs/
 *.log
 .DS_Store
 .vscode/

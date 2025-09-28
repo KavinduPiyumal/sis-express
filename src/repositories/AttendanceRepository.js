@@ -1,44 +1,40 @@
-const BaseRepository = require('./BaseRepository');
-const { Attendance } = require('../entities');
-const { Op } = require('sequelize');
 
-class AttendanceRepository extends BaseRepository {
-  constructor() {
-    super(Attendance);
-  }
+const prisma = require('../infrastructure/prisma');
 
-  async findByStudentId(studentId, options = {}) {
-    return await this.findAll({
+class AttendanceRepository {
+  async findByStudentId(studentId) {
+    return await prisma.attendance.findMany({
       where: { studentId },
-      order: [['markedAt', 'DESC']],
-      ...options
+      orderBy: { markedAt: 'desc' },
     });
   }
 
   async findBySessionAndStudent(classSessionId, studentId) {
-    return await this.findOne({ classSessionId, studentId });
+    return await prisma.attendance.findFirst({
+      where: { classSessionId, studentId },
+    });
   }
 
-  async findByDateRangeForOffering(courseOfferingId, startDate, endDate, options = {}) {
-    return await this.findAll({
+  async findByDateRangeForOffering(courseOfferingId, startDate, endDate) {
+    return await prisma.attendance.findMany({
       where: {
         courseOfferingId,
         markedAt: {
-          [Op.between]: [startDate, endDate]
-        }
+          gte: startDate,
+          lte: endDate,
+        },
       },
-      order: [['markedAt', 'DESC']],
-      ...options
+      orderBy: { markedAt: 'desc' },
     });
   }
 
   async getAttendanceStats(studentId, courseOfferingId) {
-    const whereClause = { studentId, courseOfferingId };
-    const totalSessions = await this.count(whereClause);
-    const present = await this.count({ ...whereClause, status: 'present' });
-    const absent = await this.count({ ...whereClause, status: 'absent' });
-    const late = await this.count({ ...whereClause, status: 'late' });
-    const excused = await this.count({ ...whereClause, status: 'excused' });
+    const where = { studentId, courseOfferingId };
+    const totalSessions = await prisma.attendance.count({ where });
+    const present = await prisma.attendance.count({ where: { ...where, status: 'present' } });
+    const absent = await prisma.attendance.count({ where: { ...where, status: 'absent' } });
+    const late = await prisma.attendance.count({ where: { ...where, status: 'late' } });
+    const excused = await prisma.attendance.count({ where: { ...where, status: 'excused' } });
     const attendancePercentage = totalSessions > 0 ? ((present + late + excused) / totalSessions) * 100 : 0;
     return {
       totalSessions,
@@ -46,14 +42,49 @@ class AttendanceRepository extends BaseRepository {
       absent,
       late,
       excused,
-      attendancePercentage: Math.round(attendancePercentage * 100) / 100
+      attendancePercentage: Math.round(attendancePercentage * 100) / 100,
     };
   }
 
   async bulkCreateAttendance(attendanceRecords) {
-    return await this.model.bulkCreate(attendanceRecords, {
-      updateOnDuplicate: ['status', 'remarks', 'updatedAt', 'medicalId']
-    });
+    // Prisma does not support updateOnDuplicate in createMany, so we need to upsert each record
+    const results = [];
+    for (const record of attendanceRecords) {
+      const { classSessionId, studentId } = record;
+      results.push(
+        prisma.attendance.upsert({
+          where: { classSessionId_studentId: { classSessionId, studentId } },
+          update: {
+            status: record.status,
+            remarks: record.remarks,
+            updatedAt: record.updatedAt,
+            medicalId: record.medicalId,
+          },
+          create: record,
+        })
+      );
+    }
+    return await Promise.all(results);
+  }
+
+  async create(data) {
+    return await prisma.attendance.create({ data });
+  }
+
+  async findAll(filter = {}) {
+    return await prisma.attendance.findMany({ where: filter });
+  }
+
+  async findById(id) {
+    return await prisma.attendance.findUnique({ where: { id } });
+  }
+
+  async update(id, data) {
+    return await prisma.attendance.update({ where: { id }, data });
+  }
+
+  async delete(id) {
+    return await prisma.attendance.delete({ where: { id } });
   }
 }
 

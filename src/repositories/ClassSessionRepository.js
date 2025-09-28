@@ -1,33 +1,25 @@
-const { ClassSession } = require('../entities');
+
+const prisma = require('../infrastructure/prisma');
 
 class ClassSessionRepository {
-  constructor() {
-    this.model = ClassSession;
-  }
-
-  async create(data, options = {}) {
-    return await this.model.create(data, options);
-  }
-
-  async findAll(options = {}) {
-    return await this.model.findAll(options);
-  }
-
   async findById(id) {
-    return await this.model.findByPk(id);
+    return await prisma.classSession.findUnique({ where: { id } });
   }
 
-  async update(id, data, options = {}) {
-    const session = await this.model.findByPk(id);
-    if (!session) return null;
-    return await session.update(data, options);
+  async findAll(filter = {}) {
+    return await prisma.classSession.findMany({ where: filter });
   }
 
-  async delete(id, options = {}) {
-    const session = await this.model.findByPk(id);
-    if (!session) return null;
-    await session.destroy(options);
-    return true;
+  async create(data) {
+    return await prisma.classSession.create({ data });
+  }
+
+  async update(id, data) {
+    return await prisma.classSession.update({ where: { id }, data });
+  }
+
+  async delete(id) {
+    return await prisma.classSession.delete({ where: { id } });
   }
 }
 

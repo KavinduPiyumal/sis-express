@@ -5,7 +5,7 @@ class UserDTO {
     this.lastName = user.lastName;
     this.email = user.email;
     this.role = user.role;
-    this.studentId = user.studentId;
+  this.studentNo = user.studentNo;
     this.phone = user.phone;
     this.address = user.address;
     this.dateOfBirth = user.dateOfBirth;
@@ -59,12 +59,12 @@ class UserCreateDTO {
     this.firstName = data.firstName;
     this.lastName = data.lastName;
     this.email = data.email;
-    this.password = data.password;
-    this.role = data.role;
-    this.studentId = data.studentId;
-    this.phone = data.phone;
-    this.address = data.address;
-    this.dateOfBirth = data.dateOfBirth;
+  this.username = data.username;
+  this.password = data.password;
+  this.role = data.role;
+  this.phone = data.phone;
+  this.address = data.address;
+  this.dateOfBirth = data.dateOfBirth;
   this.profileImage = data.profileImage;
   this.gender = data.gender || null;
   }

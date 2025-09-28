@@ -8,76 +8,44 @@ const errorHandler = (err, req, res, next) => {
   logger.error(err);
 
 
-  // Sequelize validation error
-  if (err.name === 'SequelizeValidationError') {
-    const formattedErrors = err.errors.map(error => ({
-      field: error.path,
-      message: error.message
-    }));
-    return res.status(400).json({
-      success: false,
-      message: 'Validation Error',
-      errors: formattedErrors
-    });
-  }
 
-  // Sequelize unique constraint error
-  if (err.name === 'SequelizeUniqueConstraintError') {
-    const field = err.errors[0].path;
-    error.message = `${field} already exists`;
-    return res.status(400).json({
-      success: false,
-      message: 'Validation Error',
-      errors: [{ field, message: error.message }]
-    });
-  }
 
-  // Sequelize foreign key constraint error
-  if (err.name === 'SequelizeForeignKeyConstraintError') {
-    error.message = 'Invalid reference to related resource';
-    return res.status(400).json({
-      success: false,
-      message: 'Validation Error',
-      errors: [{ message: error.message }]
-    });
-  }
-
-  // JWT errors
-  if (err.name === 'JsonWebTokenError') {
-    error.message = 'Invalid token';
-    return res.status(401).json({
-      success: false,
-      message: 'Authentication Error',
-      errors: [{ message: error.message }]
-    });
-  }
-
-  if (err.name === 'TokenExpiredError') {
-    error.message = 'Token expired';
-    return res.status(401).json({
-      success: false,
-      message: 'Authentication Error',
-      errors: [{ message: error.message }]
-    });
-  }
-
-  // Multer errors (file upload)
-  if (err.code === 'LIMIT_FILE_SIZE') {
-    error.message = 'File size too large';
-    return res.status(400).json({
-      success: false,
-      message: 'Validation Error',
-      errors: [{ message: error.message }]
-    });
-  }
-
-  if (err.code === 'LIMIT_UNEXPECTED_FILE') {
-    error.message = 'Invalid file field';
-    return res.status(400).json({
-      success: false,
-      message: 'Validation Error',
-      errors: [{ message: error.message }]
-    });
+  // Prisma error handling
+  if (err.code && err.code.startsWith('P')) {
+    // Prisma error codes: https://www.prisma.io/docs/reference/api-reference/error-reference#error-codes
+    switch (err.code) {
+      case 'P2002': // Unique constraint failed
+        return res.status(409).json({
+          success: false,
+          message: 'Unique constraint error',
+          errors: [{ message: err.meta && err.meta.target ? `Duplicate value for: ${err.meta.target.join(', ')}` : 'Unique constraint failed' }]
+        });
+      case 'P2003': // Foreign key constraint failed
+        return res.status(409).json({
+          success: false,
+          message: 'Foreign key constraint error',
+          errors: [{ message: 'Invalid reference to related resource' }]
+        });
+      case 'P2000': // Value too long for column
+        return res.status(400).json({
+          success: false,
+          message: 'Value too long for column',
+          errors: [{ message: err.meta && err.meta.column_name ? `Value too long for column: ${err.meta.column_name}` : 'Value too long for column' }]
+        });
+      case 'P2025': // Record not found
+        return res.status(404).json({
+          success: false,
+          message: 'Record not found',
+          errors: [{ message: err.meta && err.meta.cause ? err.meta.cause : 'Record not found' }]
+        });
+      // Add more Prisma error codes as needed
+      default:
+        return res.status(400).json({
+          success: false,
+          message: 'Database error',
+          errors: [{ message: err.message }]
+        });
+    }
   }
 
   // Default error

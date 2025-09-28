@@ -1,7 +1,6 @@
 const { MedicalReportRepository, AttendanceRepository, UserRepository } = require('../repositories');
 const { MedicalReportDTO } = require('../dto/MedicalReportDTO');
 const { AttendanceDTO } = require('../dto/AttendanceDTO');
-const { Op } = require('sequelize');
 
 class MedicalReportUseCase {
   constructor() {

@@ -142,40 +142,40 @@ class UserController {
   };
 
     // Bulk create students
-  bulkCreateStudents = async (req, res, next) => {
-    try {
-      const { students } = req.body;
-      if (!Array.isArray(students) || students.length === 0) {
-        return res.status(400).json({ success: false, message: 'students array required' });
-      }
-      const created = [];
-      const failed = [];
-      for (const studentData of students) {
-        try {
-          // Pass new fields for parent/guardian and emergency contact
-          const user = await this.userUseCase.createUser({
-            ...studentData,
-            role: 'student',
-            parentName: studentData.parentName,
-            parentPhone: studentData.parentPhone,
-            emergencyContactName: studentData.emergencyContactName,
-            emergencyContactPhone: studentData.emergencyContactPhone,
-            gender: studentData.gender
-          }, req.user.role);
-          created.push(user);
-        } catch (err) {
-          failed.push({ error: err.message, data: studentData });
+    bulkCreateStudents = async (req, res, next) => {
+      try {
+        const { students } = req.body;
+        if (!Array.isArray(students) || students.length === 0) {
+          return res.status(400).json({ success: false, message: 'students array required' });
         }
+        const created = [];
+        const failed = [];
+        for (const studentData of students) {
+          try {
+            // Use studentNo for Student creation, not studentId
+            const user = await this.userUseCase.createUser({
+              ...studentData,
+              role: 'student',
+              studentNo: studentData.studentNo || studentData.studentId, // fallback for legacy
+              parentName: studentData.parentName,
+              parentPhone: studentData.parentPhone,
+              emergencyContactName: studentData.emergencyContactName,
+              emergencyContactPhone: studentData.emergencyContactPhone,
+              gender: studentData.gender
+            }, req.user.role);
+            created.push(user);
+          } catch (err) {
+            failed.push({ error: err.message, data: studentData });
+          }
+        }
+        res.status(201).json({ success: true, created, failed });
+      } catch (error) {
+        next(error);
       }
-      res.status(201).json({ success: true, created, failed });
-    } catch (error) {
-      next(error);
-    }
-  };
+    };
 
   // Bulk create lecturers
   bulkCreateLecturers = async (req, res, next) => {
-    const { sequelize } = require('../infrastructure/database');
     try {
       const { lecturers } = req.body;
       if (!Array.isArray(lecturers) || lecturers.length === 0) {
@@ -196,14 +196,10 @@ class UserController {
           failed.push({ errors, data: lecturerData });
           continue;
         }
-        let transaction;
         try {
-          transaction = await sequelize.transaction();
-          const user = await this.userUseCase.createUser({ ...lecturerData, role: 'admin', isLecturer: true, gender: lecturerData.gender }, req.user.role, transaction);
-          await transaction.commit();
+          const user = await this.userUseCase.createUser({ ...lecturerData, role: 'admin', isLecturer: true, gender: lecturerData.gender }, req.user.role);
           created.push(user);
         } catch (err) {
-          if (transaction) await transaction.rollback();
           failed.push({ error: err.message, data: lecturerData });
         }
       }

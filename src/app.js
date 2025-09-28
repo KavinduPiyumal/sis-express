@@ -11,7 +11,7 @@ const cookieParser = require('cookie-parser');
 // Import configuration and services
 const config = require('./config');
 const logger = require('./config/logger');
-const { connectDB } = require('./infrastructure/database');
+const prisma = require('./infrastructure/prisma');
 const socketService = require('./infrastructure/socketService');
 const errorHandler = require('./middlewares/errorHandler');
 
@@ -36,8 +36,7 @@ const medicalReportRoutes = require('./routes/medicalReportRoutes');
 const departmentsRoutes = require('./routes/departmentRoutes');
 const batchRoutes = require('./routes/batchRoutes');
 
-// Import models to initialize associations
-require('./entities');
+
 
 const app = express();
 const server = http.createServer(app);
@@ -75,6 +74,12 @@ app.use('/uploads', (req, res, next) => {
     res.header('Vary', 'Origin');
   }
   res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  if (req.method === 'OPTIONS') {
+    // Respond to preflight request
+    return res.sendStatus(200);
+  }
   next();
 }, express.static(path.join(__dirname, '../uploads')));
 
@@ -137,18 +142,13 @@ process.on('SIGINT', () => {
   });
 });
 
+
 // Start server
 const startServer = async () => {
   try {
-    // Connect to database
-    await connectDB();
-    
-    // Sync database (create tables if they don't exist)
-    if (config.nodeEnv === 'development') {
-      const { sequelize } = require('./infrastructure/database');
-      await sequelize.sync({ alter: true });
-      logger.info('Database synchronized');
-    }
+    // Test Prisma connection
+    await prisma.$connect();
+    logger.info('Connected to database with Prisma');
 
     // Start server
     server.listen(config.port, () => {

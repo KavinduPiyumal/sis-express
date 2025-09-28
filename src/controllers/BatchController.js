@@ -1,9 +1,10 @@
-const { Batch } = require('../entities');
+
+const prisma = require('../infrastructure/prisma');
 
 module.exports = {
   async create(req, res) {
     try {
-      const batch = await Batch.create(req.body);
+      const batch = await prisma.batch.create({ data: req.body });
       res.status(201).json(batch);
     } catch (err) {
       res.status(400).json({ error: err.message });
@@ -11,7 +12,7 @@ module.exports = {
   },
   async getAll(req, res) {
     try {
-      const batches = await Batch.findAll();
+      const batches = await prisma.batch.findMany();
       res.json({
         success: true,
         data: batches
@@ -22,7 +23,7 @@ module.exports = {
   },
   async getById(req, res) {
     try {
-      const batch = await Batch.findByPk(req.params.id);
+      const batch = await prisma.batch.findUnique({ where: { id: req.params.id } });
       if (!batch) return res.status(404).json({ error: 'Not found' });
       res.json(batch);
     } catch (err) {
@@ -31,21 +32,19 @@ module.exports = {
   },
   async update(req, res) {
     try {
-      const batch = await Batch.findByPk(req.params.id);
-      if (!batch) return res.status(404).json({ error: 'Not found' });
-      await batch.update(req.body);
+      const batch = await prisma.batch.update({ where: { id: req.params.id }, data: req.body });
       res.json(batch);
     } catch (err) {
+      if (err.code === 'P2025') return res.status(404).json({ error: 'Not found' });
       res.status(400).json({ error: err.message });
     }
   },
   async delete(req, res) {
     try {
-      const batch = await Batch.findByPk(req.params.id);
-      if (!batch) return res.status(404).json({ error: 'Not found' });
-      await batch.destroy();
+      await prisma.batch.delete({ where: { id: req.params.id } });
       res.status(204).end();
     } catch (err) {
+      if (err.code === 'P2025') return res.status(404).json({ error: 'Not found' });
       res.status(500).json({ error: err.message });
     }
   }

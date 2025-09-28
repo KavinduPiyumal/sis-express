@@ -10,6 +10,7 @@ const router = express.Router();
 
 // Validation rules
 const createUserValidation = [
+  body('username').optional().isString().withMessage('Username must be a string'),
   body('firstName').notEmpty().withMessage('First name is required'),
   body('lastName').notEmpty().withMessage('Last name is required'),
   body('email').isEmail().withMessage('Valid email is required'),
@@ -17,9 +18,9 @@ const createUserValidation = [
   body('gender')
     .optional({ nullable: true })
     .isIn(['male', 'female', 'other']).withMessage('Gender must be male, female, or other'),
-  body('studentId')
+  body('studentNo')
     .if(body('role').equals('student'))
-    .notEmpty().withMessage('Student ID is required for students'),
+    .notEmpty().withMessage('Student number is required for students'),
   body('parentName')
     .optional({ nullable: true })
     .isString().withMessage('Parent/Guardian Name must be a string'),

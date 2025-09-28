@@ -59,6 +59,7 @@ class EmailService {
         <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
           <h3>Account Details:</h3>
           <p><strong>Email:</strong> ${user.email}</p>
+          <p><strong>Username:</strong> ${user.username}</p>
           <p><strong>Role:</strong> ${user.role}</p>
           ${user.studentId ? `<p><strong>Student ID:</strong> ${user.studentId}</p>` : ''}
           ${tempPassword ? `<p><strong>Temporary Password:</strong> ${tempPassword}</p>` : ''}

@@ -3,7 +3,6 @@ const { AttendanceDTO, AttendanceCreateDTO, AttendanceUpdateDTO } = require('../
 const socketService = require('../infrastructure/socketService');
 const emailService = require('../infrastructure/emailService');
 const logger = require('../config/logger');
-const { Op } = require('sequelize');
 
 class AttendanceUseCase {
   constructor() {

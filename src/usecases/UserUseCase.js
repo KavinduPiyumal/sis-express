@@ -4,92 +4,93 @@ const { UserRepository } = require('../repositories');
 const { UserDTO, UserCreateDTO, UserUpdateDTO } = require('../dto/UserDTO');
 const emailService = require('../infrastructure/emailService');
 const logger = require('../config/logger');
-const { sequelize } = require('../infrastructure/database');
 
 class UserUseCase {
   constructor() {
     this.userRepository = new UserRepository();
   }
 
-  async createUser(userData, creatorRole, extTransaction = null) {
-    const t = extTransaction || await sequelize.transaction();
-    let createdHere = !extTransaction;
+  async createUser(userData, creatorRole) {
+    const prisma = require('../infrastructure/prisma');
+    if (creatorRole !== 'super_admin') {
+      throw new Error('Only super admins can create users');
+    }
     try {
-      // Only super admins can create users
-      if (creatorRole !== 'super_admin') {
-        throw new Error('Only super admins can create users');
-      }
+      const result = await prisma.$transaction(async (tx) => {
+        // Use repositories with transaction client if possible
+        const UserRepository = require('../repositories/UserRepository');
+        const StudentRepository = require('../repositories/StudentRepository');
+        const LecturerRepository = require('../repositories/LecturerRepository');
+        const userRepository = new UserRepository(tx);
+        const studentRepo = new StudentRepository(tx);
+        const lecturerRepo = new LecturerRepository(tx);
 
-      // Check if user already exists
-      const existingUser = await this.userRepository.findByEmail(userData.email);
-      if (existingUser) {
-        throw new Error('User with this email already exists');
-      }
-
-      // Check if student ID already exists (for students)
-      if (userData.role === 'student' && userData.studentId) {
-        const existingStudentId = await this.userRepository.findByStudentId(userData.studentId);
-        if (existingStudentId) {
-          throw new Error('Student ID already exists');
+        // Check if user already exists
+        const existingUser = await userRepository.findByEmail(userData.email);
+        if (existingUser) {
+          throw new Error('User with this email already exists');
         }
-      }
 
-      // Generate temporary password if not provided
-      const tempPassword = userData.password || this.generateTempPassword();
+        // Check if studentNo already exists (for students)
+        if (userData.role === 'student' && userData.studentNo) {
+          const existingStudentNo = await userRepository.findByStudentId(userData.studentNo);
+          if (existingStudentNo) {
+            throw new Error('Student number already exists');
+          }
+        }
 
-      // Hash password
-      const saltRounds = 12;
-      const hashedPassword = await bcrypt.hash(tempPassword, saltRounds);
+        // Generate temporary password if not provided
+        const tempPassword = userData.password || this.generateTempPassword();
 
-      // Create user DTO
-      const createUserDTO = new UserCreateDTO({
-        ...userData,
-        password: hashedPassword,
-        gender: userData.gender || null
-      });
+        // Hash password
+        const saltRounds = 12;
+        const hashedPassword = await bcrypt.hash(tempPassword, saltRounds);
 
-      // Create user
-  const user = await this.userRepository.model.create(createUserDTO, { transaction: t });
+        // Generate username from email if not provided
+        let username = userData.username;
+        if (!username && userData.email) {
+          username = userData.email.split('@')[0];
+        }
 
-      // Create student or lecturer record if needed
-      if (userData.role === 'student') {
-        const { StudentRepository } = require('../repositories');
-        await new StudentRepository().model.create({
-          userId: user.id,
-          studentNo: userData.studentId,
-          fullName: `${userData.firstName} ${userData.lastName}`,
-          email: userData.email,
-          batchId: userData.batchId,
-          status: 'active',
-          parentName: userData.parentName || null,
-          parentPhone: userData.parentPhone || null,
-          emergencyContactName: userData.emergencyContactName || null,
-          emergencyContactPhone: userData.emergencyContactPhone || null,
-          uniRegistrationDate: userData.uniRegistrationDate || null
-        }, { transaction: t });
-      } else if (userData.role === 'admin') {
-        // Only create lecturer if not super_admin
-        if (userData.isLecturer) {
-          const { LecturerRepository } = require('../repositories');
-          await new LecturerRepository().model.create({
+        // Create user DTO
+        const createUserDTO = new UserCreateDTO({
+          ...userData,
+          username,
+          password: hashedPassword,
+          gender: userData.gender || null
+        });
+
+        // Create user (Prisma)
+        const user = await userRepository.create(createUserDTO);
+
+        // Create student or lecturer record if needed
+        if (userData.role === 'student') {
+          await studentRepo.create({
             userId: user.id,
-            fullName: `${userData.firstName} ${userData.lastName}`,
-            email: userData.email,
+            studentNo: userData.studentNo,
+            batchId: userData.batchId,
+            status: 'active',
+            parentName: userData.parentName || null,
+            parentPhone: userData.parentPhone || null,
+            emergencyContactName: userData.emergencyContactName || null,
+            emergencyContactPhone: userData.emergencyContactPhone || null,
+            uniRegistrationDate: userData.uniRegistrationDate || null
+          });
+        } else if (userData.role === 'admin' && userData.isLecturer) {
+          await lecturerRepo.create({
+            userId: user.id,
             departmentId: userData.departmentId || null
-          }, { transaction: t });
+          });
         }
-      }
-      // For super_admin, no extra record
+        // For super_admin, no extra record
 
-      // Commit transaction
-  if (createdHere) await t.commit();
-
-      // Send welcome email with temporary password
-      await emailService.sendWelcomeEmail(user, userData.password ? null : tempPassword);
-
-      return new UserDTO(user);
+        // Return user and tempPassword for email sending after transaction
+        return { user, tempPassword: userData.password ? null : tempPassword };
+      });
+      // Send welcome email after transaction
+      await emailService.sendWelcomeEmail(result.user, result.tempPassword);
+      return new UserDTO(result.user);
     } catch (error) {
-  if (createdHere) await t.rollback();
       logger.error('Create user error:', error);
       throw error;
     }
@@ -180,24 +181,15 @@ class UserUseCase {
         return { ...new UserDTO(user), profile };
       }));
 
-      // If students, return stats from Student collection
+      // If students, return stats from Student collection using Prisma
       if (targetRole === 'student') {
-        const { Student, User } = require('../entities');
-        // Get all non-deleted students (User.isActive = true)
-        const activeUsers = await User.findAll({ where: { isActive: true, role: 'student' }, attributes: ['id'] });
-        const activeUserIds = activeUsers.map(u => u.id);
-        const deletedUsers = await User.findAll({ where: { isActive: false, role: 'student' }, attributes: ['id'] });
-        const deletedUserIds = deletedUsers.map(u => u.id);
-
-        // Total = students with User.isActive true
-        const total = await Student.count({ where: { userId: activeUserIds } });
-        // Active = students with status 'active' and User.isActive true
-        const active = await Student.count({ where: { userId: activeUserIds, status: 'active' } });
-        // Inactive = students with status 'inactive' and User.isActive true
-        const inactive = await Student.count({ where: { userId: activeUserIds, status: 'inactive' } });
-        // Deleted = students with User.isActive false
-        const deleted = await Student.count({ where: { userId: deletedUserIds } });
-
+        const { StudentRepository } = require('../repositories');
+        const studentRepo = new StudentRepository();
+        // Count all students with active users
+        const total = await studentRepo.count({ user: { isActive: true } });
+        const active = await studentRepo.count({ user: { isActive: true }, status: 'active' });
+        const inactive = await studentRepo.count({ user: { isActive: true }, status: 'inactive' });
+        const deleted = await studentRepo.count({ user: { isActive: false } });
         return {
           students: results,
           stats: {
@@ -279,9 +271,16 @@ class UserUseCase {
       delete allowedUpdates.password;
       delete allowedUpdates.id;
 
+      if (updateData.dateOfBirth && typeof updateData.dateOfBirth === 'string') {
+        updateData.uniRegistrationDate = new Date(updateData.dateOfBirth);
+      }
+
       const updateUserDTO = new UserUpdateDTO(allowedUpdates);
       await this.userRepository.update(updateUserDTO, { id: userId });
 
+      if (updateData.uniRegistrationDate && typeof updateData.uniRegistrationDate === 'string') {
+        updateData.uniRegistrationDate = new Date(updateData.uniRegistrationDate);
+      }
       // Update student/lecturer profile if relevant fields are present
       if (user.role === 'student') {
         const { StudentRepository } = require('../repositories');
@@ -291,15 +290,13 @@ class UserUseCase {
           const studentFields = {};
           if (updateData.batchId) studentFields.batchId = updateData.batchId;
           if (updateData.status) studentFields.status = updateData.status;
-          if (updateData.fullName) studentFields.fullName = updateData.fullName;
-          if (updateData.email) studentFields.email = updateData.email;
           if (updateData.uniRegistrationDate !== undefined) studentFields.uniRegistrationDate = updateData.uniRegistrationDate;
           if (updateData.parentName !== undefined) studentFields.parentName = updateData.parentName;
           if (updateData.parentPhone !== undefined) studentFields.parentPhone = updateData.parentPhone;
           if (updateData.emergencyContactName !== undefined) studentFields.emergencyContactName = updateData.emergencyContactName;
           if (updateData.emergencyContactPhone !== undefined) studentFields.emergencyContactPhone = updateData.emergencyContactPhone;
           if (Object.keys(studentFields).length > 0) {
-            await studentRepo.update(studentFields, { userId });
+            await studentRepo.update(studentProfile.id, studentFields);
           }
         }
       } else if (user.role === 'admin') {
@@ -309,10 +306,8 @@ class UserUseCase {
         if (lecturerProfile) {
           const lecturerFields = {};
           if (updateData.departmentId) lecturerFields.departmentId = updateData.departmentId;
-          if (updateData.fullName) lecturerFields.fullName = updateData.fullName;
-          if (updateData.email) lecturerFields.email = updateData.email;
           if (Object.keys(lecturerFields).length > 0) {
-            await lecturerRepo.update(lecturerFields, { userId });
+            await lecturerRepo.update(lecturerProfile.id, lecturerFields);
           }
         }
       }
@@ -356,7 +351,7 @@ class UserUseCase {
         const studentRepo = new StudentRepository();
         const studentProfile = await studentRepo.findOne({ userId });
         if (studentProfile) {
-          await studentRepo.update({ status: 'inactive' }, { userId });
+          await studentRepo.update(studentProfile.id, { status: 'inactive' });
         }
       } else if (user.role === 'admin') {
         const { LecturerRepository } = require('../repositories');
@@ -364,7 +359,7 @@ class UserUseCase {
         const lecturerProfile = await lecturerRepo.findOne({ userId });
         if (lecturerProfile) {
           // No status field, so just set email to null or handle as needed
-          await lecturerRepo.update({ email: null }, { userId });
+          // await lecturerRepo.update(lecturerProfile.id, { email: null });
         }
       }
 

@@ -53,12 +53,20 @@ class AuthUseCase {
 
   async login(loginData) {
     try {
-      const { email, password } = new LoginDTO(loginData);
+      // Accept either email or username for login
+      const identifier = loginData.email || loginData.username;
+      const password = loginData.password;
+      if (!identifier || !password) {
+        throw new Error('Email/Username and password are required');
+      }
 
-      // Find user by email
-      const user = await this.userRepository.findByEmail(email);
+      // Try to find user by email first, then by username
+      let user = await this.userRepository.findByEmail(identifier);
       if (!user) {
-        throw new Error('Invalid email or password');
+        user = await this.userRepository.findByUsername(identifier);
+      }
+      if (!user) {
+        throw new Error('Invalid credentials');
       }
 
       // Check if user is active
@@ -69,7 +77,7 @@ class AuthUseCase {
       // Verify password
       const isPasswordValid = await bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
-        throw new Error('Invalid email or password');
+        throw new Error('Invalid credentials');
       }
 
       // Update last login
@@ -100,12 +108,31 @@ class AuthUseCase {
         throw new Error('User not found');
       }
 
-      return new UserDTO(user);
+      let profile = null;
+      if (user.role === 'student') {
+        const StudentRepository = require('../repositories/StudentRepository');
+        const studentRepo = new StudentRepository();
+        profile = await studentRepo.findOne({ userId });
+      }
+
+      // Merge user and student fields for profile response
+      const userDto = new UserDTO(user);
+      if (profile) {
+        // Only include the updatable student fields
+        userDto.parentName = profile.parentName;
+        userDto.parentPhone = profile.parentPhone;
+        userDto.emergencyContactName = profile.emergencyContactName;
+        userDto.emergencyContactPhone = profile.emergencyContactPhone;
+        userDto.uniRegistrationDate = profile.uniRegistrationDate;
+        userDto.studentNo = profile.studentNo;
+      }
+      return userDto;
     } catch (error) {
       logger.error('Get profile error:', error);
       throw error;
     }
   }
+
 
   async updateProfile(userId, updateData) {
     try {
@@ -117,10 +144,59 @@ class AuthUseCase {
       // Remove password and sensitive fields from update data
       const { password, role, isActive, ...allowedUpdates } = updateData;
 
-      // profileImage is now allowed to be updated
-      await this.userRepository.update(allowedUpdates, { id: userId });
-      const refreshedUser = await this.userRepository.findById(userId);
+      // Validate email uniqueness if updating
+      if (allowedUpdates.email && allowedUpdates.email !== user.email) {
+        const existingUser = await this.userRepository.findByEmail(allowedUpdates.email);
+        if (existingUser && existingUser.id !== userId) {
+          throw new Error('Email is already in use by another user');
+        }
+      }
+      // Validate username uniqueness if updating
+      if (allowedUpdates.username && allowedUpdates.username !== user.username) {
+        const existingUser = await this.userRepository.findByUsername(allowedUpdates.username);
+        if (existingUser && existingUser.id !== userId) {
+          throw new Error('Username is already in use by another user');
+        }
+      }
 
+      // Prepare user fields
+      const userFields = {};
+      const userUpdatable = [
+        'firstName', 'lastName', 'email', 'phone', 'address', 'dateOfBirth', 'profileImage', 'gender', 'username'
+      ];
+      for (const key of userUpdatable) {
+        if (allowedUpdates[key] !== undefined) {
+          userFields[key] = allowedUpdates[key];
+        }
+      }
+
+      // Update user table
+      if (Object.keys(userFields).length > 0) {
+        await this.userRepository.update(userFields, { id: userId });
+      }
+
+      // If student, update student fields
+      if (user.role === 'student') {
+        const StudentRepository = require('../repositories/StudentRepository');
+        const studentRepo = new StudentRepository();
+        const student = await studentRepo.findOne({ userId });
+        if (student) {
+          const studentFields = {};
+          const studentUpdatable = [
+            'parentName', 'parentPhone', 'emergencyContactName', 'emergencyContactPhone', 'uniRegistrationDate'
+          ];
+          for (const key of studentUpdatable) {
+            if (allowedUpdates[key] !== undefined) {
+              studentFields[key] = allowedUpdates[key];
+            }
+          }
+          if (Object.keys(studentFields).length > 0) {
+            await studentRepo.update(studentFields, { userId });
+          }
+        }
+      }
+
+      const refreshedUser = await this.userRepository.findById(userId);
       return new UserDTO(refreshedUser);
     } catch (error) {
       logger.error('Update profile error:', error);
@@ -161,7 +237,7 @@ class AuthUseCase {
     try {
       const decoded = jwt.verify(token, config.jwt.secret);
       const user = await this.userRepository.findById(decoded.userId);
-      
+
       if (!user || !user.isActive) {
         throw new Error('Invalid token');
       }
@@ -199,7 +275,7 @@ class AuthUseCase {
     const user = await this.userRepository.model.findOne({
       where: {
         resetPasswordToken: token,
-        resetPasswordExpires: { [require('sequelize').Op.gt]: new Date() }
+        resetPasswordExpires: { gt: new Date() }
       }
     });
     if (!user) {

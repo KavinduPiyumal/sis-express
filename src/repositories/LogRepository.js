@@ -1,92 +1,93 @@
-const BaseRepository = require('./BaseRepository');
-const { Log } = require('../entities');
-const { Op } = require('sequelize');
 
-class LogRepository extends BaseRepository {
-  constructor() {
-    super(Log);
-  }
+const prisma = require('../infrastructure/prisma');
 
-  async findByUserId(userId, options = {}) {
-    return await this.findAll({ 
-      where: { userId }, 
-      order: [['timestamp', 'DESC']], 
-      ...options 
+class LogRepository {
+  async findByUserId(userId) {
+    return await prisma.log.findMany({
+      where: { userId },
+      orderBy: { timestamp: 'desc' },
     });
   }
 
-  async findByAction(action, options = {}) {
-    return await this.findAll({ 
-      where: { action }, 
-      order: [['timestamp', 'DESC']], 
-      ...options 
+  async findByAction(action) {
+    return await prisma.log.findMany({
+      where: { action },
+      orderBy: { timestamp: 'desc' },
     });
   }
 
-  async findByEntity(entity, options = {}) {
-    return await this.findAll({ 
-      where: { entity }, 
-      order: [['timestamp', 'DESC']], 
-      ...options 
+  async findByEntity(entity) {
+    return await prisma.log.findMany({
+      where: { entity },
+      orderBy: { timestamp: 'desc' },
     });
   }
 
-  async findByDateRange(startDate, endDate, options = {}) {
-    return await this.findAll({
+  async findByDateRange(startDate, endDate) {
+    return await prisma.log.findMany({
       where: {
         timestamp: {
-          [Op.between]: [startDate, endDate]
-        }
+          gte: startDate,
+          lte: endDate,
+        },
       },
-      order: [['timestamp', 'DESC']],
-      ...options
+      orderBy: { timestamp: 'desc' },
     });
   }
 
   async getLogStats(startDate, endDate) {
-    const whereClause = {};
-    
-    if (startDate && endDate) {
-      whereClause.timestamp = {
-        [Op.between]: [startDate, endDate]
-      };
-    }
+    const where = startDate && endDate ? {
+      timestamp: {
+        gte: startDate,
+        lte: endDate,
+      },
+    } : {};
 
-    const totalLogs = await this.count(whereClause);
-    
-    // Get logs by action
-    const actionStats = await this.model.findAll({
-      where: whereClause,
-      attributes: [
-        'action',
-        [this.model.sequelize.fn('COUNT', this.model.sequelize.col('id')), 'count']
-      ],
-      group: ['action'],
-      order: [[this.model.sequelize.literal('count'), 'DESC']]
+    const totalLogs = await prisma.log.count({ where });
+
+    // Group by action
+    const actionStatsRaw = await prisma.log.groupBy({
+      by: ['action'],
+      where,
+      _count: { id: true },
+      orderBy: { _count: { id: 'desc' } },
     });
 
-    // Get logs by entity
-    const entityStats = await this.model.findAll({
-      where: whereClause,
-      attributes: [
-        'entity',
-        [this.model.sequelize.fn('COUNT', this.model.sequelize.col('id')), 'count']
-      ],
-      group: ['entity'],
-      order: [[this.model.sequelize.literal('count'), 'DESC']]
+    // Group by entity
+    const entityStatsRaw = await prisma.log.groupBy({
+      by: ['entity'],
+      where,
+      _count: { id: true },
+      orderBy: { _count: { id: 'desc' } },
     });
 
     return {
       totalLogs,
-      actionStats: actionStats.map(stat => ({
+      actionStats: actionStatsRaw.map(stat => ({
         action: stat.action,
-        count: parseInt(stat.dataValues.count)
+        count: stat._count.id,
       })),
-      entityStats: entityStats.map(stat => ({
+      entityStats: entityStatsRaw.map(stat => ({
         entity: stat.entity,
-        count: parseInt(stat.dataValues.count)
-      }))
+        count: stat._count.id,
+      })),
     };
+  }
+
+  async create(data) {
+    return await prisma.log.create({ data });
+  }
+
+  async findAll(filter = {}) {
+    return await prisma.log.findMany({ where: filter });
+  }
+
+  async findById(id) {
+    return await prisma.log.findUnique({ where: { id } });
+  }
+
+  async delete(id) {
+    return await prisma.log.delete({ where: { id } });
   }
 }
 

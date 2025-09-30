@@ -11,11 +11,25 @@ class SemesterRepository {
   }
 
   async create(data) {
-    return await prisma.semester.create({ data });
+    const semesterData = { ...data };
+    if (semesterData.startDate && typeof semesterData.startDate === 'string') {
+      semesterData.startDate = new Date(semesterData.startDate);
+    }
+    if (semesterData.endDate && typeof semesterData.endDate === 'string') {
+      semesterData.endDate = new Date(semesterData.endDate);
+    }
+    return await prisma.semester.create({ data: semesterData });
   }
 
   async update(id, data) {
-    return await prisma.semester.update({ where: { id }, data });
+    const semesterData = { ...data };
+    if (semesterData.startDate && typeof semesterData.startDate === 'string') {
+      semesterData.startDate = new Date(semesterData.startDate);
+    }
+    if (semesterData.endDate && typeof semesterData.endDate === 'string') {
+      semesterData.endDate = new Date(semesterData.endDate);
+    }
+    return await prisma.semester.update({ where: { id }, data: semesterData });
   }
 
   async delete(id) {

@@ -39,6 +39,13 @@ class UserUseCase {
           }
         }
 
+        if (userData.role === 'admin' && userData.lecturerId) {
+          const existingLecturer = await userRepository.findByLecturerId(userData.lecturerId);
+          if (existingLecturer) {
+            throw new Error('Lecturer ID already exists');
+          }
+        }
+
 
         // Generate temporary password if not provided
         const tempPassword = userData.password || this.generateTempPassword();
@@ -50,7 +57,7 @@ class UserUseCase {
         // Generate username from email if not provided
         let username = userData.username;
         if (!username && userData.email) {
-          username = userData.email.split('@')[0];
+          username = userData.email;
         }
 
         // Create user DTO
@@ -65,23 +72,33 @@ class UserUseCase {
         const user = await userRepository.create(createUserDTO);
 
         // Create student or lecturer record if needed
-        if (userData.role === 'student') {
-          await studentRepo.create({
-            userId: user.id,
-            studentNo: userData.studentNo,
-            batchId: userData.batchId,
-            status: 'active',
-            parentName: userData.parentName || null,
-            parentPhone: userData.parentPhone || null,
-            emergencyContactName: userData.emergencyContactName || null,
-            emergencyContactPhone: userData.emergencyContactPhone || null,
-            uniRegistrationDate: userData.uniRegistrationDate || null
-          });
-        } else if (userData.role === 'admin' && userData.isLecturer) {
-          await lecturerRepo.create({
-            userId: user.id,
-            departmentId: userData.departmentId || null
-          });
+        try {
+          if (userData.role === 'student') {
+            await studentRepo.create({
+              userId: user.id,
+              studentNo: userData.studentNo,
+              batchId: userData.batchId,
+              status: 'active',
+              parentName: userData.parentName || null,
+              parentPhone: userData.parentPhone || null,
+              emergencyContactName: userData.emergencyContactName || null,
+              emergencyContactPhone: userData.emergencyContactPhone || null,
+              uniRegistrationDate: userData.uniRegistrationDate || null
+            });
+          } 
+          else if (userData.role === 'admin') {
+            await lecturerRepo.create({
+              userId: user.id,
+              lecturerId: userData.lecturerId || null,
+              departmentId: userData.departmentId || null,
+              emergencyContactName: userData.emergencyContactName || null,
+              emergencyContactPhone: userData.emergencyContactPhone || null,
+            });
+          }
+        } catch (relatedError) {
+          // If related record creation fails, delete the user to maintain consistency
+          await userRepository.delete(user.id);
+          throw relatedError;
         }
         // For super_admin, no extra record
 
@@ -153,7 +170,7 @@ class UserUseCase {
         where: { isActive: true },
         order: [['createdAt', 'DESC']]
       };
-      if (targetRole === 'student') {
+      if (targetRole === 'student' || targetRole === 'admin') {
         if (options.limit !== undefined && options.limit !== null && options.limit !== '') {
           userQueryOptions.limit = limit;
           userQueryOptions.offset = ((page - 1) * limit);
@@ -193,6 +210,24 @@ class UserUseCase {
         const deleted = await studentRepo.count({ user: { isActive: false } });
         return {
           students: results,
+          stats: {
+            total,
+            active,
+            inactive,
+            deleted
+          }
+        };
+      }
+      if (targetRole === 'admin') {
+        const { LecturerRepository } = require('../repositories');
+        const lecturerRepo = new LecturerRepository();
+        // Count all lecturers with active users
+        const total = await lecturerRepo.count({ user: { isActive: true } });
+        const active = await lecturerRepo.count({ user: { isActive: true }, status: 'active' });
+        const inactive = await lecturerRepo.count({ user: { isActive: true }, status: 'inactive' });
+        const deleted = await lecturerRepo.count({ user: { isActive: false } });
+        return {
+          lecturers: results,
           stats: {
             total,
             active,

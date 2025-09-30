@@ -13,7 +13,65 @@ class CourseOfferingUseCase {
    */
   async getCourseOfferingsByFilters(filters = {}, options = {}) {
     const offerings = await this.courseOfferingRepository.findByFilters(filters, options);
-    return offerings;
+    return offerings.map(offering => new CourseOfferingDTO(offering));
+  }
+  
+  async getCourseOfferingsByLecturer(userId) {
+    // Find lecturer by userId
+    const LecturerRepository = require('../repositories/LecturerRepository');
+    const lecturerRepo = new LecturerRepository();
+    const lecturer = await lecturerRepo.findOne({ userId });
+    if (!lecturer) throw new Error('Lecturer record not found for this user');
+
+    // Custom options to include enrollment records for lecturer's course offerings
+    const options = {
+      include: {
+        subject: true,
+        semester: true,
+        batch: {
+          include: {
+            program: {
+              include: {
+                faculty: true,
+                department: true
+              }
+            }
+          }
+        },
+        lecturer: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true
+              }
+            },
+            department: true
+          }
+        },
+        enrollments: {
+          include: {
+            student: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    email: true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    };
+
+    const offerings = await this.courseOfferingRepository.findByFilters({ lecturerId: lecturer.id }, options);
+    return offerings.map(offering => new CourseOfferingDTO(offering));
   }
 
   async createCourseOffering(data) {

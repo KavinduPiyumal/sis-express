@@ -1,0 +1,297 @@
+# ====================================================================
+# RESULTS API - Complete cURL Commands Collection
+# ====================================================================
+# 
+# Instructions:
+# 1. Replace localhost:3000 with your actual server URL
+# 2. Make sure cookie.txt file is in the same directory
+# 3. Update UUIDs with actual values from your database
+# 
+# Authentication: Using cookie.txt file for session management
+# ====================================================================
+
+# ====================================================================
+# STUDENT ENDPOINTS
+# ====================================================================
+
+# 1. Get My Results (Student's own results)
+curl -X GET "http://localhost:3000/api/results/student/my-results" \
+  -b cookie.txt \
+  -H "Content-Type: application/json"
+
+# ====================================================================
+# LECTURER ENDPOINTS  
+# ====================================================================
+
+# 2. Get My Lecturer Results (Lecturer's course results)
+curl -X GET "http://localhost:3000/api/results/lecturer/my-results" \
+  -b cookie.txt \
+  -H "Content-Type: application/json"
+
+# ====================================================================
+# ADMIN/SUPER ADMIN ENDPOINTS
+# ====================================================================
+
+# 3. Get All Results (no filters)
+curl -X GET "http://localhost:3000/api/results" \
+  -b cookie.txt \
+  -H "Content-Type: application/json"
+
+# 4. Get All Results (with filters)
+curl -X GET "http://localhost:3000/api/results?studentId=44168e02-51d7-4659-8bfd-7465f660c220&courseOfferingId=62ef47fd-fd84-4f90-a939-a224015a6e00" \
+  -b cookie.txt \
+  -H "Content-Type: application/json"
+
+# 5. Create Single Result - Marks Based
+curl -X POST "http://localhost:3000/api/results" \
+  -b cookie.txt \
+  -H "Content-Type: application/json" \
+  -d '{
+    "studentId": "44168e02-51d7-4659-8bfd-7465f660c220",
+    "courseOfferingId": "62ef47fd-fd84-4f90-a939-a224015a6e00",
+    "marks": 85
+  }'
+
+# 6. Create Single Result - Grade Only
+curl -X POST "http://localhost:3000/api/results" \
+  -b cookie.txt \
+  -H "Content-Type: application/json" \
+  -d '{
+    "studentId": "44168e02-51d7-4659-8bfd-7465f660c220",
+    "courseOfferingId": "62ef47fd-fd84-4f90-a939-a224015a6e00",
+    "grade": "A-"
+  }'
+
+# 7. Create Single Result - Both Marks and Grade
+curl -X POST "http://localhost:3000/api/results" \
+  -b cookie.txt \
+  -H "Content-Type: application/json" \
+  -d '{
+    "studentId": "44168e02-51d7-4659-8bfd-7465f660c220",
+    "courseOfferingId": "62ef47fd-fd84-4f90-a939-a224015a6e00",
+    "marks": 92,
+    "grade": "A+",
+    "gradePoint": 4.0
+  }'
+
+# 8. Bulk Create Results - Using Student Numbers (Excel Import Friendly)
+curl -X POST "http://localhost:3000/api/results/bulk" \
+  -b cookie.txt \
+  -H "Content-Type: application/json" \
+  -d '{
+    "results": [
+      {
+        "studentNo": "STU001",
+        "courseOfferingId": "62ef47fd-fd84-4f90-a939-a224015a6e00",
+        "marks": 85
+      },
+      {
+        "studentNo": "STU002",
+        "courseOfferingId": "62ef47fd-fd84-4f90-a939-a224015a6e00",
+        "grade": "A-"
+      },
+      {
+        "studentNo": "STU003",
+        "courseOfferingId": "62ef47fd-fd84-4f90-a939-a224015a6e00",
+        "marks": 78
+      },
+      {
+        "studentNo": "STU004",
+        "courseOfferingId": "62ef47fd-fd84-4f90-a939-a224015a6e00",
+        "grade": "B+",
+        "gradePoint": 3.3
+      }
+    ]
+  }'
+
+# 9. Bulk Create Results - Using Student UUIDs
+curl -X POST "http://localhost:3000/api/results/bulk" \
+  -b cookie.txt \
+  -H "Content-Type: application/json" \
+  -d '{
+    "results": [
+      {
+        "studentId": "44168e02-51d7-4659-8bfd-7465f660c220",
+        "courseOfferingId": "62ef47fd-fd84-4f90-a939-a224015a6e00",
+        "marks": 85
+      },
+      {
+        "studentId": "student-uuid-2",
+        "courseOfferingId": "62ef47fd-fd84-4f90-a939-a224015a6e00",
+        "grade": "A-"
+      }
+    ]
+  }'
+
+# 10. Get Result by ID
+curl -X GET "http://localhost:3000/api/results/result-uuid-here" \
+  -b cookie.txt \
+  -H "Content-Type: application/json"
+
+# 11. Update Result - Marks Based
+curl -X PUT "http://localhost:3000/api/results/result-uuid-here" \
+  -b cookie.txt \
+  -H "Content-Type: application/json" \
+  -d '{
+    "marks": 90
+  }'
+
+# 12. Update Result - Grade Based
+curl -X PUT "http://localhost:3000/api/results/result-uuid-here" \
+  -b cookie.txt \
+  -H "Content-Type: application/json" \
+  -d '{
+    "grade": "A+",
+    "gradePoint": 4.0
+  }'
+
+# 13. Update Result - Complete Update
+curl -X PUT "http://localhost:3000/api/results/result-uuid-here" \
+  -b cookie.txt \
+  -H "Content-Type: application/json" \
+  -d '{
+    "marks": 95,
+    "grade": "A+",
+    "gradePoint": 4.0
+  }'
+
+# 14. Delete Result
+curl -X DELETE "http://localhost:3000/api/results/result-uuid-here" \
+  -b cookie.txt \
+  -H "Content-Type: application/json"
+
+# 15. Get Results by Student ID
+curl -X GET "http://localhost:3000/api/results/student/44168e02-51d7-4659-8bfd-7465f660c220" \
+  -b cookie.txt \
+  -H "Content-Type: application/json"
+
+# 16. Get Results by Course Offering ID
+curl -X GET "http://localhost:3000/api/results/course-offering/62ef47fd-fd84-4f90-a939-a224015a6e00" \
+  -b cookie.txt \
+  -H "Content-Type: application/json"
+
+# 17. Get Course Offering Statistics
+curl -X GET "http://localhost:3000/api/results/course-offering/62ef47fd-fd84-4f90-a939-a224015a6e00/statistics" \
+  -b cookie.txt \
+  -H "Content-Type: application/json"
+
+# ====================================================================
+# SAMPLE RESPONSES
+# ====================================================================
+
+# Single Result Response Example:
+# {
+#   "success": true,
+#   "data": {
+#     "id": "result-uuid",
+#     "studentId": "student-uuid",
+#     "courseOfferingId": "course-offering-uuid",
+#     "marks": 85,
+#     "grade": "A+",
+#     "gradePoint": 4.0,
+#     "resultType": "marks",
+#     "status": "pass",
+#     "displayResult": "85",
+#     "hasMarks": true,
+#     "hasGrade": true,
+#     "enteredAt": "2025-09-30T10:30:00.000Z",
+#     "student": {
+#       "studentNo": "STU001",
+#       "user": {
+#         "firstName": "John",
+#         "lastName": "Doe"
+#       }
+#     },
+#     "courseOffering": {
+#       "subject": {
+#         "code": "CS101",
+#         "name": "Introduction to Programming"
+#       }
+#     }
+#   }
+# }
+
+# Bulk Create Response Example:
+# {
+#   "success": true,
+#   "data": {
+#     "created": [
+#       {
+#         "id": "result-uuid-1",
+#         "studentId": "student-uuid-1",
+#         "marks": 85,
+#         "grade": "A+",
+#         "student": {
+#           "studentNo": "STU001"
+#         }
+#       }
+#     ],
+#     "errors": [
+#       {
+#         "studentNo": "STU999",
+#         "error": "Student not found with student number: STU999"
+#       }
+#     ],
+#     "summary": {
+#       "totalAttempted": 3,
+#       "successfullyCreated": 2,
+#       "failed": 1
+#     }
+#   }
+# }
+
+# Statistics Response Example:
+# {
+#   "success": true,
+#   "data": {
+#     "totalStudents": 25,
+#     "averageMarks": 72.5,
+#     "highestMarks": 95,
+#     "lowestMarks": 45,
+#     "passCount": 23,
+#     "failCount": 2
+#   }
+# }
+
+# ====================================================================
+# GRADING SYSTEM REFERENCE
+# ====================================================================
+# 
+# Marks Range -> Grade -> Grade Point
+# 85-100      -> A+     -> 4.0
+# 80-84       -> A      -> 4.0  
+# 75-79       -> A-     -> 3.7
+# 70-74       -> B+     -> 3.3
+# 65-69       -> B      -> 3.0
+# 60-64       -> B-     -> 2.7
+# 55-59       -> C+     -> 2.3
+# 50-54       -> C      -> 2.0
+# 45-49       -> C-     -> 1.7
+# 40-44       -> D      -> 1.0
+# 0-39        -> F      -> 0.0
+
+# ====================================================================
+# AUTHORIZATION SUMMARY
+# ====================================================================
+# 
+# Endpoint                              | Student | Lecturer | Admin | Super Admin
+# ---------------------------------------|---------|----------|-------|-------------
+# /student/my-results                   |    ✅    |    ❌     |   ❌   |     ❌
+# /lecturer/my-results                  |    ❌    |    ✅     |   ✅   |     ✅
+# All other endpoints                   |    ❌    |    ❌     |   ✅   |     ✅
+
+# ====================================================================
+# USAGE NOTES
+# ====================================================================
+#
+# 1. Excel Import: Use studentNo instead of studentId for bulk imports
+# 2. Flexible Input: You can provide either marks OR grade OR both
+# 3. Auto-calculation: System calculates missing grade/gradePoint when marks provided
+# 4. Validation: Either marks or grade must be provided (not both empty)
+# 5. Duplicate Prevention: Cannot create duplicate results for same student/course
+# 6. Error Handling: Bulk operations continue on individual failures
+# 7. Statistics: Automatically calculated for course performance analysis
+
+# ====================================================================
+# END OF FILE
+# ====================================================================

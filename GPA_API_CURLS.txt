@@ -1,0 +1,243 @@
+# ====================================================================
+# GPA CALCULATION API - Complete cURL Commands Collection
+# ====================================================================
+# 
+# Instructions:
+# 1. Replace localhost:3000 with your actual server URL
+# 2. Make sure cookie.txt file is in the same directory
+# 3. Update UUIDs with actual values from your database
+# 
+# Authentication: Using cookie.txt file for session management
+# ====================================================================
+
+# ====================================================================
+# STUDENT GPA ENDPOINTS
+# ====================================================================
+
+# 1. Get My GPA (Student's own GPA calculation) - Overall GPA
+curl -X GET "http://localhost:3000/api/results/student/my-gpa" \
+  -b cookie.txt \
+  -H "Content-Type: application/json"
+
+# 2. Get My GPA for Specific Semester (Student's semester GPA)
+curl -X GET "http://localhost:3000/api/results/student/my-gpa?semesterId=semester-uuid-here" \
+  -b cookie.txt \
+  -H "Content-Type: application/json"
+
+# 3. Get My Complete Academic Record (Student's overall + semester-wise GPAs)
+curl -X GET "http://localhost:3000/api/results/student/my-academic-record" \
+  -b cookie.txt \
+  -H "Content-Type: application/json"
+
+# ====================================================================
+# ADMIN/SUPER ADMIN GPA ENDPOINTS
+# ====================================================================
+
+# 4. Get Student GPA by Student ID - Overall GPA
+curl -X GET "http://localhost:3000/api/results/gpa/student/44168e02-51d7-4659-8bfd-7465f660c220" \
+  -b cookie.txt \
+  -H "Content-Type: application/json"
+
+# 5. Get Student GPA for Specific Semester
+curl -X GET "http://localhost:3000/api/results/gpa/student/44168e02-51d7-4659-8bfd-7465f660c220?semesterId=semester-uuid-here" \
+  -b cookie.txt \
+  -H "Content-Type: application/json"
+
+# 6. Get Complete Academic Record for Any Student
+curl -X GET "http://localhost:3000/api/results/academic-record/student/44168e02-51d7-4659-8bfd-7465f660c220" \
+  -b cookie.txt \
+  -H "Content-Type: application/json"
+
+# ====================================================================
+# SAMPLE RESPONSES
+# ====================================================================
+
+# Student GPA Response Example:
+# {
+#   "success": true,
+#   "data": {
+#     "studentId": "44168e02-51d7-4659-8bfd-7465f660c220",
+#     "semesterId": null,
+#     "gpa": 3.45,
+#     "totalCredits": 18,
+#     "totalSubjects": 6,
+#     "totalGradePoints": 62.1,
+#     "results": [
+#       {
+#         "courseCode": "CS101",
+#         "courseName": "Introduction to Programming",
+#         "credits": 3,
+#         "marks": 85,
+#         "grade": "A+",
+#         "gradePoint": 4.0,
+#         "semester": "Semester 1",
+#         "year": 2024
+#       },
+#       {
+#         "courseCode": "MATH101",
+#         "courseName": "Calculus I",
+#         "credits": 3,
+#         "marks": 78,
+#         "grade": "A-",
+#         "gradePoint": 3.7,
+#         "semester": "Semester 1",
+#         "year": 2024
+#       }
+#     ],
+#     "gradeDistribution": {
+#       "A+": 2,
+#       "A-": 3,
+#       "B+": 1
+#     },
+#     "student": {
+#       "studentNo": "STU001",
+#       "user": {
+#         "firstName": "John",
+#         "lastName": "Doe",
+#         "email": "john.doe@example.com"
+#       }
+#     },
+#     "calculatedAt": "2025-10-01T10:30:00.000Z"
+#   }
+# }
+
+# Complete Academic Record Response Example:
+# {
+#   "success": true,
+#   "data": {
+#     "studentId": "44168e02-51d7-4659-8bfd-7465f660c220",
+#     "student": {
+#       "studentNo": "STU001",
+#       "user": {
+#         "firstName": "John",
+#         "lastName": "Doe",
+#         "email": "john.doe@example.com"
+#       }
+#     },
+#     "overallGPA": 3.45,
+#     "totalCredits": 36,
+#     "totalSubjects": 12,
+#     "gradeDistribution": {
+#       "A+": 4,
+#       "A": 3,
+#       "A-": 3,
+#       "B+": 2
+#     },
+#     "semesterGPAs": [
+#       {
+#         "semesterId": "semester-1-uuid",
+#         "semesterName": "Semester 1",
+#         "gpa": 3.67,
+#         "credits": 18,
+#         "subjects": 6,
+#         "gradeDistribution": {
+#           "A+": 2,
+#           "A": 2,
+#           "A-": 2
+#         }
+#       },
+#       {
+#         "semesterId": "semester-2-uuid",
+#         "semesterName": "Semester 2",
+#         "gpa": 3.23,
+#         "credits": 18,
+#         "subjects": 6,
+#         "gradeDistribution": {
+#           "A+": 2,
+#           "A": 1,
+#           "A-": 1,
+#           "B+": 2
+#         }
+#       }
+#     ],
+#     "calculatedAt": "2025-10-01T10:30:00.000Z"
+#   }
+# }
+
+# ====================================================================
+# GPA CALCULATION LOGIC
+# ====================================================================
+# 
+# GPA = Sum of (Grade Points × Credits) / Total Credits
+# 
+# Grade Points:
+# A+ = 4.0, A = 4.0, A- = 3.7
+# B+ = 3.3, B = 3.0, B- = 2.7
+# C+ = 2.3, C = 2.0, C- = 1.7
+# D+ = 1.3, D = 1.0
+# F = 0.0
+# 
+# Default Credits: 3 (if not specified in subject)
+# 
+# Examples:
+# Course 1: A+ (4.0) × 3 credits = 12.0 grade points
+# Course 2: B+ (3.3) × 3 credits = 9.9 grade points
+# Total: 21.9 grade points ÷ 6 credits = 3.65 GPA
+
+# ====================================================================
+# AUTHORIZATION SUMMARY
+# ====================================================================
+# 
+# Endpoint                                    | Student | Lecturer | Admin | Super Admin
+# --------------------------------------------|---------|----------|-------|-------------
+# /student/my-gpa                            |    ✅    |    ❌     |   ❌   |     ❌
+# /student/my-academic-record                |    ✅    |    ❌     |   ❌   |     ❌
+# /gpa/student/:studentId                    |    ❌    |    ❌     |   ✅   |     ✅
+# /academic-record/student/:studentId        |    ❌    |    ❌     |   ✅   |     ✅
+
+# ====================================================================
+# FEATURES
+# ====================================================================
+# 
+# 1. Overall GPA Calculation: Based on all completed courses
+# 2. Semester-specific GPA: Filter by specific semester
+# 3. Credit-weighted Calculation: Considers course credits in GPA calculation
+# 4. Grade Distribution: Shows breakdown of grades achieved
+# 5. Comprehensive Academic Record: Complete academic history with semester breakdown
+# 6. Student Information: Includes student details and course information
+# 7. Real-time Calculation: Always up-to-date based on current results
+# 8. Error Handling: Graceful handling of missing data or invalid requests
+
+# ====================================================================
+# USAGE SCENARIOS
+# ====================================================================
+# 
+# 1. Student Portal: Students can view their own GPA and academic progress
+# 2. Academic Advising: Advisors can review student academic performance
+# 3. Graduation Requirements: Check if students meet GPA requirements
+# 4. Academic Standing: Determine probation, honors, dean's list eligibility
+# 5. Transcript Generation: Provide GPA data for official transcripts
+# 6. Progress Tracking: Monitor academic improvement over semesters
+# 7. Reporting: Generate academic performance reports
+
+# ====================================================================
+# ERROR RESPONSES
+# ====================================================================
+# 
+# No Results Found:
+# {
+#   "success": true,
+#   "data": {
+#     "studentId": "student-uuid",
+#     "gpa": 0.0,
+#     "totalCredits": 0,
+#     "totalSubjects": 0,
+#     "message": "No results found for this student"
+#   }
+# }
+# 
+# Student Not Found:
+# {
+#   "success": false,
+#   "error": "Student record not found for this user"
+# }
+# 
+# Unauthorized Access:
+# {
+#   "success": false,
+#   "error": "Access denied. Insufficient permissions."
+# }
+
+# ====================================================================
+# END OF FILE
+# ====================================================================

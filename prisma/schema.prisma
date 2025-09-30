@@ -33,6 +33,16 @@ enum StudentStatus {
   suspended
 }
 
+enum LecturerStatus {
+  active
+  inactive
+}
+
+enum SemesterStatus {
+  active
+  inactive
+}
+
 enum AttendanceStatus {
   present
   absent
@@ -150,7 +160,11 @@ model Student {
 model Lecturer {
   id        String   @id @default(uuid())
   userId    String   @unique
+  lecturerId   String   @unique
+  status      LecturerStatus @default(active)
   departmentId String?
+  emergencyContactName String?
+  emergencyContactPhone String?
   user      User     @relation(fields: [userId], references: [id])
   department Department? @relation(fields: [departmentId], references: [id])
   courseOfferings CourseOffering[]
@@ -202,7 +216,7 @@ model Semester {
   batchId   String
   startDate DateTime
   endDate   DateTime
-  status    String
+  status    SemesterStatus @default(active)
   batch     Batch    @relation(fields: [batchId], references: [id])
   courseOfferings CourseOffering[]
   semesterGPAs SemesterGPA[]
@@ -377,7 +391,7 @@ model Result {
   id        String   @id @default(uuid())
   studentId String
   courseOfferingId String
-  marks     Decimal @db.Decimal(5,2)
+  marks     Decimal? @db.Decimal(5,2)
   grade     String?
   gradePoint Decimal? @db.Decimal(3,2)
   enteredBy String

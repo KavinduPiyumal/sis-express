@@ -41,13 +41,25 @@ class UserRepository {
     });
   }
 
+  async findByLecturerId(lecturerId) {
+    return await prisma.user.findFirst({
+      where: {
+        lecturer: {
+          lecturerId: lecturerId
+        }
+      }
+    });
+  }
+
   async findByRole(role, filter = {}, options = {}) {
     // options: { orderBy, take, skip }
     const { orderBy, take, skip } = options;
     // Remove invalid keys from filter
     const { where, order, limit, offset, ...flatFilter } = filter || {};
+    // Merge all where conditions
+    const mergedWhere = { role, ...(where || {}), ...flatFilter };
     return await prisma.user.findMany({
-      where: { role, ...flatFilter },
+      where: mergedWhere,
       ...(orderBy ? { orderBy } : {}),
       ...(typeof take === 'number' ? { take } : {}),
       ...(typeof skip === 'number' ? { skip } : {})
@@ -107,6 +119,10 @@ class UserRepository {
       admins: adminCount,
       superAdmins: superAdminCount
     };
+  }
+
+  async delete(userId) {
+    return await prisma.user.delete({ where: { id: userId } });
   }
 }
 

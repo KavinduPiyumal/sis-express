@@ -5,6 +5,9 @@ class SubjectDTO {
     this.creditHours = data.creditHours;
     this.semesterOffered = data.semesterOffered;
     this.degreeProgramId = data.degreeProgramId;
+    this.code = data.code;
+    this.description = data.description;
+    this.credits = data.credits;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
   }

@@ -13,8 +13,9 @@ class EnrollmentUseCase {
     logger.info(`Enrollment request by user ID: ${userId} for course offering ID: ${data.courseOfferingId}`);
 
     // Find student by userId
-    const { Student } = require('../entities');
-    const student = await Student.findOne({ where: { userId } });
+    const StudentRepository = require('../repositories/StudentRepository');
+    const studentRepo = new StudentRepository();
+    const student = await studentRepo.findOne({ userId });
     if (!student) throw new Error('Student record not found for this user');
 
     // Check for duplicate request
@@ -35,7 +36,7 @@ class EnrollmentUseCase {
     const enrollment = await this.enrollmentRepository.findById(id);
     if (!enrollment) throw new Error('Enrollment not found');
     if (enrollment.status !== 'pending') throw new Error('Only pending enrollments can be approved');
-    await this.enrollmentRepository.update({ status: 'active' }, { id });
+    await this.enrollmentRepository.update(id, { status: 'active' });
     return this.getEnrollmentById(id);
   }
 
@@ -54,14 +55,24 @@ class EnrollmentUseCase {
   }
 
   async getAllEnrollments() {
-    const { Student } = require('../entities');
-    const { CourseOffering } = require('../entities');
+    const prisma = require('../infrastructure/prisma');
     // Find all enrollments with associated student and course offering
-    const enrollments = await this.enrollmentRepository.model.findAll({
-      include: [
-        { model: Student, as: 'student' },
-        { model: CourseOffering, as: 'courseOffering' }
-      ]
+    const enrollments = await prisma.enrollment.findMany({
+      include: {
+        student: true,
+        courseOffering: {
+          include: {
+            subject: true,
+            semester: true,
+            batch: true,
+            lecturer: {
+              include: {
+                user: true
+              }
+            }
+          }
+        }
+      }
     });
     // Map to DTOs, including student and courseOffering
     return enrollments.map(e => {
@@ -79,12 +90,12 @@ class EnrollmentUseCase {
   }
 
   async updateEnrollment(id, data) {
-    await this.enrollmentRepository.update(data, { id });
+    await this.enrollmentRepository.update(id, data);
     return this.getEnrollmentById(id);
   }
 
   async deleteEnrollment(id) {
-    return this.enrollmentRepository.delete({ id });
+    return this.enrollmentRepository.delete(id);
   }
 }
 

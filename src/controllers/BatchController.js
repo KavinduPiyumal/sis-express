@@ -39,13 +39,38 @@ module.exports = {
       res.status(400).json({ error: err.message });
     }
   },
-  async delete(req, res) {
-    try {
-      await prisma.batch.delete({ where: { id: req.params.id } });
-      res.status(204).end();
-    } catch (err) {
-      if (err.code === 'P2025') return res.status(404).json({ error: 'Not found' });
-      res.status(500).json({ error: err.message });
+
+ async delete(req, res) {
+  try {
+    await prisma.batch.delete({ where: { id: req.params.id } });
+    res.status(204).end();
+  } catch (err) {
+    // Handle Prisma record not found
+    if (err.code === 'P2025') {
+      return res.status(404).json({ 
+        success: false,
+        error: 'Batch not found' 
+      });
     }
+    
+    // Handle foreign key constraint violation (both P2003 and PostgreSQL constraint errors)
+    if (err.code === 'P2003' || 
+        (err.message && err.message.includes('foreign key constraint')) ||
+        (err.message && err.message.includes('violates RESTRICT setting'))) {
+      return res.status(409).json({ 
+        success: false,
+        error: 'Cannot delete batch. Please delete or reassign the semesters before deleting this batch.',
+        message: 'Failed to delete batch. This batch has related semesters that must be removed first.',
+        details: 'Please delete or reassign the semesters before deleting this batch.'
+      });
+    }
+    
+    // Handle other errors
+    res.status(500).json({ 
+      success: false,
+      error: 'Internal server error',
+      message: err.message 
+    });
   }
+}
 };

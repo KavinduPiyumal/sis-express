@@ -82,6 +82,30 @@ class LogRepository {
     return await prisma.log.findMany({ where: filter });
   }
 
+  async findAllWithPagination(where = {}, skip = 0, take = 20) {
+    return await prisma.log.findMany({
+      where,
+      orderBy: { timestamp: 'desc' },
+      skip,
+      take,
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
+      }
+    });
+  }
+
+  async count(where = {}) {
+    return await prisma.log.count({ where });
+  }
+
   async findById(id) {
     return await prisma.log.findUnique({ where: { id } });
   }

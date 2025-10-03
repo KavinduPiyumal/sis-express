@@ -23,12 +23,12 @@ class SubjectUseCase {
   }
 
   async updateSubject(id, data) {
-    await this.subjectRepository.update(data, { id });
+    await this.subjectRepository.update(id, data);
     return this.getSubjectById(id);
   }
 
   async deleteSubject(id) {
-    return this.subjectRepository.delete({ id });
+    return this.subjectRepository.delete(id);
   }
 }
 

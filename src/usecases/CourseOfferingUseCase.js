@@ -8,6 +8,32 @@ class CourseOfferingUseCase {
 
 
   /**
+   * Resolve lecturerId - if the provided ID is not found in lecturer table, 
+   * treat it as userId and find the corresponding lecturerId
+   * @param {string} lecturerIdOrUserId - Could be lecturerId or userId
+   * @returns {string|null} - The actual lecturerId or null if not found
+   */
+  async resolveLecturerId(lecturerIdOrUserId) {
+    const LecturerRepository = require('../repositories/LecturerRepository');
+    const lecturerRepo = new LecturerRepository();
+    
+    // First, check if it's a valid lecturerId
+    const lecturerById = await lecturerRepo.findById(lecturerIdOrUserId);
+    if (lecturerById) {
+      return lecturerIdOrUserId; // It's already a valid lecturerId
+    }
+    
+    // If not found, treat it as userId and find the corresponding lecturer
+    const lecturerByUserId = await lecturerRepo.findOne({ userId: lecturerIdOrUserId });
+    if (lecturerByUserId) {
+      return lecturerByUserId.id; // Return the actual lecturerId
+    }
+    
+    // If neither works, return null (will cause no results to be found)
+    return null;
+  }
+
+  /**
    * Get course offerings by dynamic filters (e.g., lecturerId, subjectId, batchId, semesterId)
    * @param {Object} filters - key-value pairs for filtering
    */

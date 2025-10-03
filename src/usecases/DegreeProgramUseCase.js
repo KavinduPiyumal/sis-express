@@ -23,12 +23,12 @@ class DegreeProgramUseCase {
   }
 
   async updateDegreeProgram(id, data) {
-    await this.degreeProgramRepository.update(data, { id });
+    await this.degreeProgramRepository.update(id, data);
     return this.getDegreeProgramById(id);
   }
 
   async deleteDegreeProgram(id) {
-    return this.degreeProgramRepository.delete({ id });
+    return this.degreeProgramRepository.delete(id);
   }
 }
 

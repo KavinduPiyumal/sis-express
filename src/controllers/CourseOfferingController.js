@@ -4,6 +4,19 @@ const useCase = new CourseOfferingUseCase();
 module.exports = {
   async create(req, res) {
     try {
+      // Handle lecturerId lookup - if lecturerId is not found in lecturer table, treat it as userId
+      if (req.body.lecturerId) {
+        const resolvedLecturerId = await useCase.resolveLecturerId(req.body.lecturerId);
+        if (resolvedLecturerId) {
+          req.body.lecturerId = resolvedLecturerId;
+        } else {
+          return res.status(400).json({
+            success: false,
+            error: 'Invalid lecturerId or userId provided'
+          });
+        }
+      }
+
       const offering = await useCase.createCourseOffering(req.body);
       res.status(201).json({
         success: true,
@@ -40,6 +53,14 @@ module.exports = {
       const filters = {};
       for (const key of allowedFields) {
         if (req.query[key]) filters[key] = req.query[key];
+      }
+
+      // Handle lecturerId lookup - if lecturerId is not found in lecturer table, treat it as userId
+      if (filters.lecturerId) {
+        const resolvedLecturerId = await useCase.resolveLecturerId(filters.lecturerId);
+        if (resolvedLecturerId) {
+          filters.lecturerId = resolvedLecturerId;
+        }
       }
 
       const offerings = await useCase.getCourseOfferingsByFilters(filters);
@@ -99,6 +120,19 @@ module.exports = {
   },
   async update(req, res) {
     try {
+      // Handle lecturerId lookup - if lecturerId is not found in lecturer table, treat it as userId
+      if (req.body.lecturerId) {
+        const resolvedLecturerId = await useCase.resolveLecturerId(req.body.lecturerId);
+        if (resolvedLecturerId) {
+          req.body.lecturerId = resolvedLecturerId;
+        } else {
+          return res.status(400).json({
+            success: false,
+            error: 'Invalid lecturerId or userId provided'
+          });
+        }
+      }
+
       const offering = await useCase.updateCourseOffering(req.params.id, req.body);
       res.json({
         success: true,

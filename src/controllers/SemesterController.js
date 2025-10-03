@@ -26,6 +26,13 @@ class SemesterController {
     } catch (err) { next(err); }
   };
 
+  getByBatchId = async (req, res, next) => {
+    try {
+      const semesters = await this.useCase.getSemestersByBatchId(req.params.batchId);
+      res.json({ success: true, data: semesters });
+    } catch (err) { next(err); }
+  };
+
   update = async (req, res, next) => {
     try {
       const semester = await this.useCase.updateSemester(req.params.id, req.body);

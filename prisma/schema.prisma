@@ -193,6 +193,9 @@ model DegreeProgram {
   duration  Int
   facultyId String
   departmentId String?
+  minCreditsToGraduate Int?
+  minCGPARequired Float?
+  honorsCriteria String?
   faculty   Faculty  @relation(fields: [facultyId], references: [id])
   department Department? @relation(fields: [departmentId], references: [id])
   batches   Batch[]

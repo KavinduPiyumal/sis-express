@@ -22,13 +22,18 @@ class SemesterUseCase {
     return new SemesterDTO(semester);
   }
 
+  async getSemestersByBatchId(batchId) {
+    const semesters = await this.semesterRepository.findAll({ batchId });
+    return semesters.map(s => new SemesterDTO(s));
+  }
+
   async updateSemester(id, data) {
-    await this.semesterRepository.update(data, { id });
+    await this.semesterRepository.update(id, data);
     return this.getSemesterById(id);
   }
 
   async deleteSemester(id) {
-    return this.semesterRepository.delete({ id });
+    return this.semesterRepository.delete(id);
   }
 }
 

@@ -52,7 +52,22 @@ const updateUserValidation = [
   body('lastName').optional().notEmpty().withMessage('Last name cannot be empty'),
   body('email').optional().isEmail().withMessage('Valid email is required'),
   body('phone').optional().isMobilePhone().withMessage('Valid phone number is required'),
-  body('dateOfBirth').optional().isISO8601().withMessage('Valid date is required')
+  body('dateOfBirth')
+    .optional({ nullable: true })
+    .custom((value) => {
+      if (value === undefined || value === null || value === '') return true;
+      // Only validate if not empty
+      return /^\d{4}-\d{2}-\d{2}$/.test(value) || !isNaN(Date.parse(value));
+    }).withMessage('Valid date is required (YYYY-MM-DD format)'),
+  body('lecturerId').optional().isString().withMessage('Lecturer ID must be a string'),
+  body('departmentId').optional().isString().withMessage('Department ID must be a string'),
+  body('emergencyContactName').optional().isString().withMessage('Emergency Contact Name must be a string'),
+  body('emergencyContactPhone')
+    .optional({ nullable: true })
+    .custom((value) => {
+      if (value === undefined || value === null || value === '') return true;
+      return /^\+?\d{7,15}$/.test(value);
+    }).withMessage('Valid Emergency Contact Phone is required')
 ];
 
 const userIdValidation = [

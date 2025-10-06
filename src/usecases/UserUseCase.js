@@ -165,19 +165,27 @@ class UserUseCase {
       let limit = options.limit !== undefined ? parseInt(options.limit) : 5;
       let page = options.page !== undefined ? parseInt(options.page) : 1;
 
-      // Only apply limit for students if limit is set
-      let userQueryOptions = {
-        where: { isActive: true },
-        order: [['createdAt', 'DESC']]
-      };
+      // Build query options for repository
+      let repositoryFilter = {};
+      
+      // Include inactive users if specifically requested, otherwise only active users
+      if (options.includeInactive === 'true' || options.includeInactive === true) {
+        // Don't filter by isActive - include all users
+      } else {
+        repositoryFilter.isActive = true;
+      }
+      
+      let repositoryOptions = { orderBy: { createdAt: 'desc' } };
+
+      // Apply pagination if limit is set
       if (targetRole === 'student' || targetRole === 'admin') {
         if (options.limit !== undefined && options.limit !== null && options.limit !== '') {
-          userQueryOptions.limit = limit;
-          userQueryOptions.offset = ((page - 1) * limit);
+          repositoryOptions.take = limit;
+          repositoryOptions.skip = (page - 1) * limit;
         }
       }
 
-      const usersResult = await this.userRepository.findByRole(targetRole, userQueryOptions);
+      const usersResult = await this.userRepository.findByRole(targetRole, repositoryFilter, repositoryOptions);
       // Support both array and paginated result
       const users = Array.isArray(usersResult) ? usersResult : (usersResult.rows || []);
 
@@ -219,20 +227,34 @@ class UserUseCase {
         };
       }
       if (targetRole === 'admin') {
-        const { LecturerRepository } = require('../repositories');
-        const lecturerRepo = new LecturerRepository();
-        // Count all lecturers with active users
-        const total = await lecturerRepo.count({ user: { isActive: true } });
-        const active = await lecturerRepo.count({ user: { isActive: true }, status: 'active' });
-        const inactive = await lecturerRepo.count({ user: { isActive: true }, status: 'inactive' });
-        const deleted = await lecturerRepo.count({ user: { isActive: false } });
+        // Count admin users directly from User table for more accurate stats
+        const prisma = require('../infrastructure/prisma');
+        const allAdminUsers = await prisma.user.findMany({
+          where: { role: 'admin' },
+          select: { 
+            id: true, 
+            isActive: true,
+            lecturer: {
+              select: { status: true }
+            }
+          }
+        });
+        
+        const activeUserCount = allAdminUsers.filter(u => u.isActive).length;
+        const deletedUserCount = allAdminUsers.filter(u => !u.isActive).length;
+        
+        // Count lecturer profiles with different statuses (only for active users)
+        const activeUsers = allAdminUsers.filter(u => u.isActive);
+        const activeCount = activeUsers.filter(u => u.lecturer && u.lecturer.status === 'active').length;
+        const inactiveCount = activeUsers.filter(u => u.lecturer && u.lecturer.status === 'inactive').length;
+        
         return {
           lecturers: results,
           stats: {
-            total,
-            active,
-            inactive,
-            deleted
+            total: activeCount + inactiveCount,             // Total active users (active + inactive = 4 + 1 = 5)
+            active: activeCount,                            // Active users with active lecturer status (4)
+            inactive: inactiveCount,                        // Active users with inactive lecturer status (1)
+            deleted: deletedUserCount                       // Users with isActive=false (1)
           }
         };
       }
@@ -335,7 +357,10 @@ class UserUseCase {
         const lecturerProfile = await lecturerRepo.findOne({ userId });
         if (lecturerProfile) {
           const lecturerFields = {};
-          if (updateData.departmentId) lecturerFields.departmentId = updateData.departmentId;
+          if (updateData.lecturerId !== undefined) lecturerFields.lecturerId = updateData.lecturerId;
+          if (updateData.departmentId !== undefined) lecturerFields.departmentId = updateData.departmentId;
+          if (updateData.emergencyContactName !== undefined) lecturerFields.emergencyContactName = updateData.emergencyContactName;
+          if (updateData.emergencyContactPhone !== undefined) lecturerFields.emergencyContactPhone = updateData.emergencyContactPhone;
           if (Object.keys(lecturerFields).length > 0) {
             await lecturerRepo.update(lecturerProfile.id, lecturerFields);
           }

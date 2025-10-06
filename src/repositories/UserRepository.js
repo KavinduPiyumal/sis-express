@@ -2,10 +2,14 @@ const prisma = require('../infrastructure/prisma');
 
 class UserRepository {
   async update(data, where) {
-    // Convert dateOfBirth to Date object if present and is a string
+    // Convert dateOfBirth to Date object if present and is a valid string
     const userData = { ...data };
-    if (userData.dateOfBirth && typeof userData.dateOfBirth === 'string') {
-      userData.dateOfBirth = new Date(userData.dateOfBirth);
+    if (userData.dateOfBirth !== undefined) {
+      if (typeof userData.dateOfBirth === 'string' && userData.dateOfBirth.trim() !== '') {
+        userData.dateOfBirth = new Date(userData.dateOfBirth);
+      } else if (userData.dateOfBirth === '' || userData.dateOfBirth === null) {
+        userData.dateOfBirth = null;
+      }
     }
     return await prisma.user.update({
       where,
@@ -16,10 +20,14 @@ class UserRepository {
     return await prisma.user.findUnique({ where: { username } });
   }
   async create(data) {
-    // Convert dateOfBirth to Date object if present and is a string
+    // Convert dateOfBirth to Date object if present and is a valid string
     const userData = { ...data };
-    if (userData.dateOfBirth && typeof userData.dateOfBirth === 'string') {
-      userData.dateOfBirth = new Date(userData.dateOfBirth);
+    if (userData.dateOfBirth !== undefined) {
+      if (typeof userData.dateOfBirth === 'string' && userData.dateOfBirth.trim() !== '') {
+        userData.dateOfBirth = new Date(userData.dateOfBirth);
+      } else if (userData.dateOfBirth === '' || userData.dateOfBirth === null) {
+        userData.dateOfBirth = null;
+      }
     }
     return await prisma.user.create({ data: userData });
   }

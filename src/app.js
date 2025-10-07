@@ -37,6 +37,7 @@ const departmentsRoutes = require('./routes/departmentRoutes');
 const batchRoutes = require('./routes/batchRoutes');
 const resultsRoutes = require('./routes/resultsRoutes');
 const logRoutes = require('./routes/logRoutes');
+const linkRoutes = require('./routes/linkRoutes');
 
 
 const app = express();
@@ -105,6 +106,7 @@ app.use('/api/medical-reports', medicalReportRoutes);
 app.use('/api/departments', departmentsRoutes);
 app.use('/api/logs', logRoutes);
 app.use('/api/results', resultsRoutes);
+app.use('/api/links', linkRoutes);
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({

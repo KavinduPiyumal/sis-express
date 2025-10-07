@@ -92,6 +92,16 @@ enum NoticePriority {
   urgent
 }
 
+enum LinkPriority {
+  normal
+  highlight
+}
+
+enum OpenMode {
+  newtab
+  sametab
+}
+
 // MODELS
 
 model User {
@@ -133,6 +143,7 @@ model User {
   approvedMedicals Medical[] @relation("MedicalApprovedBy")
   notices     Notice[] @relation("UserNotices")
   links       Link[]   @relation("UserLinks")
+  linkViews   LinkView[] @relation("UserLinkViews")
 }
 
 model Student {
@@ -455,11 +466,34 @@ model Link {
   url       String
   description String?
   category  String?
+  priority  LinkPriority @default(normal)
+  icon      String?
+  openMode  OpenMode @default(newtab)
   isActive  Boolean @default(true)
   targetAudience TargetAudience @default(all)
   order     Int @default(0)
+  startDate DateTime?
+  endDate   DateTime?
+  viewCount Int @default(0)
+  isNew     Boolean @default(false)
   createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   createdByUser User @relation("UserLinks", fields: [createdBy], references: [id])
+  linkViews LinkView[]
+}
+
+model LinkView {
+  id       String   @id @default(uuid())
+  linkId   String
+  userId   String
+  viewedAt DateTime @default(now())
+  link     Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  user     User     @relation("UserLinkViews", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([linkId, userId])
+  @@index([linkId])
+  @@index([userId])
 }
 
 

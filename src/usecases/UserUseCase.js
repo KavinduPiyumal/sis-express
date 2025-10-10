@@ -189,6 +189,21 @@ class UserUseCase {
       // Support both array and paginated result
       const users = Array.isArray(usersResult) ? usersResult : (usersResult.rows || []);
 
+      // If a search term is provided (only supported for students), override users with search results
+      if (targetRole === 'student' && options.search) {
+        // Use repository search that looks into student.studentNo as well
+        const searchOptions = {};
+        if (repositoryOptions.take !== undefined) searchOptions.take = repositoryOptions.take;
+        if (repositoryOptions.skip !== undefined) searchOptions.skip = repositoryOptions.skip;
+        if (repositoryOptions.orderBy) searchOptions.orderBy = repositoryOptions.orderBy;
+        const searched = await this.userRepository.searchStudents(options.search, repositoryFilter, searchOptions);
+        // searchStudents returns an array of users
+        // replace users variable with search results
+        // Note: no total/count returned for searches here; pagination is applied by 'take' and 'skip'
+        users.length = 0;
+        users.push(...searched);
+      }
+
       // Attach related Lecturer or Student record for each user
       let relatedRepo = null;
       if (targetRole === 'student') {

@@ -85,9 +85,40 @@ class UserRepository {
           { firstName: { contains: searchTerm, mode: 'insensitive' } },
           { lastName: { contains: searchTerm, mode: 'insensitive' } },
           { email: { contains: searchTerm, mode: 'insensitive' } },
-          { studentId: { contains: searchTerm, mode: 'insensitive' } }
+          // Search the related Student record's studentNo (one-to-one relation)
+          { student: { is: { studentNo: { contains: searchTerm, mode: 'insensitive' } } } }
         ]
       }
+    });
+  }
+
+  /**
+   * Search users for the student role by name, email or studentNo.
+   * options: { orderBy, take, skip }
+   */
+  async searchStudents(searchTerm, filter = {}, options = {}) {
+    const { orderBy, take, skip } = options || {};
+    const where = {
+      role: 'student',
+      ...filter,
+      AND: [
+        {
+          OR: [
+            { firstName: { contains: searchTerm, mode: 'insensitive' } },
+            { lastName: { contains: searchTerm, mode: 'insensitive' } },
+            { email: { contains: searchTerm, mode: 'insensitive' } },
+            { student: { is: { studentNo: { contains: searchTerm, mode: 'insensitive' } } } }
+          ]
+        }
+      ]
+    };
+
+    return await prisma.user.findMany({
+      where,
+      include: {},
+      ...(orderBy ? { orderBy } : {}),
+      ...(typeof take === 'number' ? { take } : {}),
+      ...(typeof skip === 'number' ? { skip } : {})
     });
   }
 

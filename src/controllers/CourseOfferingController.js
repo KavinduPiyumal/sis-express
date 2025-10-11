@@ -63,10 +63,19 @@ module.exports = {
         }
       }
 
-      const offerings = await useCase.getCourseOfferingsByFilters(filters);
+      // Pass pagination/search options
+      const options = {
+        page: req.query.page,
+        limit: req.query.limit,
+        q: req.query.q || req.query.search,
+        include: undefined
+      };
+
+      const result = await useCase.getCourseOfferingsByFilters(filters, options);
       res.json({
         success: true,
-        data: offerings
+        data: result.data,
+        meta: result.meta
       });
     } catch (err) {
       res.status(500).json({ 

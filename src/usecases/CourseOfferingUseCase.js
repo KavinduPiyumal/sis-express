@@ -38,8 +38,49 @@ class CourseOfferingUseCase {
    * @param {Object} filters - key-value pairs for filtering
    */
   async getCourseOfferingsByFilters(filters = {}, options = {}) {
-    const offerings = await this.courseOfferingRepository.findByFilters(filters, options);
-    return offerings.map(offering => new CourseOfferingDTO(offering));
+    // Pagination defaults
+    const page = Math.max(1, parseInt(options.page, 10) || 1);
+    const perPageRaw = parseInt(options.limit, 10) || 20;
+    const perPage = Math.min(Math.max(1, perPageRaw), 100);
+
+    // Optional search across subject name/code
+    const q = (options.q || options.search || '').toString().trim();
+    if (q) {
+      // expand filters to include OR search on related subject fields
+      filters = {
+        AND: [
+          filters,
+          {
+            OR: [
+              { subject: { name: { contains: q, mode: 'insensitive' } } },
+              { subject: { code: { contains: q, mode: 'insensitive' } } }
+            ]
+          }
+        ]
+      };
+    }
+
+    const total = await this.courseOfferingRepository.count(filters);
+    const totalPages = total === 0 ? 1 : Math.ceil(total / perPage);
+    const safePage = page > totalPages ? totalPages : page;
+
+    const skip = (safePage - 1) * perPage;
+
+    const orderBy = options.orderBy || { year: 'desc' };
+
+    const offerings = await this.courseOfferingRepository.findByFilters(filters, { skip, take: perPage, include: options.include, orderBy });
+
+    const data = offerings.map(offering => new CourseOfferingDTO(offering));
+
+    return {
+      data,
+      meta: {
+        total,
+        totalPages,
+        page: safePage,
+        perPage
+      }
+    };
   }
   
   async getCourseOfferingsByLecturer(userId) {

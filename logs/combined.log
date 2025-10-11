@@ -1364,3 +1364,41 @@
 {"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-11T19:06:36.382Z"}
 {"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-11T19:06:36.385Z"}
 {"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-11T19:06:36.385Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-11T19:17:27.093Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-11T19:17:30.206Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-11T19:17:30.208Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-11T19:17:30.208Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"sis-backend","timestamp":"2025-10-11T19:29:32.950Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-11T19:29:36.711Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-11T19:29:40.749Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-11T19:29:40.752Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-11T19:29:40.753Z"}
+{"level":"error","message":"Error getting links: Failed to find links with user views: Failed to find links: \nInvalid `prisma.link.count()` invocation in\nD:\\MERN Practice\\University LMS\\sis-express\\src\\repositories\\LinkRepository.js:137:21\n\n  134   skip,\n  135   take: limit,\n  136 }),\n→ 137 prisma.link.count(\nCan't reach database server at `shuttle.proxy.rlwy.net:21196`\n\nPlease make sure your database server is running at `shuttle.proxy.rlwy.net:21196`.","service":"sis-backend","stack":"Error: Failed to find links with user views: Failed to find links: \nInvalid `prisma.link.count()` invocation in\nD:\\MERN Practice\\University LMS\\sis-express\\src\\repositories\\LinkRepository.js:137:21\n\n  134   skip,\n  135   take: limit,\n  136 }),\n→ 137 prisma.link.count(\nCan't reach database server at `shuttle.proxy.rlwy.net:21196`\n\nPlease make sure your database server is running at `shuttle.proxy.rlwy.net:21196`.\n    at LinkRepository.findManyWithUserViews (D:\\MERN Practice\\University LMS\\sis-express\\src\\repositories\\LinkRepository.js:487:13)\n    at async LinkUseCase.getLinks (D:\\MERN Practice\\University LMS\\sis-express\\src\\usecases\\LinkUseCase.js:68:22)\n    at async getLinks (D:\\MERN Practice\\University LMS\\sis-express\\src\\controllers\\LinkController.js:44:22)","timestamp":"2025-10-11T19:51:17.894Z"}
+{"level":"error","message":"Failed to find links with user views: Failed to find links: \nInvalid `prisma.link.count()` invocation in\nD:\\MERN Practice\\University LMS\\sis-express\\src\\repositories\\LinkRepository.js:137:21\n\n  134   skip,\n  135   take: limit,\n  136 }),\n→ 137 prisma.link.count(\nCan't reach database server at `shuttle.proxy.rlwy.net:21196`\n\nPlease make sure your database server is running at `shuttle.proxy.rlwy.net:21196`.","service":"sis-backend","stack":"Error: Failed to find links with user views: Failed to find links: \nInvalid `prisma.link.count()` invocation in\nD:\\MERN Practice\\University LMS\\sis-express\\src\\repositories\\LinkRepository.js:137:21\n\n  134   skip,\n  135   take: limit,\n  136 }),\n→ 137 prisma.link.count(\nCan't reach database server at `shuttle.proxy.rlwy.net:21196`\n\nPlease make sure your database server is running at `shuttle.proxy.rlwy.net:21196`.\n    at LinkRepository.findManyWithUserViews (D:\\MERN Practice\\University LMS\\sis-express\\src\\repositories\\LinkRepository.js:487:13)\n    at async LinkUseCase.getLinks (D:\\MERN Practice\\University LMS\\sis-express\\src\\usecases\\LinkUseCase.js:68:22)\n    at async getLinks (D:\\MERN Practice\\University LMS\\sis-express\\src\\controllers\\LinkController.js:44:22)","timestamp":"2025-10-11T19:51:17.895Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"sis-backend","timestamp":"2025-10-11T19:54:20.374Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-11T19:54:25.725Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-11T19:54:29.630Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-11T19:54:29.632Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-11T19:54:29.632Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-11T20:05:13.379Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-11T20:05:17.446Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-11T20:05:17.449Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-11T20:05:17.450Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-11T20:05:28.247Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-11T20:05:31.567Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-11T20:05:31.573Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-11T20:05:31.574Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-11T20:05:35.022Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-11T20:05:38.349Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-11T20:05:38.358Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-11T20:05:38.360Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"sis-backend","timestamp":"2025-10-11T20:16:26.955Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-11T20:16:30.963Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-11T20:16:34.313Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-11T20:16:34.323Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-11T20:16:34.326Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"sis-backend","timestamp":"2025-10-11T20:30:24.163Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-11T20:30:28.098Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-11T20:30:30.971Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-11T20:30:30.973Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-11T20:30:30.974Z"}

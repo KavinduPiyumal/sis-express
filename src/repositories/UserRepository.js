@@ -98,20 +98,30 @@ class UserRepository {
    */
   async searchStudents(searchTerm, filter = {}, options = {}) {
     const { orderBy, take, skip } = options || {};
-    const where = {
-      role: 'student',
-      ...filter,
-      AND: [
-        {
+    // Support multi-keyword searches (e.g., "john smi" or "john+smi").
+    // Split incoming searchTerm into tokens and require that ALL tokens match
+    // at least one of the searchable fields (firstName, lastName, email, student.studentNo).
+    let where = { role: 'student', ...filter };
+
+    if (searchTerm && typeof searchTerm === 'string' && searchTerm.trim() !== '') {
+      // Normalize separators: plus signs from URL encoding and extra whitespace
+      const normalized = searchTerm.replace(/\+/g, ' ').trim();
+      const tokens = normalized.split(/\s+/).filter(t => t.length > 0);
+
+      // Build AND of ORs: each token must match at least one field (case-insensitive)
+      const andConditions = tokens.map(token => {
+        return {
           OR: [
-            { firstName: { contains: searchTerm, mode: 'insensitive' } },
-            { lastName: { contains: searchTerm, mode: 'insensitive' } },
-            { email: { contains: searchTerm, mode: 'insensitive' } },
-            { student: { is: { studentNo: { contains: searchTerm, mode: 'insensitive' } } } }
+            { firstName: { contains: token, mode: 'insensitive' } },
+            { lastName: { contains: token, mode: 'insensitive' } },
+            { email: { contains: token, mode: 'insensitive' } },
+            { student: { is: { studentNo: { contains: token, mode: 'insensitive' } } } }
           ]
-        }
-      ]
-    };
+        };
+      });
+
+      where = { ...where, AND: andConditions };
+    }
 
     return await prisma.user.findMany({
       where,

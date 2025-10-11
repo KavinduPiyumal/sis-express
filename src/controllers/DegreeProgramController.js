@@ -14,6 +14,13 @@ class DegreeProgramController {
 
   getAll = async (req, res, next) => {
     try {
+      const { page, limit } = req.query;
+      // If pagination params provided, use paged endpoint
+      if (page !== undefined || limit !== undefined) {
+        const result = await this.useCase.getPagedDegreePrograms({ page, limit });
+        return res.json({ success: true, data: result.programs, meta: result.meta });
+      }
+
       const degrees = await this.useCase.getAllDegreePrograms();
       res.json({ success: true, data: degrees });
     } catch (err) { next(err); }

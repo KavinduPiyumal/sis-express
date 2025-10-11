@@ -12,8 +12,39 @@ class DegreeProgramUseCase {
   }
 
   async getAllDegreePrograms() {
+    // Backwards compatible: if no args provided, return full list
     const degrees = await this.degreeProgramRepository.findAll();
     return degrees.map(d => new DegreeProgramDTO(d));
+  }
+
+  async getPagedDegreePrograms(options = {}) {
+    const page = options.page !== undefined ? parseInt(options.page) : 1;
+    const limit = options.limit !== undefined ? parseInt(options.limit) : 10;
+    const skip = (page - 1) * limit;
+
+  // Order by `name` by default (model doesn't have createdAt)
+  const repoResult = await this.degreeProgramRepository.findAllWithOptions({}, { take: limit, skip, orderBy: { name: 'asc' } });
+
+    if (Array.isArray(repoResult)) {
+      return {
+        programs: repoResult.map(d => new DegreeProgramDTO(d)),
+        meta: {
+          totalCount: repoResult.length,
+          totalPages: 1,
+          currentPage: 1
+        }
+      };
+    }
+
+    const { rows, count } = repoResult;
+    return {
+      programs: rows.map(d => new DegreeProgramDTO(d)),
+      meta: {
+        totalCount: count,
+        totalPages: limit > 0 ? Math.ceil(count / limit) : 1,
+        currentPage: page
+      }
+    };
   }
 
   async getDegreeProgramById(id) {

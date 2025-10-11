@@ -190,6 +190,7 @@ class UserUseCase {
       const users = Array.isArray(usersResult) ? usersResult : (usersResult.rows || []);
 
       // If a search term is provided (only supported for students), override users with search results
+      let paginationMeta = null;
       if (targetRole === 'student' && options.search) {
         // Use repository search that looks into student.studentNo as well
         const searchOptions = {};
@@ -197,11 +198,15 @@ class UserUseCase {
         if (repositoryOptions.skip !== undefined) searchOptions.skip = repositoryOptions.skip;
         if (repositoryOptions.orderBy) searchOptions.orderBy = repositoryOptions.orderBy;
         const searched = await this.userRepository.searchStudents(options.search, repositoryFilter, searchOptions);
-        // searchStudents returns an array of users
-        // replace users variable with search results
-        // Note: no total/count returned for searches here; pagination is applied by 'take' and 'skip'
-        users.length = 0;
-        users.push(...searched);
+        // searchStudents may return { rows, count } when pagination applied, or an array when not
+        if (Array.isArray(searched)) {
+          users.length = 0;
+          users.push(...searched);
+        } else if (searched && typeof searched === 'object' && Array.isArray(searched.rows)) {
+          users.length = 0;
+          users.push(...searched.rows);
+          paginationMeta = { totalCount: searched.count };
+        }
       }
 
       // Attach related Lecturer or Student record for each user
@@ -231,8 +236,22 @@ class UserUseCase {
         const active = await studentRepo.count({ user: { isActive: true }, status: 'active' });
         const inactive = await studentRepo.count({ user: { isActive: true }, status: 'inactive' });
         const deleted = await studentRepo.count({ user: { isActive: false } });
+
+        // If paginationMeta is set (from search with pagination), use it instead of total
+        const totalCount = paginationMeta && typeof paginationMeta.totalCount === 'number' ? paginationMeta.totalCount : total;
+
+        const page = options.page !== undefined ? parseInt(options.page) : 1;
+        const limit = options.limit !== undefined ? parseInt(options.limit) : (repositoryOptions.take || 5);
+
+        const totalPages = limit > 0 ? Math.ceil(totalCount / limit) : 1;
+
         return {
           students: results,
+          meta: {
+            totalCount,
+            totalPages,
+            currentPage: page
+          },
           stats: {
             total,
             active,

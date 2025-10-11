@@ -123,13 +123,24 @@ class UserRepository {
       where = { ...where, AND: andConditions };
     }
 
-    return await prisma.user.findMany({
+    // If pagination (take/skip) or count is requested, return both rows and count
+    const findArgs = {
       where,
       include: {},
       ...(orderBy ? { orderBy } : {}),
       ...(typeof take === 'number' ? { take } : {}),
       ...(typeof skip === 'number' ? { skip } : {})
-    });
+    };
+
+    if (typeof take === 'number' || typeof skip === 'number') {
+      const [rows, count] = await Promise.all([
+        prisma.user.findMany(findArgs),
+        prisma.user.count({ where })
+      ]);
+      return { rows, count };
+    }
+
+    return await prisma.user.findMany(findArgs);
   }
 
   async updateLastLogin(userId) {

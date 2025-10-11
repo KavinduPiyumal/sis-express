@@ -143,6 +143,52 @@ class UserRepository {
     return await prisma.user.findMany(findArgs);
   }
 
+  /**
+   * Search users for the admin role by name, email or lecturerId.
+   * options: { orderBy, take, skip }
+   */
+  async searchAdmins(searchTerm, filter = {}, options = {}) {
+    const { orderBy, take, skip } = options || {};
+
+    let where = { role: 'admin', ...filter };
+
+    if (searchTerm && typeof searchTerm === 'string' && searchTerm.trim() !== '') {
+      const normalized = searchTerm.replace(/\+/g, ' ').trim();
+      const tokens = normalized.split(/\s+/).filter(t => t.length > 0);
+
+      const andConditions = tokens.map(token => {
+        return {
+          OR: [
+            { firstName: { contains: token, mode: 'insensitive' } },
+            { lastName: { contains: token, mode: 'insensitive' } },
+            { email: { contains: token, mode: 'insensitive' } },
+            { lecturer: { is: { lecturerId: { contains: token, mode: 'insensitive' } } } }
+          ]
+        };
+      });
+
+      where = { ...where, AND: andConditions };
+    }
+
+    const findArgs = {
+      where,
+      include: {},
+      ...(orderBy ? { orderBy } : {}),
+      ...(typeof take === 'number' ? { take } : {}),
+      ...(typeof skip === 'number' ? { skip } : {})
+    };
+
+    if (typeof take === 'number' || typeof skip === 'number') {
+      const [rows, count] = await Promise.all([
+        prisma.user.findMany(findArgs),
+        prisma.user.count({ where })
+      ]);
+      return { rows, count };
+    }
+
+    return await prisma.user.findMany(findArgs);
+  }
+
   async updateLastLogin(userId) {
     return await prisma.user.update({
       where: { id: userId },

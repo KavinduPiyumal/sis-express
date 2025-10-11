@@ -189,16 +189,26 @@ class UserUseCase {
       // Support both array and paginated result
       const users = Array.isArray(usersResult) ? usersResult : (usersResult.rows || []);
 
-      // If a search term is provided (only supported for students), override users with search results
+      // If a search term is provided, override users with search results
+      // Support both students and admins searches
       let paginationMeta = null;
-      if (targetRole === 'student' && options.search) {
+      if (options.search) {
         // Use repository search that looks into student.studentNo as well
         const searchOptions = {};
         if (repositoryOptions.take !== undefined) searchOptions.take = repositoryOptions.take;
         if (repositoryOptions.skip !== undefined) searchOptions.skip = repositoryOptions.skip;
         if (repositoryOptions.orderBy) searchOptions.orderBy = repositoryOptions.orderBy;
-        const searched = await this.userRepository.searchStudents(options.search, repositoryFilter, searchOptions);
-        // searchStudents may return { rows, count } when pagination applied, or an array when not
+        let searched;
+        if (targetRole === 'student') {
+          searched = await this.userRepository.searchStudents(options.search, repositoryFilter, searchOptions);
+        } else if (targetRole === 'admin') {
+          searched = await this.userRepository.searchAdmins(options.search, repositoryFilter, searchOptions);
+        } else {
+          // For other roles, fall back to general searchUsers
+          searched = await this.userRepository.searchUsers(options.search);
+        }
+
+        // Handle different return shapes from repository search
         if (Array.isArray(searched)) {
           users.length = 0;
           users.push(...searched);
@@ -273,22 +283,32 @@ class UserUseCase {
             }
           }
         });
-        
         const activeUserCount = allAdminUsers.filter(u => u.isActive).length;
         const deletedUserCount = allAdminUsers.filter(u => !u.isActive).length;
-        
+
         // Count lecturer profiles with different statuses (only for active users)
         const activeUsers = allAdminUsers.filter(u => u.isActive);
         const activeCount = activeUsers.filter(u => u.lecturer && u.lecturer.status === 'active').length;
         const inactiveCount = activeUsers.filter(u => u.lecturer && u.lecturer.status === 'inactive').length;
-        
+
+        // Pagination meta for admin search (if provided)
+        const totalCount = paginationMeta && typeof paginationMeta.totalCount === 'number' ? paginationMeta.totalCount : activeUserCount + deletedUserCount;
+        const page = options.page !== undefined ? parseInt(options.page) : 1;
+        const limit = options.limit !== undefined ? parseInt(options.limit) : (repositoryOptions.take || 5);
+        const totalPages = limit > 0 ? Math.ceil(totalCount / limit) : 1;
+
         return {
           lecturers: results,
+          meta: {
+            totalCount,
+            totalPages,
+            currentPage: page
+          },
           stats: {
-            total: activeCount + inactiveCount,             // Total active users (active + inactive = 4 + 1 = 5)
-            active: activeCount,                            // Active users with active lecturer status (4)
-            inactive: inactiveCount,                        // Active users with inactive lecturer status (1)
-            deleted: deletedUserCount                       // Users with isActive=false (1)
+            total: activeCount + inactiveCount,
+            active: activeCount,
+            inactive: inactiveCount,
+            deleted: deletedUserCount
           }
         };
       }

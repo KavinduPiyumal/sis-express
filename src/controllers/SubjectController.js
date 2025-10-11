@@ -14,8 +14,13 @@ class SubjectController {
 
   getAll = async (req, res, next) => {
     try {
-      const subjects = await this.useCase.getAllSubjects();
-      res.json({ success: true, data: subjects });
+      const options = {
+        page: req.query.page,
+        limit: req.query.limit,
+        q: req.query.q || req.query.search
+      };
+      const result = await this.useCase.getAllSubjects(options);
+      res.json({ success: true, data: result.data, meta: result.meta });
     } catch (err) { next(err); }
   };
 

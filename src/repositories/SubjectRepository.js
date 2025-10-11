@@ -10,6 +10,10 @@ class SubjectRepository {
     return await prisma.subject.findMany({ where: filter });
   }
 
+  async findPaginated({ where = {}, skip = 0, take = 20, orderBy = { name: 'asc' } } = {}) {
+    return await prisma.subject.findMany({ where, skip, take, orderBy });
+  }
+
   async create(data) {
     return await prisma.subject.create({ data });
   }

@@ -12,10 +12,38 @@ module.exports = {
   },
   async getAll(req, res) {
     try {
-      const batches = await prisma.batch.findMany();
+      // Pagination: page (1-based) and limit (perPage)
+      const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+      const perPageRaw = parseInt(req.query.limit, 10) || 20;
+      const perPage = Math.min(Math.max(1, perPageRaw), 100); // cap limit to 100
+
+      // Optional search query (search by batch name)
+      const q = (req.query.q || req.query.search || '').toString().trim();
+      const where = q ? { name: { contains: q, mode: 'insensitive' } } : {};
+
+      // Get total count for pagination meta
+      const total = await prisma.batch.count({ where });
+      const totalPages = total === 0 ? 1 : Math.ceil(total / perPage);
+
+      // Adjust page if it's out of range
+      const safePage = page > totalPages ? totalPages : page;
+
+      const batches = await prisma.batch.findMany({
+        where,
+        skip: (safePage - 1) * perPage,
+        take: perPage,
+        orderBy: { name: 'asc' }
+      });
+
       res.json({
         success: true,
-        data: batches
+        data: batches,
+        meta: {
+          total,
+          totalPages,
+          page: safePage,
+          perPage
+        }
       });
     } catch (err) {
       res.status(500).json({ error: err.message });

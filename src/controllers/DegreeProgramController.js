@@ -17,8 +17,27 @@ class DegreeProgramController {
       const { page, limit } = req.query;
       // If pagination params provided, use paged endpoint
       if (page !== undefined || limit !== undefined) {
-        const result = await this.useCase.getPagedDegreePrograms({ page, limit });
-        return res.json({ success: true, data: result.programs, meta: result.meta });
+        // Normalize pagination params
+        const pageNum = page !== undefined ? parseInt(page) : 1;
+        const limitNum = limit !== undefined ? parseInt(limit) : 10;
+
+        const result = await this.useCase.getPagedDegreePrograms({ page: pageNum, limit: limitNum });
+
+        // Compute displaying range for UI: "Showing X to Y of Z"
+        const totalCount = result.meta && result.meta.totalCount ? result.meta.totalCount : 0;
+        const programsCount = Array.isArray(result.programs) ? result.programs.length : 0;
+        const showingFrom = programsCount > 0 ? ((pageNum - 1) * limitNum) + 1 : 0;
+        const showingTo = programsCount > 0 ? ((pageNum - 1) * limitNum) + programsCount : 0;
+
+        return res.json({
+          success: true,
+          data: result.programs,
+          meta: {
+            ...result.meta,
+            showingFrom,
+            showingTo
+          }
+        });
       }
 
       const degrees = await this.useCase.getAllDegreePrograms();

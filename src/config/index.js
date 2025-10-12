@@ -39,7 +39,7 @@ module.exports = {
       accessKey: process.env.S3_ACCESS_KEY,
       secretKey: process.env.S3_SECRET_KEY
     },
-    baseUrl: process.env.CDN_URL || 'http://localhost:3000'
+    baseUrl: process.env.CDN_URL || 'http://localhost:80'
   },
 
   // Socket.IO Configuration

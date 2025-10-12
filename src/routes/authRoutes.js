@@ -5,6 +5,7 @@ const { body } = require('express-validator');
 const authController = require('../controllers/AuthController');
 const getUploadMiddleware = require('../infrastructure/upload');
 const upload = getUploadMiddleware();
+const profileUpload = getUploadMiddleware({ subDir: 'profileImages' });
 const authenticate = require('../middlewares/auth');
 const validate = require('../middlewares/validate');
 const auditLogger = require('../middlewares/auditLogger');
@@ -45,8 +46,8 @@ if (process.env.UPLOAD_DRIVER === 's3' && process.env.S3_IS_PRE_SIGNED === 'true
   // Pre-signed S3: expect profileImageKey in body, no multer
   router.put('/profile', authenticate, auditLogger('update', 'user', { module: 'auth', description: 'User profile updated', entityType: 'User' }), authController.updateProfile);
 } else {
-  // Normal upload: use multer
-  router.put('/profile', authenticate, upload.single('profileImage'), auditLogger('update', 'user', { module: 'auth', description: 'User profile updated', entityType: 'User' }), authController.updateProfile);
+  // Normal upload: use multer with specific subDir for profile images
+  router.put('/profile', authenticate, profileUpload.single('profileImage'), auditLogger('update', 'user', { module: 'auth', description: 'User profile updated', entityType: 'User' }), authController.updateProfile);
 }
 router.put('/change-password', authenticate, changePasswordValidation, validate, auditLogger('change_password', 'user', { module: 'auth', description: 'User password changed', entityType: 'User' }), authController.changePassword);
 // Send OTP for password change (must be authenticated)

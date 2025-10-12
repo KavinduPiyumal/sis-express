@@ -38,6 +38,9 @@ const batchRoutes = require('./routes/batchRoutes');
 const resultsRoutes = require('./routes/resultsRoutes');
 const logRoutes = require('./routes/logRoutes');
 const linkRoutes = require('./routes/linkRoutes');
+const noticeRoutes = require('./routes/noticeRoutes');
+const studentNoticeRoutes = require('./routes/studentNoticeRoutes');
+const fileRoutes = require('./routes/fileRoutes');
 
 
 const app = express();
@@ -107,6 +110,9 @@ app.use('/api/departments', departmentsRoutes);
 app.use('/api/logs', logRoutes);
 app.use('/api/results', resultsRoutes);
 app.use('/api/links', linkRoutes);
+app.use('/api/notices', noticeRoutes);
+app.use('/api/student/notices', studentNoticeRoutes);
+app.use('/api/files', fileRoutes);
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({

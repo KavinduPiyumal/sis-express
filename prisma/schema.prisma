@@ -86,10 +86,23 @@ enum PaymentStatus {
 }
 
 enum NoticePriority {
-  low
-  medium
+  normal
   high
-  urgent
+  critical
+}
+
+enum NoticeCategory {
+  general
+  academic
+  finance
+  event
+  emergency
+}
+
+enum NoticeStatus {
+  published
+  draft
+  archived
 }
 
 enum LinkPriority {
@@ -144,6 +157,7 @@ model User {
   notices     Notice[] @relation("UserNotices")
   links       Link[]   @relation("UserLinks")
   linkViews   LinkView[] @relation("UserLinkViews")
+  noticeReads NoticeRead[] @relation("UserNoticeReads")
 }
 
 model Student {
@@ -437,13 +451,26 @@ model Notice {
   id        String   @id @default(uuid())
   title     String
   content   String
-  priority  NoticePriority @default(medium)
+  excerpt   String?
+  category  NoticeCategory @default(general)
+  priority  NoticePriority @default(normal)
+  status    NoticeStatus @default(draft)
   targetAudience TargetAudience @default(all)
+  tags      String[]
+  isPinned  Boolean @default(false)
   isActive  Boolean @default(true)
   publishDate DateTime @default(now())
+  startDate DateTime?
+  endDate   DateTime?
   expiryDate DateTime?
+  viewCount Int @default(0)
+  readCount Int @default(0)
   createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   createdByUser User @relation("UserNotices", fields: [createdBy], references: [id])
+  attachments NoticeAttachment[]
+  reads     NoticeRead[]
 }
 
 model Notification {
@@ -493,6 +520,34 @@ model LinkView {
 
   @@unique([linkId, userId])
   @@index([linkId])
+  @@index([userId])
+}
+
+model NoticeAttachment {
+  id          String   @id @default(uuid())
+  noticeId    String
+  fileName    String
+  originalName String
+  fileSize    Int
+  mimeType    String
+  filePath    String
+  downloadUrl String?
+  createdAt   DateTime @default(now())
+  notice      Notice   @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+
+  @@index([noticeId])
+}
+
+model NoticeRead {
+  id       String   @id @default(uuid())
+  noticeId String
+  userId   String
+  readAt   DateTime @default(now())
+  notice   Notice   @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+  user     User     @relation("UserNoticeReads", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([noticeId, userId])
+  @@index([noticeId])
   @@index([userId])
 }
 

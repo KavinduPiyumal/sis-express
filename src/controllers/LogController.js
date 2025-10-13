@@ -4,7 +4,7 @@ const logRepository = new LogRepository();
 class LogController {
   async getAll(req, res, next) {
     try {
-      const { page = 1, limit = 20, userId, action, entity, startDate, endDate } = req.query;
+      const { page = 1, limit = 500, userId, action, entity, startDate, endDate } = req.query;
       const skip = (parseInt(page) - 1) * parseInt(limit);
       const take = parseInt(limit);
       

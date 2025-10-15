@@ -284,6 +284,7 @@ model ClassSession {
   date      DateTime
   topic     String?
   location  String?
+  remarks String?
   durationMinutes Int?
   courseOffering CourseOffering @relation(fields: [courseOfferingId], references: [id])
   attendances Attendance[]

@@ -465,3 +465,9 @@ Response:
 ---
 
 **Note**: This is a comprehensive backend system. Ensure you have the proper frontend application to interact with these APIs. The system is designed to work with modern frontend frameworks like React, Vue.js, or Angular.
+
+
+npm install
+npx prisma generate
+npx prisma migrate dev
+npx prisma migrate dev --name your_migration_name

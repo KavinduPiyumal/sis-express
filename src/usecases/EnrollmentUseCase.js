@@ -8,6 +8,21 @@ class EnrollmentUseCase {
     this.enrollmentRepository = new EnrollmentRepository();
   }
 
+
+  // Bulk approve enrollments by id array
+  async bulkApproveEnrollments(ids, approverId) {
+    if (!Array.isArray(ids) || ids.length === 0) return { updated: 0 };
+    let updated = 0;
+    for (const id of ids) {
+      const enrollment = await this.enrollmentRepository.findById(id);
+      if (enrollment && enrollment.status === 'pending') {
+        await this.enrollmentRepository.update(id, { status: 'active' });
+        updated++;
+      }
+    }
+    return { updated };
+  }
+
   // Student requests enrollment (pending approval)
   async requestEnrollment(data, userId) {
     logger.info(`Enrollment request by user ID: ${userId} for course offering ID: ${data.courseOfferingId}`);

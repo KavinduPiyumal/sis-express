@@ -7,8 +7,14 @@ const userRepository = new UserRepository();
 
 const authenticate = async (req, res, next) => {
   try {
-    // Only accept JWT from HttpOnly cookie
-    const token = req.cookies && req.cookies.token;
+    // Accept JWT from HttpOnly cookie or Authorization header
+    let token = req.cookies && req.cookies.token;
+    if (!token && req.headers.authorization) {
+      const authHeader = req.headers.authorization;
+      if (authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+      }
+    }
     if (!token) {
       return res.status(401).json({
         success: false,

@@ -1,5 +1,8 @@
+const { getSessionsWithAttendanceSummary } = require('../services/CourseOfferingSessionService');
+const { getSessionsWithStudentAttendance } = require('../services/CourseOfferingStudentSessionService');
+
 class CourseOfferingDTO {
-  constructor(offering) {
+  constructor(offering, sessions) {
     this.id = offering.id;
     this.subjectId = offering.subjectId;
     this.semesterId = offering.semesterId;
@@ -106,7 +109,29 @@ class CourseOfferingDTO {
         } : null
       }));
     }
+
+    // Attach sessions if provided
+    if (sessions) {
+      this.sessions = sessions;
+      if (sessions) {
+        this.sessions = sessions;
+      }
+
   }
 }
+}
+
+// Helper to build DTO with sessions (all students summary)
+CourseOfferingDTO.buildWithSessions = async function(offering) {
+  const sessions = await getSessionsWithAttendanceSummary(offering.id);
+  return new CourseOfferingDTO(offering, sessions);
+};
+
+// Helper to build DTO with sessions for a specific student (student attendance status)
+CourseOfferingDTO.buildWithStudentSessions = async function(offering, studentId) {
+  const sessions = await getSessionsWithStudentAttendance(offering.id, studentId);
+  return new CourseOfferingDTO(offering, sessions);
+};
 
 module.exports = CourseOfferingDTO;
+

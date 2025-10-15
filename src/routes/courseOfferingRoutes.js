@@ -1,7 +1,8 @@
 const express = require('express');
 const controller = require('../controllers/CourseOfferingController');
 const authenticate = require('../middlewares/auth');
-const { requireAdminOrSuperAdmin ,requireAdmin} = require('../middlewares/authorize');
+const { requireAdminOrSuperAdmin, requireAdmin, requireStudent } = require('../middlewares/authorize');
+const studentController = require('../controllers/StudentCourseOfferingController');
 const auditLogger = require('../middlewares/auditLogger');
 const router = express.Router();
 
@@ -9,6 +10,12 @@ const router = express.Router();
 // GET /api/course-offerings?lecturerId=...&subjectId=...&batchId=...&semesterId=...
 router.get('/', authenticate, controller.getByFilters);
 router.get('/lecturer/myCourses', authenticate, requireAdmin, controller.getAllByLecturer); // Get offerings for logged-in lecturer
+
+// Student: Get enrolled courses (myCourses)
+router.get('/student/myCourses', authenticate, requireStudent, studentController.getMyCourses);
+
+// Student: Get batch available courses (not enrolled)
+router.get('/student/batchAvailable', authenticate, requireStudent, studentController.getBatchAvailable);
 
 router.post('/', authenticate, requireAdminOrSuperAdmin, auditLogger('create', 'course_offering', { module: 'course_offering', description: 'Course offering created', entityType: 'CourseOffering' }), controller.create);
 router.get('/:id', authenticate, controller.getById);

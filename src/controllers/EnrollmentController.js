@@ -54,6 +54,18 @@ class EnrollmentController {
       res.json({ success: true, message: 'Deleted' });
     } catch (err) { next(err); }
   };
+
+    // Bulk approve enrollments
+  bulkApproveEnrollments = async (req, res, next) => {
+    try {
+      const { ids } = req.body;
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ success: false, error: 'ids array required' });
+      }
+      const result = await this.useCase.bulkApproveEnrollments(ids, req.user.id);
+      res.json({ success: true, ...result });
+    } catch (err) { next(err); }
+  };
 }
 
 module.exports = new EnrollmentController();

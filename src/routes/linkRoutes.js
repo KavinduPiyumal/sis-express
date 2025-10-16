@@ -63,7 +63,7 @@ const idValidation = [
 
 const queryValidation = [
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
-  query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
+  query('limit').optional().isInt({ min: 1, max: 1000 }).withMessage('Limit must be between 1 and 1000'),
   query('category').optional().isLength({ max: 100 }).withMessage('Category must not exceed 100 characters'),
   query('priority').optional().isIn(['normal', 'highlight']).withMessage('Priority must be normal or highlight'),
   query('targetAudience').optional().isIn(['all', 'students', 'admins']).withMessage('Target audience must be all, students, or admins'),

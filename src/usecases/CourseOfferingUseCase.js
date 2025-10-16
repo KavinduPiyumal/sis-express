@@ -70,7 +70,10 @@ class CourseOfferingUseCase {
 
     const offerings = await this.courseOfferingRepository.findByFilters(filters, { skip, take: perPage, include: options.include, orderBy });
 
-    const data = offerings.map(offering => new CourseOfferingDTO(offering));
+    // Attach sessions to each offering
+    const data = await Promise.all(
+      offerings.map(offering => CourseOfferingDTO.buildWithSessions(offering))
+    );
 
     return {
       data,
@@ -138,7 +141,8 @@ class CourseOfferingUseCase {
     };
 
     const offerings = await this.courseOfferingRepository.findByFilters({ lecturerId: lecturer.id }, options);
-    return offerings.map(offering => new CourseOfferingDTO(offering));
+  // Attach sessions to each offering
+  return Promise.all(offerings.map(offering => CourseOfferingDTO.buildWithSessions(offering)));
   }
 
   async createCourseOffering(data) {

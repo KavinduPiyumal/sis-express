@@ -10,6 +10,10 @@ const router = express.Router();
 router.post('/request', authenticate, requireStudent, auditLogger('create', 'enrollment_request', { module: 'enrollment', description: 'Enrollment request created', entityType: 'Enrollment' }), controller.requestEnrollment);
 // Admin/super_admin approves enrollment
 router.put('/:id/approve', authenticate, requireAdminOrSuperAdmin, auditLogger('update', 'enrollment', { module: 'enrollment', description: 'Enrollment approved', entityType: 'Enrollment' }), controller.approveEnrollment);
+
+// Admin/super_admin bulk approves enrollments
+router.post('/bulk-approve', authenticate, requireAdminOrSuperAdmin, auditLogger('update', 'enrollment', { module: 'enrollment', description: 'Bulk enrollment approved', entityType: 'Enrollment' }), controller.bulkApproveEnrollments);
+
 // Admin/super_admin enrolls student directly
 router.post('/', authenticate, requireAdminOrSuperAdmin, auditLogger('create', 'enrollment', { module: 'enrollment', description: 'Enrollment created', entityType: 'Enrollment' }), controller.create);
 router.get('/', authenticate, controller.getAll);

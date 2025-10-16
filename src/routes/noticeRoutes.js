@@ -53,12 +53,12 @@ const bulkActionValidation = [
 
 const searchValidation = [
   query('q').optional().trim().isLength({ min: 1, max: 100 }).withMessage('Search query must be between 1 and 100 characters'),
-  query('limit').optional().isInt({ min: 1, max: 10 }).withMessage('Limit must be between 1 and 10')
+  query('limit').optional().isInt({ min: 1, max: 1000 }).withMessage('Limit must be between 1 and 1000')
 ];
 
 const filterValidation = [
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
-  query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
+  query('limit').optional().isInt({ min: 1, max: 1000 }).withMessage('Limit must be between 1 and 1000'),
   query('category').optional().isIn(['general', 'academic', 'finance', 'event', 'emergency']).withMessage('Invalid category'),
   query('priority').optional().isIn(['normal', 'high', 'critical']).withMessage('Invalid priority'),
   query('status').optional().isIn(['published', 'draft', 'archived']).withMessage('Invalid status'),

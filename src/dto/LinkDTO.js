@@ -35,7 +35,7 @@ class LinkDTO {
 
   static querySchema = Joi.object({
     page: Joi.number().integer().min(1).default(1),
-    limit: Joi.number().integer().min(1).max(100).default(10),
+    limit: Joi.number().integer().min(1).max(1000).default(10),
     category: Joi.string().max(100).optional(),
     priority: Joi.string().valid('normal', 'highlight').optional(),
     targetAudience: Joi.string().valid('all', 'students', 'admins').optional(),

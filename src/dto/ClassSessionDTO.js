@@ -1,3 +1,4 @@
+
 class ClassSessionDTO {
   constructor(classSession) {
     this.id = classSession.id;
@@ -5,6 +6,7 @@ class ClassSessionDTO {
     this.date = classSession.date;
     this.topic = classSession.topic;
     this.location = classSession.location;
+    this.remarks = classSession.remarks;
     this.durationMinutes = classSession.durationMinutes;
     this.createdAt = classSession.createdAt;
     this.updatedAt = classSession.updatedAt;

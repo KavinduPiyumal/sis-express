@@ -5,6 +5,117 @@ const emailService = require('../infrastructure/emailService');
 const logger = require('../config/logger');
 
 class AttendanceUseCase {
+  // Student: Get per-course offering attendance stats (summary for all enrolled courses)
+  async getMyOfferingsStats(studentId) {
+    // Get all active enrollments for the student
+    const EnrollmentRepository = require('../repositories/EnrollmentRepository');
+    const CourseOfferingRepository = require('../repositories/CourseOfferingRepository');
+    const ClassSessionRepository = require('../repositories/ClassSessionRepository');
+    const enrollmentRepo = new EnrollmentRepository();
+    const courseOfferingRepo = new CourseOfferingRepository();
+    const classSessionRepo = new ClassSessionRepository();
+    const attendanceRepo = this.attendanceRepository;
+
+    const enrollments = await enrollmentRepo.findAll({ studentId, status: 'active' });
+    const courseOfferingIds = enrollments.map(e => e.courseOfferingId);
+    if (courseOfferingIds.length === 0) return { offerings: [], overall: null };
+    // Load all related records for DTO (use findByFilters to always include all relations)
+    const courseOfferings = await courseOfferingRepo.findByFilters(
+      { id: { in: courseOfferingIds } }
+    );
+
+
+
+    logger.info('Course offerings for student attendance stats', { studentId, courseOfferings });
+    
+
+    // Get attendance threshold from env
+    const attendanceThreshold = process.env.ATTENDANCE_REQUIRED_PERCENT ? Number(process.env.ATTENDANCE_REQUIRED_PERCENT) : 75;
+
+    let overallPresent = 0, overallExcused = 0, overallAbsent = 0, overallMarked = 0, overallSessions = 0;
+    const offerings = [];
+    for (const offering of courseOfferings) {
+      const sessions = await classSessionRepo.findAll({ courseOfferingId: offering.id });
+      let presentCount = 0, excusedCount = 0, absentCount = 0, markedCount = 0;
+      for (const session of sessions) {
+        const attendance = await attendanceRepo.findBySessionAndStudent(session.id, studentId);
+        if (attendance) {
+          markedCount++;
+          if (attendance.status === 'present') presentCount++;
+          else if (attendance.status === 'excused') excusedCount++;
+          else if (attendance.status === 'absent') absentCount++;
+        }
+      }
+      const averageAttendance = sessions.length > 0 ? ((presentCount + excusedCount) / sessions.length) * 100 : 0;
+      const CourseOfferingDTO = require('../dto/CourseOfferingDTO');
+      const courseOfferingDTO = new CourseOfferingDTO(offering);
+      offerings.push({
+        courseOffering: courseOfferingDTO,
+        semester: offering.semester,
+        lecturer: offering.lecturer,
+        sessionsCount: sessions.length,
+        attendanceMarkedSessionsCount: markedCount,
+        presentCount,
+        excusedCount,
+        absentCount,
+        averageAttendance: Math.round(averageAttendance * 100) / 100
+      });
+      overallPresent += presentCount;
+      overallExcused += excusedCount;
+      overallAbsent += absentCount;
+      overallMarked += markedCount;
+      overallSessions += sessions.length;
+    }
+    const overallAttendancePercent = overallSessions > 0 ? ((overallPresent + overallExcused) / overallSessions) * 100 : 0;
+
+    logger.info('offerings', { offerings });
+    return {
+      offerings,
+      overall: {
+        attendancePercent: Math.round(overallAttendancePercent * 100) / 100,
+        attended: overallPresent + overallExcused,
+        total: overallSessions,
+        present: overallPresent,
+        excused: overallExcused,
+        absent: overallAbsent,
+        marked: overallMarked,
+        attendanceThreshold
+      }
+    };
+  }
+
+  // Student: Get detailed session+attendance data for a given course offering
+  async getMyOfferingSessions(studentId, courseOfferingId) {
+    const ClassSessionRepository = require('../repositories/ClassSessionRepository');
+    const classSessionRepo = new ClassSessionRepository();
+    const attendanceRepo = this.attendanceRepository;
+    const sessions = await classSessionRepo.findAll({ courseOfferingId });
+    let presentCount = 0, excusedCount = 0, absentCount = 0, markedSessionsCount = 0;
+    const sessionData = await Promise.all(sessions.map(async (session) => {
+      const attendance = await attendanceRepo.findBySessionAndStudent(session.id, studentId);
+      if (attendance) {
+        markedSessionsCount++;
+        if (attendance.status === 'present') presentCount++;
+        else if (attendance.status === 'excused') excusedCount++;
+        else if (attendance.status === 'absent') absentCount++;
+      }
+      return {
+        session,
+        attendance: attendance ? new AttendanceDTO(attendance) : null
+      };
+    }));
+    return {
+      sessions: sessionData,
+      stats: {
+        totalSessions: sessions.length,
+        presentCount,
+        absentCount,
+        excusedCount,
+        markedSessionsCount,
+        remainingSessionCount: sessions.length - markedSessionsCount
+      }
+    };
+  }
   constructor() {
     this.attendanceRepository = new AttendanceRepository();
     this.userRepository = new UserRepository();

@@ -2,6 +2,45 @@
 const AttendanceUseCase = require('../usecases/AttendanceUseCase');
 
 class AttendanceController {
+  // Student: Get per-course offering attendance stats (summary for all enrolled courses)
+  getMyOfferingsStats = async (req, res, next) => {
+    try {
+      // Lookup studentId from userId
+      const StudentRepository = require('../repositories/StudentRepository');
+      const studentRepo = new StudentRepository();
+      const student = await studentRepo.findOne({ userId: req.user.id });
+      if (!student) {
+        return res.status(404).json({ success: false, message: 'Student record not found for user' });
+      }
+      // Get stats for all enrolled course offerings
+      const stats = await this.attendanceUseCase.getMyOfferingsStats(student.id);
+      res.json({ success: true, data: stats });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // Student: Get detailed session+attendance data for a given course offering
+  getMyOfferingSessions = async (req, res, next) => {
+    try {
+      // Lookup studentId from userId
+      const StudentRepository = require('../repositories/StudentRepository');
+      const studentRepo = new StudentRepository();
+      const student = await studentRepo.findOne({ userId: req.user.id });
+      if (!student) {
+        return res.status(404).json({ success: false, message: 'Student record not found for user' });
+      }
+      const courseOfferingId = req.params.courseOfferingId;
+      if (!courseOfferingId) {
+        return res.status(400).json({ success: false, message: 'courseOfferingId is required' });
+      }
+      // Get session+attendance data for this course offering
+      const result = await this.attendanceUseCase.getMyOfferingSessions(student.id, courseOfferingId);
+      res.json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  };
   constructor() {
     this.attendanceUseCase = new AttendanceUseCase();
   }

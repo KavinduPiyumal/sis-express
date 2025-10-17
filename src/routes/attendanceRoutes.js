@@ -60,6 +60,13 @@ router.delete('/:id', authenticate, attendanceIdValidation, validate, auditLogge
 // Bulk delete
 router.post('/bulk-delete', authenticate, bulkDeleteValidation, validate, auditLogger('bulk_delete', 'attendance', { module: 'attendance', description: 'Bulk attendance deleted', entityType: 'Attendance' }), attendanceController.bulkDeleteAttendance);
 router.get('/', authenticate, requireAdminOrSuperAdmin, attendanceController.getAllAttendance);
+
+// Student: Get per-course offering attendance stats (summary for all enrolled courses)
+router.get('/me/offerings-stats', authenticate, validate, attendanceController.getMyOfferingsStats);
+
+// Student: Get detailed session+attendance data for a given course offering
+router.get('/me/offerings/:courseOfferingId/sessions', authenticate, param('courseOfferingId').isUUID().withMessage('Valid course offering ID is required'), validate, attendanceController.getMyOfferingSessions);
+
 // Student gets their own attendance, optionally filtered by courseOfferingId/classSessionId
 router.get('/me', authenticate, courseSessionQueryValidation, validate, attendanceController.getAttendanceByStudent);
 router.get('/me/stats', authenticate, courseSessionQueryValidation, validate, attendanceController.getAttendanceStats);

@@ -2,6 +2,31 @@
 const prisma = require('../infrastructure/prisma');
 
 class LogRepository {
+  // Cursor-based lazy loading
+  async findAllWithCursor(where = {}, cursor = null, take = 21) {
+    // If cursor is provided, skip the cursor record itself
+    const query = {
+      where,
+      orderBy: { timestamp: 'desc' },
+      take,
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
+      }
+    };
+    if (cursor) {
+      query.cursor = { id: cursor };
+      query.skip = 1;
+    }
+    return await prisma.log.findMany(query);
+  }
   async findByUserId(userId) {
     return await prisma.log.findMany({
       where: { userId },

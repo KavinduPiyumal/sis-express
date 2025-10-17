@@ -4,10 +4,10 @@ const logRepository = new LogRepository();
 class LogController {
   async getAll(req, res, next) {
     try {
-      const { page = 1, limit = 500, userId, action, entity, startDate, endDate } = req.query;
-      const skip = (parseInt(page) - 1) * parseInt(limit);
+      // For lazy loading, use cursor-based pagination if cursor param is provided, else fallback to page/limit
+      const { limit = 20, cursor, userId, action, entity, startDate, endDate } = req.query;
       const take = parseInt(limit);
-      
+
       // Build where clause for Prisma
       const where = {};
       if (userId) where.userId = userId;
@@ -20,18 +20,26 @@ class LogController {
         };
       }
 
-      // Get logs with pagination using Prisma
-      const [logs, totalCount] = await Promise.all([
-        logRepository.findAllWithPagination(where, skip, take),
-        logRepository.count(where)
-      ]);
+      // If cursor is provided, use cursor-based pagination
+      let logs;
+      if (cursor) {
+        logs = await logRepository.findAllWithCursor(where, cursor, take + 1); // fetch one extra to check hasMore
+      } else {
+        logs = await logRepository.findAllWithPagination(where, 0, take + 1); // fallback to first page
+      }
 
-      res.json({ 
-        success: true, 
+      let hasMore = false;
+      if (logs.length > take) {
+        hasMore = true;
+        logs = logs.slice(0, take);
+      }
+      const nextCursor = hasMore ? logs[logs.length - 1].id : null;
+
+      res.json({
+        success: true,
         data: logs,
-        count: totalCount,
-        totalPages: Math.ceil(totalCount / take),
-        currentPage: parseInt(page)
+        hasMore,
+        nextCursor
       });
     } catch (error) {
       next(error);

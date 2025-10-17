@@ -6,8 +6,11 @@ class EnrollmentRepository {
     return await prisma.enrollment.findUnique({ where: { id } });
   }
 
-  async findAll(filter = {}) {
-    return await prisma.enrollment.findMany({ where: filter });
+  async findAll(filter = {}, options = {}) {
+    const query = { where: filter };
+    if (options.include) query.include = options.include;
+    if (typeof options.orderBy !== 'undefined') query.orderBy = options.orderBy;
+    return await prisma.enrollment.findMany(query);
   }
 
   async create(data) {

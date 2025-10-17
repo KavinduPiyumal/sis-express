@@ -46,7 +46,6 @@ enum SemesterStatus {
 enum AttendanceStatus {
   present
   absent
-  late
   excused
 }
 
@@ -300,11 +299,15 @@ model Attendance {
   markedBy  String
   markedAt  DateTime @default(now())
   medicalId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   classSession ClassSession @relation(fields: [classSessionId], references: [id])
   courseOffering CourseOffering @relation("CourseOfferingAttendance", fields: [courseOfferingId], references: [id])
   student   Student  @relation("StudentAttendance", fields: [studentId], references: [id])
   markedByUser User @relation("AttendanceMarkedBy", fields: [markedBy], references: [id])
   medical   Medical? @relation("MedicalAttendance", fields: [medicalId], references: [id])
+
+  @@unique([classSessionId, studentId])
 }
 
 model Enrollment {

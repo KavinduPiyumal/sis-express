@@ -107,6 +107,34 @@ module.exports = {
     }
   },
 
+  // Lightweight listing: return counts instead of full enrollments and sessions
+  async getAllByLecturerLight(req, res) {
+    try {
+      const userId = req.user.id;
+      if (!userId) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'User ID missing in token' 
+        });
+      }
+      const offerings = await useCase.getCourseOfferingsByLecturerLight(userId);
+      res.json({ success: true, data: offerings });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  },
+
+  // Detailed data for a course offering: active enrollments and sessions
+  async getDetails(req, res) {
+    try {
+      const offeringId = req.params.id;
+      const data = await useCase.getCourseOfferingDetails(offeringId);
+      res.json({ success: true, data });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  },
+
   async getById(req, res) {
     try {
       const offering = await useCase.getCourseOfferingById(req.params.id);

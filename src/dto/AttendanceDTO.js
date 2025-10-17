@@ -5,14 +5,14 @@ class AttendanceDTO {
     this.courseOfferingId = attendance.courseOfferingId;
     this.classSessionId = attendance.classSessionId;
     this.status = attendance.status;
-    this.remarks = attendance.remarks;
-    this.markedBy = attendance.markedBy;
-    this.markedAt = attendance.markedAt;
-    this.medicalId = attendance.medicalId;
+    this.remarks = attendance.remarks ?? null;
+    this.markedBy = attendance.markedBy ?? null;
+    this.markedAt = attendance.markedAt ?? null;
+    this.medicalId = attendance.medicalId ?? null;
     this.createdAt = attendance.createdAt;
     this.updatedAt = attendance.updatedAt;
 
-    // Related objects
+    // Related objects (optional)
     if (attendance.student) {
       this.student = attendance.student;
     }
@@ -34,18 +34,18 @@ class AttendanceCreateDTO {
     this.courseOfferingId = data.courseOfferingId;
     this.classSessionId = data.classSessionId;
     this.status = data.status;
-    this.remarks = data.remarks;
-    this.markedBy = data.markedBy;
-    this.markedAt = data.markedAt;
-    this.medicalId = data.medicalId;
+    if (data.remarks !== undefined) this.remarks = data.remarks;
+    if (data.markedBy !== undefined) this.markedBy = data.markedBy;
+    if (data.markedAt !== undefined) this.markedAt = data.markedAt;
+    if (data.medicalId !== undefined) this.medicalId = data.medicalId;
   }
 }
 
 class AttendanceUpdateDTO {
   constructor(data) {
-    this.status = data.status;
-    this.remarks = data.remarks;
-    this.medicalId = data.medicalId;
+    if (data.status !== undefined) this.status = data.status;
+    if (data.remarks !== undefined) this.remarks = data.remarks;
+    if (data.medicalId !== undefined) this.medicalId = data.medicalId;
   }
 }
 

@@ -1,7 +1,19 @@
-
 const prisma = require('../infrastructure/prisma');
 
 class AttendanceRepository {
+  // Paginated, filtered query for attendance
+  async findAndCountAll({ where = {}, limit = 10, offset = 0, orderBy = [{ markedAt: 'desc' }] }) {
+    const [rows, count] = await Promise.all([
+      prisma.attendance.findMany({
+        where,
+        orderBy,
+        skip: offset,
+        take: limit,
+      }),
+      prisma.attendance.count({ where })
+    ]);
+    return { rows, count };
+  }
   async findByStudentId(studentId) {
     return await prisma.attendance.findMany({
       where: { studentId },
@@ -51,16 +63,33 @@ class AttendanceRepository {
     const results = [];
     for (const record of attendanceRecords) {
       const { classSessionId, studentId } = record;
+      // Only include valid Attendance model fields
+      const createData = {
+        classSessionId: record.classSessionId,
+        courseOfferingId: record.courseOfferingId,
+        markedBy: record.markedBy,
+        status: record.status,
+        remarks: record.remarks,
+        studentId: record.studentId,
+        markedAt: record.markedAt,
+        medicalId: record.medicalId,
+        createdAt: record.createdAt,
+        updatedAt: record.updatedAt
+      };
+      // Remove undefined fields
+      Object.keys(createData).forEach(key => createData[key] === undefined && delete createData[key]);
+      const updateData = {
+        status: record.status,
+        remarks: record.remarks,
+        updatedAt: record.updatedAt,
+        medicalId: record.medicalId
+      };
+      Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
       results.push(
         prisma.attendance.upsert({
           where: { classSessionId_studentId: { classSessionId, studentId } },
-          update: {
-            status: record.status,
-            remarks: record.remarks,
-            updatedAt: record.updatedAt,
-            medicalId: record.medicalId,
-          },
-          create: record,
+          update: updateData,
+          create: createData,
         })
       );
     }

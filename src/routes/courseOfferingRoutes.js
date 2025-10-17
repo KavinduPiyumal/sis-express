@@ -13,6 +13,10 @@ router.get('/lecturer/myCourses', authenticate, requireAdmin, controller.getAllB
 router.get('/lecturer/myCourses/light', authenticate, requireAdmin, controller.getAllByLecturerLight); // Lightweight counts-only listing for lecturer
 
 // Student: Get enrolled courses (myCourses)
+
+// Student: Get enrolled courses (lightweight counts only)
+router.get('/student/myCourses/light', authenticate, requireStudent, studentController.getMyCoursesLight);
+// Student: Get enrolled courses (full)
 router.get('/student/myCourses', authenticate, requireStudent, studentController.getMyCourses);
 
 // Student: Get batch available courses (not enrolled)
@@ -21,6 +25,9 @@ router.get('/student/batchAvailable', authenticate, requireStudent, studentContr
 router.post('/', authenticate, requireAdminOrSuperAdmin, auditLogger('create', 'course_offering', { module: 'course_offering', description: 'Course offering created', entityType: 'CourseOffering' }), controller.create);
 router.get('/:id', authenticate, controller.getById);
 router.get('/:id/details', authenticate, requireAdminOrSuperAdmin, controller.getDetails); // Get active enrollments and sessions for offering
+
+// Get only sessions for a course offering (with attendance summary)
+router.get('/:id/sessions', authenticate, controller.getSessionsOnly);
 router.put('/:id', authenticate, requireAdminOrSuperAdmin, auditLogger('update', 'course_offering', { module: 'course_offering', description: 'Course offering updated', entityType: 'CourseOffering' }), controller.update);
 router.delete('/:id', authenticate, requireAdminOrSuperAdmin, auditLogger('delete', 'course_offering', { module: 'course_offering', description: 'Course offering deleted', entityType: 'CourseOffering' }), controller.delete);
 

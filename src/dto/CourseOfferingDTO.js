@@ -2,7 +2,7 @@ const { getSessionsWithAttendanceSummary } = require('../services/CourseOffering
 const { getSessionsWithStudentAttendance } = require('../services/CourseOfferingStudentSessionService');
 
 class CourseOfferingDTO {
-  constructor(offering, sessions) {
+  constructor(offering, sessions, enrollment) {
     this.id = offering.id;
     this.subjectId = offering.subjectId;
     this.semesterId = offering.semesterId;
@@ -110,24 +110,13 @@ class CourseOfferingDTO {
       this.resultsCount = offering.resultsCount;
     }
     
-    // If full enrollments provided, attach detailed enrollments
-    if (offering.enrollments) {
-      this.enrollments = offering.enrollments.map(enrollment => ({
+
+    // If student's own enrollment is provided, attach it (id, status only)
+    if (enrollment) {
+      this.enrollment = {
         id: enrollment.id,
-        status: enrollment.status,
-        enrolledDate: enrollment.enrolledDate,
-        student: enrollment.student ? {
-          id: enrollment.student.id,
-          studentNo: enrollment.student.studentNo,
-          status: enrollment.student.status,
-          user: enrollment.student.user ? {
-            id: enrollment.student.user.id,
-            firstName: enrollment.student.user.firstName,
-            lastName: enrollment.student.user.lastName,
-            email: enrollment.student.user.email
-          } : null
-        } : null
-      }));
+        status: enrollment.status
+      };
     }
 
     // Attach sessions or counts
@@ -158,8 +147,9 @@ CourseOfferingDTO.buildWithSessions = async function(offering) {
   return new CourseOfferingDTO(offering, sessions);
 };
 
-// Helper to build DTO with counts only (lightweight for lecturer listing)
-CourseOfferingDTO.buildWithCounts = async function(offering) {
+// Helper to build DTO with counts only (lightweight for lecturer or student listing)
+// Optionally pass enrollment (student's own)
+CourseOfferingDTO.buildWithCounts = async function(offering, enrollment) {
   const EnrollmentRepository = require('../repositories/EnrollmentRepository');
   const ClassSessionRepository = require('../repositories/ClassSessionRepository');
   const enrollmentRepo = new EnrollmentRepository();
@@ -197,7 +187,7 @@ CourseOfferingDTO.buildWithCounts = async function(offering) {
   offering.resultsCount = resultsCount;
   offering.sessionsMarkedCount = sessionsMarkedCount;
 
-  return new CourseOfferingDTO(offering, null);
+  return new CourseOfferingDTO(offering, null, enrollment);
 };
 
 // Helper to build DTO with sessions for a specific student (student attendance status)

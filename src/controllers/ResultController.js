@@ -161,18 +161,30 @@ module.exports = {
    */
   async getMyResults(req, res) {
     try {
+      // Accept studentId (required) and semesterId (optional) from query
       const userId = req.user.id;
-      if (!userId) {
-        return res.status(400).json({
-          success: false,
-          error: 'User ID missing in token'
-        });
+      const { studentId, semesterId } = req.query;
+
+      // If studentId is not provided, use logged-in user's student record
+      let targetStudentId = studentId;
+      if (!targetStudentId) {
+        const StudentRepository = require('../repositories/StudentRepository');
+        const studentRepo = new StudentRepository();
+        const student = await studentRepo.findOne({ userId });
+        if (!student) {
+          return res.status(404).json({
+            success: false,
+            error: 'Student record not found for this user'
+          });
+        }
+        targetStudentId = student.id;
       }
 
-      const results = await useCase.getResultsByStudent(userId);
+      // UseCase returns full academic record with all semesters and cumulative analytics
+      const record = await useCase.getStudentFullResults(targetStudentId, semesterId);
       res.json({
         success: true,
-        data: results
+        data: record
       });
     } catch (err) {
       res.status(500).json({

@@ -39,8 +39,9 @@ enum LecturerStatus {
 }
 
 enum SemesterStatus {
-  active
-  inactive
+  inprogress
+  pending
+  completed
 }
 
 enum AttendanceStatus {
@@ -243,7 +244,7 @@ model Semester {
   batchId   String
   startDate DateTime
   endDate   DateTime
-  status    SemesterStatus @default(active)
+  status    SemesterStatus @default(pending)
   batch     Batch    @relation(fields: [batchId], references: [id])
   courseOfferings CourseOffering[]
   semesterGPAs SemesterGPA[]

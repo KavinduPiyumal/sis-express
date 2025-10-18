@@ -2,6 +2,17 @@ const CourseOfferingUseCase = require('../usecases/CourseOfferingUseCase');
 const useCase = new CourseOfferingUseCase();
 
 module.exports = {
+  // Return only sessions for a course offering (with attendance summary)
+  async getSessionsOnly(req, res) {
+    try {
+      const courseOfferingId = req.params.id;
+      const { getSessionsWithAttendanceSummary } = require('../services/CourseOfferingSessionService');
+      const sessions = await getSessionsWithAttendanceSummary(courseOfferingId);
+      res.json({ success: true, data: sessions });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  },
   async create(req, res) {
     try {
       // Handle lecturerId lookup - if lecturerId is not found in lecturer table, treat it as userId
@@ -104,6 +115,34 @@ module.exports = {
         success: false, 
         error: err.message 
       });
+    }
+  },
+
+  // Lightweight listing: return counts instead of full enrollments and sessions
+  async getAllByLecturerLight(req, res) {
+    try {
+      const userId = req.user.id;
+      if (!userId) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'User ID missing in token' 
+        });
+      }
+      const offerings = await useCase.getCourseOfferingsByLecturerLight(userId);
+      res.json({ success: true, data: offerings });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  },
+
+  // Detailed data for a course offering: active enrollments and sessions
+  async getDetails(req, res) {
+    try {
+      const offeringId = req.params.id;
+      const data = await useCase.getCourseOfferingDetails(offeringId);
+      res.json({ success: true, data });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
     }
   },
 

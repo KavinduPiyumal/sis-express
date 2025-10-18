@@ -1,11 +1,50 @@
-
 const prisma = require('../infrastructure/prisma');
 
 module.exports = {
   async create(req, res) {
     try {
-      const batch = await prisma.batch.create({ data: req.body });
-      res.status(201).json(batch);
+      const result = await prisma.$transaction(async (tx) => {
+        // Create the batch first
+        const batch = await tx.batch.create({ data: req.body });
+
+        // Fetch the related degree program to get duration
+        const program = await tx.degreeProgram.findUnique({
+          where: { id: batch.programId },
+          select: { duration: true }
+        });
+        if (!program) {
+          // Throw to trigger rollback
+          throw new Error('Degree program not found for batch');
+        }
+
+        // Prepare semesters (2 per year, e.g. 1st Year Semester 1, etc)
+        const semestersToCreate = [];
+        for (let year = 1; year <= program.duration; year++) {
+          for (let sem = 1; sem <= 2; sem++) {
+            let name = `${year}st Year Semester ${sem}`;
+            if (year === 2) name = `2nd Year Semester ${sem}`;
+            else if (year === 3) name = `3rd Year Semester ${sem}`;
+            else if (year > 3) name = `${year}th Year Semester ${sem}`;
+            semestersToCreate.push({
+              name,
+              batchId: batch.id,
+              status: (year === 1 && sem === 1) ? 'inprogress' : 'pending',
+              // startDate and endDate can be set later by admin
+              startDate: new Date(),
+              endDate: new Date()
+            });
+          }
+        }
+
+        // Bulk create semesters
+        await tx.semester.createMany({ data: semestersToCreate });
+
+        // Optionally, fetch the created semesters to return
+        const semesters = await tx.semester.findMany({ where: { batchId: batch.id }, orderBy: { name: 'asc' } });
+
+        return { ...batch, semesters };
+      });
+      res.status(201).json(result);
     } catch (err) {
       res.status(400).json({ error: err.message });
     }
@@ -101,4 +140,42 @@ module.exports = {
     });
   }
 }
+  ,
+  // Admin tool: fix semesters for a batch (delete and recreate semesters)
+  async fixSemesters(req, res) {
+    try {
+      const batchId = req.params.id;
+      // Find batch and its degree program
+      const batch = await prisma.batch.findUnique({ where: { id: batchId } });
+      if (!batch) return res.status(404).json({ error: 'Batch not found' });
+      const program = await prisma.degreeProgram.findUnique({ where: { id: batch.programId }, select: { duration: true } });
+      if (!program) return res.status(400).json({ error: 'Degree program not found for batch' });
+
+      // Delete all semesters for this batch
+      await prisma.semester.deleteMany({ where: { batchId } });
+
+      // Prepare correct semesters
+      const semestersToCreate = [];
+      for (let year = 1; year <= program.duration; year++) {
+        for (let sem = 1; sem <= 2; sem++) {
+          let name = `${year}st Year Semester ${sem}`;
+          if (year === 2) name = `2nd Year Semester ${sem}`;
+          else if (year === 3) name = `3rd Year Semester ${sem}`;
+          else if (year > 3) name = `${year}th Year Semester ${sem}`;
+          semestersToCreate.push({
+            name,
+            batchId,
+            status: (year === 1 && sem === 1) ? 'inprogress' : 'pending',
+            startDate: new Date(),
+            endDate: new Date()
+          });
+        }
+      }
+      await prisma.semester.createMany({ data: semestersToCreate });
+      const semesters = await prisma.semester.findMany({ where: { batchId }, orderBy: { name: 'asc' } });
+      res.json({ success: true, batchId, semesters });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
 };

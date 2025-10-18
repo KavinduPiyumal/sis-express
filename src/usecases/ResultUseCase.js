@@ -2,6 +2,273 @@ const ResultRepository = require('../repositories/ResultRepository');
 const ResultDTO = require('../dto/ResultDTO');
 
 class ResultUseCase {
+  /**
+   * Get full results for student (for /student/my-results)
+   * @param {string} studentId
+   * @param {string|null} semesterId
+   * Returns: { studentInfo, semesters, cumulative, analytics }
+   */
+  async getStudentFullResults(studentId, semesterId = null) {
+    // Repositories
+    const StudentRepository = require('../repositories/StudentRepository');
+    const BatchRepository = require('../repositories/BatchRepository');
+    const DegreeProgramRepository = require('../repositories/DegreeProgramRepository');
+    const LecturerRepository = require('../repositories/LecturerRepository');
+    const AttendanceRepository = require('../repositories/AttendanceRepository');
+    const EnrollmentRepository = require('../repositories/EnrollmentRepository');
+
+    // Get student, batch, program, advisor
+    const student = await StudentRepository.prototype.findById(studentId);
+    const batch = student ? await BatchRepository.prototype.findById(student.batchId) : null;
+    const program = batch ? await DegreeProgramRepository.prototype.findById(batch.programId) : null;
+    // Advisor: find first lecturer for batch/program (stub: null if not found)
+    let advisor = null;
+    if (batch && program) {
+      const lecturers = await LecturerRepository.prototype.findAll({});
+      advisor = lecturers.length > 0 ? `${lecturers[0].user?.firstName || ''} ${lecturers[0].user?.lastName || ''}`.trim() : null;
+    }
+
+    // Student Info
+    const studentInfo = {
+      studentNo: student?.studentNo || null,
+      fullName: student?.user ? `${student.user.firstName} ${student.user.lastName}` : null,
+      batchId: batch?.name || null,
+      currentSemester: null, // will fill below
+      degreeProgram: program?.name || null,
+      expectedGraduation: batch && program ? (batch.startYear + (program.duration || 4)).toString() : null,
+      advisor: advisor
+    };
+
+    // Get all results for student
+    const results = await this.resultRepository.findByFilters({ studentId });
+    // Group by semester
+    const semesterGroups = {};
+    for (const result of results) {
+      const semesterIdKey = result.courseOffering?.semester?.id || result.courseOffering?.semesterId || 'unknown';
+      if (!semesterGroups[semesterIdKey]) {
+        semesterGroups[semesterIdKey] = {
+          semesterId: semesterIdKey,
+          semesterName: result.courseOffering?.semester?.name || 'Unknown Semester',
+          courses: []
+        };
+      }
+      semesterGroups[semesterIdKey].courses.push(result);
+    }
+
+    // If semesterId is provided, filter to that semester only
+    let semesters = Object.values(semesterGroups);
+    if (semesterId) {
+      semesters = semesters.filter(s => s.semesterId === semesterId);
+    }
+
+    // Fill currentSemester
+    if (semesters.length > 0) {
+      studentInfo.currentSemester = semesters[semesters.length - 1].semesterId;
+    }
+
+    // Build semester details
+    const CourseOfferingRepository = require('../repositories/CourseOfferingRepository');
+    const ATTENDANCE_REQUIRED_PERCENT = parseInt(process.env.ATTENDANCE_REQUIRED_PERCENT || '80');
+    for (const semester of semesters) {
+      let totalGradePoints = 0;
+      let creditsAttempted = 0;
+      let creditsEarned = 0;
+      let passedCourses = 0;
+      for (const courseResult of semester.courses) {
+        const credits = courseResult.courseOffering?.subject?.credits || 0;
+        creditsAttempted += credits;
+        if ((courseResult.gradePoint || 0) > 0) {
+          creditsEarned += credits;
+          passedCourses++;
+        }
+        totalGradePoints += (courseResult.gradePoint || 0) * credits;
+      }
+      semester.gpa = creditsAttempted > 0 ? Math.round((totalGradePoints / creditsAttempted) * 100) / 100 : 0;
+      semester.creditsAttempted = creditsAttempted;
+      semester.creditsEarned = creditsEarned;
+      semester.status = (studentInfo.currentSemester === semester.semesterId) ? 'current' : 'completed';
+
+      for (let i = 0; i < semester.courses.length; i++) {
+        const r = semester.courses[i];
+        // Info log: start course analytics
+        console.info(`[ResultUseCase] Processing course result for studentId=${studentId}, courseOfferingId=${r.courseOfferingId}, subjectId=${r.courseOffering?.subject?.id}`);
+
+        // Attendance calculation: fetch all attendance records for this student and course offering
+        let attendanceRate = 0;
+        let examEligible = false;
+        try {
+          const attendanceRepo = new AttendanceRepository();
+          const attendanceRecords = await attendanceRepo.findAll({ studentId, courseOfferingId: r.courseOfferingId });
+          const totalSessions = attendanceRecords.length;
+          const presentCount = attendanceRecords.filter(a => a.status === 'present' || a.status === 'excused').length;
+          attendanceRate = totalSessions > 0 ? Math.round((presentCount / totalSessions) * 100) : 0;
+          examEligible = attendanceRate >= ATTENDANCE_REQUIRED_PERCENT;
+          console.info(`[ResultUseCase] Attendance for courseOfferingId=${r.courseOfferingId}: present=${presentCount}, total=${totalSessions}, rate=${attendanceRate}`);
+        } catch (e) {
+          console.warn(`[ResultUseCase] Error fetching attendance for courseOfferingId=${r.courseOfferingId}:`, e);
+          attendanceRate = 0;
+          examEligible = false;
+        }
+
+        // Retake and nextOffering: find future course offerings for the same subject
+        let retakeAvailable = false;
+        let nextOffering = null;
+
+        console.info(`[ResultUseCase] Processing course result for studentId=${studentId}, courseOfferingId=${r.courseOfferingId}, subjectId=${r.courseOffering?.subject?.id}`);
+        console.info(`[ResultUseCase] Course gradePoint=${r.gradePoint}`);
+        if ((r.gradePoint < 2 )) {
+          console.info(`[ResultUseCase] DEBUG: retake logic pre-check for resultId=${r.id}`);
+          console.info(`[ResultUseCase] DEBUG: r.courseOffering:`, JSON.stringify(r.courseOffering, null, 2));
+          console.info(`[ResultUseCase] DEBUG: r.courseOffering.subject:`, JSON.stringify(r.courseOffering?.subject, null, 2));
+          if (r.courseOffering.subjectId) {
+            console.info(`[ResultUseCase] Retake check: subjectId=${r.courseOffering.subject.id}, currentYear=${r.courseOffering.year}`);
+            try {
+              const courseOfferingRepo = new CourseOfferingRepository();
+              const futureOfferings = await courseOfferingRepo.findAll({
+                subjectId: r.courseOffering.subjectId,
+                year: { gt: r.courseOffering.year }
+              });
+              console.info('futureOfferings:', futureOfferings);
+              console.info(`[ResultUseCase] Future offerings found:`, futureOfferings.map(o => ({ id: o.id, year: o.year })));
+              if (!futureOfferings || futureOfferings.length === 0) {
+                console.info(`[ResultUseCase] DEBUG: No future offerings for subjectId=${r.courseOffering.subjectId}, year>${r.courseOffering.year}. Raw futureOfferings:`, JSON.stringify(futureOfferings, null, 2));
+              }
+              if (futureOfferings && futureOfferings.length > 0) {
+                retakeAvailable = true;
+                nextOffering = futureOfferings[0];
+                console.info(`[ResultUseCase] Retake available for subjectId=${r.courseOffering.subject.id}, nextOffering=`, nextOffering);
+              } else {
+                console.info(`[ResultUseCase] No future offering found for subjectId=${r.courseOffering.subject.id}`);
+              }
+            } catch (e) {
+              console.warn(`[ResultUseCase] Error finding future offerings for subjectId=${r.courseOffering.subject.id}:`, e);
+            }
+          } else {
+            console.info(`[ResultUseCase] DEBUG: Retake logic condition not met for resultId=${r.id} (missing subject or subject.id)`);
+          }
+        }
+
+        // Attach course offering details
+        const courseOfferingDetails = r.courseOffering ? {
+          id: r.courseOffering.id || null,
+          year: r.courseOffering.year || null,
+          semesterId: r.courseOffering.semesterId || null,
+          semesterName: r.courseOffering.semester?.name || null,
+          lecturerId: r.courseOffering.lecturerId || null,
+          lecturer: r.courseOffering?.lecturer?.user ? `${r.courseOffering.lecturer.user.firstName} ${r.courseOffering.lecturer.user.lastName}` : null,
+          // Add more fields as needed
+        } : null;
+        semester.courses[i] = {
+          id: r.id,
+          code: r.courseOffering?.subject?.code || null,
+          name: r.courseOffering?.subject?.name || null,
+          credits: r.courseOffering?.subject?.credits || null,
+          marks: r.marks || null,
+          grade: r.grade || null,
+          gradePoint: r.gradePoint || null,
+          status: (r.gradePoint || 0) > 0 ? 'passed' : 'failed',
+          lecturer: r.courseOffering?.lecturer?.user ? `${r.courseOffering.lecturer.user.firstName} ${r.courseOffering.lecturer.user.lastName}` : null,
+          attempts: 1, // TODO: count attempts from results
+          attendanceRate,
+          examEligible,
+          retakeAvailable,
+          nextOffering,
+          courseOffering: courseOfferingDetails
+        };
+      }
+    }
+
+    // Cumulative stats
+    let totalGradePoints = 0;
+    let totalCreditsAttempted = 0;
+    let totalCreditsCompleted = 0;
+    let totalCreditsRequired = program?.minCreditsToGraduate || 120;
+    let cgpa = 0;
+    let previousCgpa = null;
+    console.info('batch info:', batch);
+    // Calculate batch students and rank
+    let batchSize = null;
+    let semesterRank = null;
+    let percentile = null;
+    if (batch && batch.id) {
+      const StudentRepository = require('../repositories/StudentRepository');
+      const studentRepo = new StudentRepository();
+      // Get all students in the batch
+      const batchStudents = await studentRepo.findAll({ batchId: batch.id });
+      batchSize = batchStudents.length;
+      // Calculate CGPA for each student in the batch
+      const studentCgpas = [];
+      for (const s of batchStudents) {
+        // Use calculateStudentGPA for overall GPA
+        const gpaResult = await this.calculateStudentGPA(s.id);
+        studentCgpas.push({ studentId: s.id, cgpa: gpaResult.gpa });
+      }
+      // Sort descending by CGPA
+      studentCgpas.sort((a, b) => (b.cgpa || 0) - (a.cgpa || 0));
+      // Find rank of current student
+      semesterRank = studentCgpas.findIndex(x => x.studentId === studentId) + 1; // 1-based rank
+      percentile = batchSize > 0 ? Math.round((1 - (semesterRank - 1) / batchSize) * 100) : null;
+    }
+    let classification = null;
+    let projectedClassification = null;
+    let allSemGpas = semesters.map(s => s.gpa);
+    for (const semester of semesters) {
+      totalGradePoints += semester.gpa * semester.creditsAttempted;
+      totalCreditsAttempted += semester.creditsAttempted;
+      totalCreditsCompleted += semester.creditsEarned;
+    }
+    cgpa = totalCreditsAttempted > 0 ? Math.round((totalGradePoints / totalCreditsAttempted) * 100) / 100 : 0;
+    previousCgpa = allSemGpas.length > 1 ? allSemGpas[allSemGpas.length - 2] : cgpa;
+    // Classification logic (example)
+    if (cgpa >= 3.7) classification = 'First Class';
+    else if (cgpa >= 3.3) classification = 'Upper Second Class';
+    else if (cgpa >= 3.0) classification = 'Second Class';
+    else if (cgpa >= 2.0) classification = 'General';
+    else classification = 'Fail';
+    projectedClassification = classification; // Could use more logic
+
+    // Analytics
+    // Strongest subjects: top 2 by gradePoint
+    let allCourses = semesters.flatMap(s => s.courses);
+    let sortedCourses = [...allCourses].sort((a, b) => (b.gradePoint || 0) - (a.gradePoint || 0));
+    let strongestSubjects = sortedCourses.slice(0, 2).map(c => c.name).filter(Boolean);
+    // Improvement areas: bottom 2 by gradePoint
+    let improvementAreas = sortedCourses.slice(-2).map(c => c.name).filter(Boolean);
+    // Average grade improvement: difference between last and previous semester GPA
+    let averageGradeImprovement = previousCgpa !== null ? `+${(cgpa - previousCgpa).toFixed(2)}` : null;
+    // Consistency score: std deviation of semester GPAs
+    let consistencyScore = allSemGpas.length > 1 ? Math.round(100 - (stdDev(allSemGpas) * 20)) : null;
+    // Target GPA: next classification threshold
+    let targetGPA = classification === 'First Class' ? 4.0 : classification === 'Upper Second Class' ? 3.7 : classification === 'Second Class' ? 3.3 : 3.0;
+
+    function stdDev(arr) {
+      const mean = arr.reduce((a, b) => a + b, 0) / arr.length;
+      return Math.sqrt(arr.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b, 0) / arr.length);
+    }
+
+    return {
+      studentInfo,
+      semesters,
+      cumulative: {
+        cgpa,
+        previousCgpa,
+        totalCreditsCompleted,
+        totalCreditsRequired,
+        classification,
+        projectedClassification,
+        semesterRank,
+        batchSize,
+        percentile
+      },
+      analytics: {
+        strongestSubjects,
+        improvementAreas,
+        averageGradeImprovement,
+        consistencyScore,
+        targetGPA
+      }
+    };
+  }
   constructor() {
     this.resultRepository = new ResultRepository();
   }

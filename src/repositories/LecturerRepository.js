@@ -1,7 +1,10 @@
-
 const prisma = require('../infrastructure/prisma');
 
 class LecturerRepository {
+
+  async findByUserId(userId) {
+    return await prisma.lecturer.findFirst({ where: { userId } });
+  }
 
   async findOne(filter = {}) {
     return await prisma.lecturer.findFirst({ where: filter });

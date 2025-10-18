@@ -5,6 +5,10 @@ const { requireAdminOrSuperAdmin } = require('../middlewares/authorize');
 const router = express.Router();
 
 const auditLogger = require('../middlewares/auditLogger');
+
+// Admin tool: fix semesters for a batch (delete and recreate semesters)
+router.patch('/:id/fix-semesters', authenticate, requireAdminOrSuperAdmin, auditLogger('fixSemesters', 'batch', { module: 'batch', description: 'Semesters fixed for batch', entityType: 'Batch' }), controller.fixSemesters);
+
 router.post('/', authenticate, requireAdminOrSuperAdmin, auditLogger('create', 'batch', { module: 'batch', description: 'Batch created', entityType: 'Batch' }), controller.create);
 router.get('/', authenticate, controller.getAll);
 router.get('/:id', authenticate, controller.getById);

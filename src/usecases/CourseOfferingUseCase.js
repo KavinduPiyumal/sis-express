@@ -141,8 +141,46 @@ class CourseOfferingUseCase {
     };
 
     const offerings = await this.courseOfferingRepository.findByFilters({ lecturerId: lecturer.id }, options);
-  // Attach sessions to each offering
+    
   return Promise.all(offerings.map(offering => CourseOfferingDTO.buildWithSessions(offering)));
+  }
+
+  // Lightweight listing for lecturer: only counts (active enrollments and sessions)
+  async getCourseOfferingsByLecturerLight(userId) {
+    const LecturerRepository = require('../repositories/LecturerRepository');
+    const lecturerRepo = new LecturerRepository();
+    const lecturer = await lecturerRepo.findOne({ userId });
+    if (!lecturer) throw new Error('Lecturer record not found for this user');
+
+    const offerings = await this.courseOfferingRepository.findByFilters({ lecturerId: lecturer.id });
+    return Promise.all(offerings.map(offering => CourseOfferingDTO.buildWithCounts(offering)));
+  }
+
+  // Detailed endpoint: for a given courseOfferingId, return active enrollments (with student.user) and sessions
+  async getCourseOfferingDetails(courseOfferingId) {
+    const EnrollmentRepository = require('../repositories/EnrollmentRepository');
+  const ClassSessionRepository = require('../repositories/ClassSessionRepository');
+  const { getSessionsWithAttendanceSummary } = require('../services/CourseOfferingSessionService');
+  const enrollmentRepo = new EnrollmentRepository();
+  const classSessionRepo = new ClassSessionRepository();
+
+    // Active enrollments with student.user
+    const enrollments = await enrollmentRepo.findAll({ courseOfferingId }, {
+      include: {
+        student: {
+          include: {
+            user: {
+              select: { id: true, firstName: true, lastName: true, email: true }
+            }
+          }
+        }
+      }
+    });
+
+    // Use service to fetch sessions already enriched with attendance summary
+    const sessions = await getSessionsWithAttendanceSummary(courseOfferingId);
+
+    return { enrollments, sessions };
   }
 
   async createCourseOffering(data) {

@@ -2,7 +2,7 @@ const { getSessionsWithAttendanceSummary } = require('../services/CourseOffering
 const { getSessionsWithStudentAttendance } = require('../services/CourseOfferingStudentSessionService');
 
 class CourseOfferingDTO {
-  constructor(offering, sessions) {
+  constructor(offering, sessions, enrollment) {
     this.id = offering.id;
     this.subjectId = offering.subjectId;
     this.semesterId = offering.semesterId;
@@ -89,49 +89,114 @@ class CourseOfferingDTO {
         };
       }
     }
+
+    // Lightweight counts (if supplied by use case)
+    if (typeof offering.enrollmentsCount !== 'undefined') {
+      this.enrollmentsCount = offering.enrollmentsCount;
+    }
+    if (typeof offering.pendingEnrollmentsCount !== 'undefined') {
+      this.pendingEnrollmentsCount = offering.pendingEnrollmentsCount;
+    }
+    if (typeof offering.sessionsMarkedCount !== 'undefined') {
+      this.sessionsMarkedCount = offering.sessionsMarkedCount;
+    }
+    if (typeof offering.averageAttendanceRate !== 'undefined') {
+      this.averageAttendanceRate = offering.averageAttendanceRate;
+    }
+    if (typeof offering.sessionsCount !== 'undefined') {
+      this.sessionsCount = offering.sessionsCount;
+    }
+    if (typeof offering.resultsCount !== 'undefined') {
+      this.resultsCount = offering.resultsCount;
+    }
     
-    // Include enrollment records if available
-    if (offering.enrollments) {
-      this.enrollments = offering.enrollments.map(enrollment => ({
+
+    // If student's own enrollment is provided, attach it (id, status only)
+    if (enrollment) {
+      this.enrollment = {
         id: enrollment.id,
-        status: enrollment.status,
-        enrolledDate: enrollment.enrolledDate,
-        student: enrollment.student ? {
-          id: enrollment.student.id,
-          studentNo: enrollment.student.studentNo,
-          status: enrollment.student.status,
-          user: enrollment.student.user ? {
-            id: enrollment.student.user.id,
-            firstName: enrollment.student.user.firstName,
-            lastName: enrollment.student.user.lastName,
-            email: enrollment.student.user.email
-          } : null
-        } : null
-      }));
+        status: enrollment.status
+      };
     }
 
-    // Attach sessions if provided
+    // Attach sessions or counts
     if (sessions) {
       this.sessions = sessions;
-      if (sessions) {
-        this.sessions = sessions;
-      }
-
+    }
   }
-}
 }
 
 // Helper to build DTO with sessions (all students summary)
 CourseOfferingDTO.buildWithSessions = async function(offering) {
+  const { getSessionsWithAttendanceSummary } = require('../services/CourseOfferingSessionService');
   const sessions = await getSessionsWithAttendanceSummary(offering.id);
+  // compute average attendance rate across sessions that have attendance (or all sessions)
+  try {
+    // only include sessions where attendance has been marked
+    const ratedSessions = sessions.filter(s => s.attendanceMarked === true && typeof s.attendanceRate !== 'undefined');
+    if (ratedSessions.length > 0) {
+      const avg = ratedSessions.reduce((sum, s) => sum + (Number(s.attendanceRate) || 0), 0) / ratedSessions.length;
+      offering.averageAttendanceRate = Number(avg.toFixed(2));
+    } else {
+      offering.averageAttendanceRate = 0;
+    }
+  } catch (e) {
+    offering.averageAttendanceRate = 0;
+  }
+
   return new CourseOfferingDTO(offering, sessions);
+};
+
+// Helper to build DTO with counts only (lightweight for lecturer or student listing)
+// Optionally pass enrollment (student's own)
+CourseOfferingDTO.buildWithCounts = async function(offering, enrollment) {
+  const EnrollmentRepository = require('../repositories/EnrollmentRepository');
+  const ClassSessionRepository = require('../repositories/ClassSessionRepository');
+  const enrollmentRepo = new EnrollmentRepository();
+  const classSessionRepo = new ClassSessionRepository();
+
+  const activeEnrollmentsCount = await enrollmentRepo.count({ courseOfferingId: offering.id, status: 'active' });
+  const pendingEnrollmentsCount = await enrollmentRepo.count({ courseOfferingId: offering.id, status: 'pending' });
+  const sessionsCount = await classSessionRepo.count ? await classSessionRepo.count({ courseOfferingId: offering.id }) : (await classSessionRepo.findAll({ courseOfferingId: offering.id })).length;
+  const ResultRepository = require('../repositories/ResultRepository');
+  const resultRepo = new ResultRepository();
+  const resultsCount = await resultRepo.count({ courseOfferingId: offering.id });
+
+  // compute how many sessions have attendance marked
+  let sessionsMarkedCount = 0;
+  try {
+    const sessionsWithSummary = await getSessionsWithAttendanceSummary(offering.id);
+    sessionsMarkedCount = sessionsWithSummary.filter(s => s.attendanceMarked).length;
+    // also compute and attach average attendance rate using only marked sessions
+    const rated = sessionsWithSummary.filter(s => s.attendanceMarked === true && typeof s.attendanceRate !== 'undefined');
+    if (rated.length > 0) {
+      const avg = rated.reduce((sum, s) => sum + (Number(s.attendanceRate) || 0), 0) / rated.length;
+      offering.averageAttendanceRate = Number(avg.toFixed(2));
+    } else {
+      offering.averageAttendanceRate = 0;
+    }
+  } catch (e) {
+    // If service fails, keep sessionsMarkedCount as 0
+    sessionsMarkedCount = 0;
+  }
+
+  // attach counts to offering object for DTO
+  offering.enrollmentsCount = activeEnrollmentsCount;
+  offering.pendingEnrollmentsCount = pendingEnrollmentsCount;
+  offering.sessionsCount = sessionsCount;
+  offering.resultsCount = resultsCount;
+  offering.sessionsMarkedCount = sessionsMarkedCount;
+
+  return new CourseOfferingDTO(offering, null, enrollment);
 };
 
 // Helper to build DTO with sessions for a specific student (student attendance status)
 CourseOfferingDTO.buildWithStudentSessions = async function(offering, studentId) {
+  const { getSessionsWithStudentAttendance } = require('../services/CourseOfferingStudentSessionService');
   const sessions = await getSessionsWithStudentAttendance(offering.id, studentId);
   return new CourseOfferingDTO(offering, sessions);
 };
+
 
 module.exports = CourseOfferingDTO;
 

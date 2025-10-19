@@ -71,7 +71,7 @@ class PaymentCreateDTO {
 class PaymentListQueryDTO {
   constructor(query) {
     this.page = Math.max(1, Number(query.page) || 1);
-    this.perPage = Math.min(100, Math.max(1, Number(query.perPage) || 10));
+    this.perPage = Math.min(100, Math.max(1, Number(query.perPage) || 5));
     this.q = query.q;
     this.status = query.status; // verified|pending|rejected
     this.startDate = query.startDate;

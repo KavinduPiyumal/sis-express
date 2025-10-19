@@ -69,14 +69,35 @@ class PaymentController {
 
       // Build prisma query
   const where = { studentId: userId };
+      // Parse and validate status query parameter (accept CSV or repeated params)
+      const statusRaw = req.query.status;
+      let statuses = [];
+      if (statusRaw) {
+        if (Array.isArray(statusRaw)) {
+          statuses = statusRaw.flatMap(s => String(s).split(',').map(x => x.trim()).filter(Boolean));
+        } else {
+          statuses = String(statusRaw).split(',').map(x => x.trim()).filter(Boolean);
+        }
+      }
+      const ALLOWED_STATUSES = ['pending', 'approved', 'rejected'];
+      if (statuses.length) {
+        const invalid = statuses.filter(s => !ALLOWED_STATUSES.includes(s));
+        if (invalid.length) {
+          return res.status(400).json({ success: false, message: `Invalid status value(s): ${invalid.join(',')}. Allowed: ${ALLOWED_STATUSES.join(',')}` });
+        }
+        where.status = { in: statuses };
+      }
+
       if (qdto.q) {
+        // Use actual Payment model fields for text search
         where.OR = [
-          { reference: { contains: qdto.q } },
-          { transactionId: { contains: qdto.q } }
+          { receiptNumber: { contains: qdto.q } },
+          { description: { contains: qdto.q } },
+          { fileName: { contains: qdto.q } }
         ];
       }
       if (qdto.status) where.status = qdto.status;
-      if (qdto.semester) where.semester = qdto.semester;
+      // Note: Payment model does not have a 'semester' field; ignore semester filter here
       if (qdto.startDate || qdto.endDate) {
         where.paymentDate = {};
         if (qdto.startDate) where.paymentDate.gte = new Date(qdto.startDate);

@@ -3,14 +3,42 @@ const prisma = require('../infrastructure/prisma');
 
 class MedicalReportRepository {
   async findById(id) {
-    return await prisma.medicalReport.findUnique({ where: { id } });
+    return await prisma.medicalReport.findUnique({
+      where: { id },
+      include: {
+        attachments: true,
+        attendances: true
+      }
+    });
   }
 
   async findAll(filter = {}) {
-    return await prisma.medicalReport.findMany({ where: filter });
+    // Accepts filter as a plain object, not { where: {...} }
+    return await prisma.medicalReport.findMany({
+      where: filter,
+      include: {
+        attachments: true,
+        attendances: true,
+        classSession: true,
+      }
+    });
   }
 
   async create(data) {
+    // Enforce only one report per student per class session
+    if (data.studentId && data.classSessionId) {
+      const existing = await prisma.medicalReport.findFirst({
+        where: {
+          studentId: data.studentId,
+          classSessionId: data.classSessionId
+        }
+      });
+      if (existing) {
+        const error = new Error('Medical report already submitted for this session');
+        error.code = 'ALREADY_EXISTS';
+        throw error;
+      }
+    }
     return await prisma.medicalReport.create({ data });
   }
 

@@ -93,15 +93,23 @@ class AttendanceUseCase {
     let presentCount = 0, excusedCount = 0, absentCount = 0, markedSessionsCount = 0;
     const sessionData = await Promise.all(sessions.map(async (session) => {
       const attendance = await attendanceRepo.findBySessionAndStudent(session.id, studentId);
+      let attendanceDTO = null;
       if (attendance) {
         markedSessionsCount++;
         if (attendance.status === 'present') presentCount++;
         else if (attendance.status === 'excused') excusedCount++;
         else if (attendance.status === 'absent') absentCount++;
+        attendanceDTO = new AttendanceDTO(attendance);
+        // Attach medicalReportInfo if absent/excused and has medicalReport
+        if ((attendance.status === 'absent' || attendance.status === 'excused') && attendance.medicalReport) {
+          attendanceDTO.medicalReportInfo = attendance.medicalReport;
+        } else {
+          attendanceDTO.medicalReportInfo = null;
+        }
       }
       return {
         session,
-        attendance: attendance ? new AttendanceDTO(attendance) : null
+        attendance: attendanceDTO
       };
     }));
     return {

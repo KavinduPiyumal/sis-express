@@ -1,4 +1,4 @@
-// Prisma schema for Student Information System (SIS)
+
 
 
 generator client {
@@ -145,7 +145,6 @@ model User {
   logs        Log[]
   notifications Notification[]
   payments    Payment[] @relation("PaymentStudent")
-  medicalReports MedicalReport[] @relation("MedicalReportStudent")
   semesterGPAs SemesterGPA[]
   cgpas       CGPA[] @relation("UserCGPA")
   transcripts Transcript[]
@@ -153,7 +152,6 @@ model User {
   reviewedMedicalReports MedicalReport[] @relation("MedicalReportReviewedBy")
   markedAttendances Attendance[] @relation("AttendanceMarkedBy")
   enteredResults Result[] @relation("ResultEnteredBy")
-  approvedMedicals Medical[] @relation("MedicalApprovedBy")
   notices     Notice[] @relation("UserNotices")
   links       Link[]   @relation("UserLinks")
   linkViews   LinkView[] @relation("UserLinkViews")
@@ -174,11 +172,11 @@ model Student {
   user        User     @relation(fields: [userId], references: [id])
   batch       Batch    @relation(fields: [batchId], references: [id])
   enrollments Enrollment[]
-  medicals    Medical[] @relation("StudentMedical")
   cgpas       CGPA[] @relation("StudentCGPA")
   semesterGPAs SemesterGPA[] @relation("StudentSemesterGPA")
   transcripts Transcript[] @relation("StudentTranscript")
   attendances Attendance[] @relation("StudentAttendance")
+  medicalReports MedicalReport[] @relation("StudentMedicalReports")
   results     Result[] @relation("StudentResult")
 }
 
@@ -288,6 +286,7 @@ model ClassSession {
   durationMinutes Int?
   courseOffering CourseOffering @relation(fields: [courseOfferingId], references: [id])
   attendances Attendance[]
+  medicalReports MedicalReport[]
 }
 
 model Attendance {
@@ -299,14 +298,14 @@ model Attendance {
   remarks   String?
   markedBy  String
   markedAt  DateTime @default(now())
-  medicalId String?
+  medicalReportId String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   classSession ClassSession @relation(fields: [classSessionId], references: [id])
   courseOffering CourseOffering @relation("CourseOfferingAttendance", fields: [courseOfferingId], references: [id])
   student   Student  @relation("StudentAttendance", fields: [studentId], references: [id])
   markedByUser User @relation("AttendanceMarkedBy", fields: [markedBy], references: [id])
-  medical   Medical? @relation("MedicalAttendance", fields: [medicalId], references: [id])
+  medicalReport MedicalReport? @relation("MedicalReportAttendance", fields: [medicalReportId], references: [id])
 
   @@unique([classSessionId, studentId])
 }
@@ -321,38 +320,41 @@ model Enrollment {
   courseOffering CourseOffering @relation(fields: [courseOfferingId], references: [id])
 }
 
-model Medical {
-  id        String   @id @default(uuid())
-  studentId String
-  submittedDate DateTime
-  fromDate  DateTime
-  toDate    DateTime
-  reason    String
-  attachments String[]
-  status    MedicalStatus @default(pending)
-  approvedBy String?
-  decisionDate DateTime?
-  student   Student  @relation("StudentMedical", fields: [studentId], references: [id])
-  attendances Attendance[] @relation("MedicalAttendance")
-  approvedByUser User? @relation("MedicalApprovedBy", fields: [approvedBy], references: [id])
-}
 
 model MedicalReport {
   id        String   @id @default(uuid())
   studentId String
-  title     String
+  reason     String
   description String?
-  startDate DateTime
-  endDate   DateTime?
-  fileName  String?
-  filePath  String?
+  submitDate DateTime @default(now())
   status    MedicalStatus @default(pending)
   reviewedBy String?
   reviewNotes String?
   reviewedAt DateTime?
-  student   User     @relation("MedicalReportStudent", fields: [studentId], references: [id])
+  classSessionId String
+  classSession  ClassSession @relation(fields: [classSessionId], references: [id])
+  student   Student  @relation("StudentMedicalReports", fields: [studentId], references: [id])
   reviewedByUser User? @relation("MedicalReportReviewedBy", fields: [reviewedBy], references: [id])
+  attendances Attendance[] @relation("MedicalReportAttendance")
+  attachments MedicalReportAttachment[]
 }
+
+model MedicalReportAttachment {
+  id          String   @id @default(uuid())
+  medicalReportId String
+  fileName    String
+  originalName String
+  fileSize    Int
+  mimeType    String
+  filePath    String
+  url String?
+  uploadedAt String?
+  createdAt   DateTime @default(now())
+  medicalReport MedicalReport @relation(fields: [medicalReportId], references: [id], onDelete: Cascade)
+
+  @@index([medicalReportId])
+}
+
 
 model CGPA {
   id        String   @id @default(uuid())

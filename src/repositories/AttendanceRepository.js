@@ -24,6 +24,7 @@ class AttendanceRepository {
   async findBySessionAndStudent(classSessionId, studentId) {
     return await prisma.attendance.findFirst({
       where: { classSessionId, studentId },
+      include: { medicalReport: true }
     });
   }
 

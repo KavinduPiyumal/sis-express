@@ -2,11 +2,21 @@ const LogRepository = require('../repositories/LogRepository');
 const logRepository = new LogRepository();
 
 class LogController {
+  /**
+   * Get logs with lazy loading (cursor-based pagination).
+   * Query params:
+   *   - limit: number of logs to fetch (default 20)
+   *   - cursor: last log id from previous page (for next page)
+   *   - userId, action, entity, startDate, endDate: filters
+   * Response:
+   *   - data: array of logs
+   *   - hasMore: boolean
+   *   - nextCursor: id to use as cursor for next page
+   */
   async getAll(req, res, next) {
     try {
-      // For lazy loading, use cursor-based pagination if cursor param is provided, else fallback to page/limit
       const { limit = 20, cursor, userId, action, entity, startDate, endDate } = req.query;
-      const take = parseInt(limit);
+      const take = Math.max(1, parseInt(limit));
 
       // Build where clause for Prisma
       const where = {};
@@ -20,13 +30,8 @@ class LogController {
         };
       }
 
-      // If cursor is provided, use cursor-based pagination
-      let logs;
-      if (cursor) {
-        logs = await logRepository.findAllWithCursor(where, cursor, take + 1); // fetch one extra to check hasMore
-      } else {
-        logs = await logRepository.findAllWithPagination(where, 0, take + 1); // fallback to first page
-      }
+      // Always use cursor-based pagination for lazy loading
+      let logs = await logRepository.findAllWithCursor(where, cursor, take + 1); // fetch one extra to check hasMore
 
       let hasMore = false;
       if (logs.length > take) {

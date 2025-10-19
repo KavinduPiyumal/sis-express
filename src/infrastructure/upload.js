@@ -48,7 +48,7 @@ function getUploadMiddleware(options = {}) {
           // For profile images, only allow image files
           allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
           errorMessage = 'Only .jpg, .jpeg, .png files are allowed for profile images!';
-        } else if (finalSubDir === 'assets') {
+  } else if (finalSubDir === 'assets' || finalSubDir === 'payments') {
           // For notice attachments and general assets, allow various document types
           allowedTypes = [
             'application/pdf',
@@ -136,7 +136,7 @@ function getUploadMiddleware(options = {}) {
           // For profile images, only allow image files
           allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
           errorMessage = 'Only .jpg, .jpeg, .png files are allowed for profile images!';
-        } else if (finalSubDir === 'assets') {
+  } else if (finalSubDir === 'assets' || finalSubDir === 'payments') {
           // For notice attachments and general assets, allow various document types
           allowedTypes = [
             'application/pdf',

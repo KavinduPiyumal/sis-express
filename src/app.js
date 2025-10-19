@@ -41,6 +41,7 @@ const linkRoutes = require('./routes/linkRoutes');
 const noticeRoutes = require('./routes/noticeRoutes');
 const studentNoticeRoutes = require('./routes/studentNoticeRoutes');
 const fileRoutes = require('./routes/fileRoutes');
+const studentPaymentRoutes = require('./routes/studentPaymentRoutes');
 
 
 const app = express();
@@ -113,6 +114,7 @@ app.use('/api/links', linkRoutes);
 app.use('/api/notices', noticeRoutes);
 app.use('/api/student/notices', studentNoticeRoutes);
 app.use('/api/files', fileRoutes);
+app.use('/api/students/me', studentPaymentRoutes);
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({

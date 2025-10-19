@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const config = require('../config');
 const { UserRepository } = require('../repositories');
+const prisma = require('../infrastructure/prisma');
 const logger = require('../config/logger');
 
 const userRepository = new UserRepository();
@@ -28,6 +29,13 @@ const authenticate = async (req, res, next) => {
         success: false,
         message: 'Invalid token - user not found'
       });
+    }
+    // Attach related student id (if any) so downstream controllers can use req.user.studentId
+    try {
+      const student = await prisma.student.findUnique({ where: { userId: user.id } });
+      if (student) user.studentId = student.id;
+    } catch (err) {
+      // ignore lookup errors; user will still be attached
     }
     if (!user.isActive) {
       return res.status(401).json({

@@ -67,16 +67,31 @@ module.exports = {
       // Adjust page if it's out of range
       const safePage = page > totalPages ? totalPages : page;
 
+      // Fetch batches with their current semester (status: inprogress)
       const batches = await prisma.batch.findMany({
         where,
         skip: (safePage - 1) * perPage,
         take: perPage,
-        orderBy: { name: 'asc' }
+        orderBy: { name: 'asc' },
+        include: {
+          semesters: {
+            where: { status: 'inprogress' },
+            orderBy: { startDate: 'asc' }
+          }
+        }
+      });
+
+      // Attach currentSemester (first inprogress semester if exists) to each batch
+      const batchesWithCurrent = batches.map(batch => {
+        const currentSemester = batch.semesters && batch.semesters.length > 0 ? batch.semesters[0] : null;
+        // Remove semesters array to avoid confusion, attach currentSemester only
+        const { semesters, ...rest } = batch;
+        return { ...rest, currentSemester };
       });
 
       res.json({
         success: true,
-        data: batches,
+        data: batchesWithCurrent,
         meta: {
           total,
           totalPages,

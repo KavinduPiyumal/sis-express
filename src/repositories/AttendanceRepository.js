@@ -1,6 +1,76 @@
 const prisma = require('../infrastructure/prisma');
 
 class AttendanceRepository {
+  // Get subject-wise attendance stats for a lecturer for active semesters (grouped by course offering/subject)
+  async getSubjectWiseStatsForLecturer(lecturerId) {
+    // Find all course offerings taught by this lecturer
+    const offerings = await prisma.courseOffering.findMany({
+      where: {
+        lecturerId,
+        semester: { status: 'inprogress' }
+      },
+      select: {
+        id: true,
+        year: true,
+        subject: {
+          select: { id: true, name: true, code: true }
+        },
+        semester: {
+          select: { id: true, name: true, status: true }
+        }
+      }
+    });
+    const subjectWise = [];
+    let overall = { total: 0, present: 0, absent: 0, excused: 0 };
+    for (const offering of offerings) {
+      // Get attendance stats for this offering
+      const attendances = await prisma.attendance.findMany({
+        where: { courseOfferingId: offering.id },
+        select: { status: true }
+      });
+      const stats = { total: attendances.length, present: 0, absent: 0, excused: 0 };
+      for (const a of attendances) {
+        if (a.status === 'present') stats.present++;
+        else if (a.status === 'absent') stats.absent++;
+        else if (a.status === 'excused') stats.excused++;
+      }
+      // Add to overall
+      overall.total += stats.total;
+      overall.present += stats.present;
+      overall.absent += stats.absent;
+      overall.excused += stats.excused;
+      subjectWise.push({
+        subject: offering.subject,
+        year: offering.year,
+        courseOfferingId: offering.id,
+        semester: offering.semester,
+        stats
+      });
+    }
+    return { subjectWise, overall };
+  }
+  async getStatsForLecturer(lecturerId) {
+    // Aggregate attendance stats for all course offerings taught by this lecturer
+    // Returns total, present, absent, excused counts
+    const attendances = await prisma.attendance.findMany({
+      where: {
+        courseOffering: {
+          lecturerId: lecturerId
+        }
+      },
+      select: {
+        status: true
+      }
+    });
+    const stats = { total: attendances.length, present: 0, absent: 0, excused: 0 };
+    for (const a of attendances) {
+      if (a.status === 'present') stats.present++;
+      else if (a.status === 'absent') stats.absent++;
+      else if (a.status === 'excused') stats.excused++;
+    }
+    return stats;
+  }
+
   // Paginated, filtered query for attendance
   async findAndCountAll({ where = {}, limit = 10, offset = 0, orderBy = [{ markedAt: 'desc' }] }) {
     const [rows, count] = await Promise.all([

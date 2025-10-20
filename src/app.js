@@ -40,6 +40,7 @@ const logRoutes = require('./routes/logRoutes');
 const linkRoutes = require('./routes/linkRoutes');
 const noticeRoutes = require('./routes/noticeRoutes');
 const studentNoticeRoutes = require('./routes/studentNoticeRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 const fileRoutes = require('./routes/fileRoutes');
 
 
@@ -113,6 +114,8 @@ app.use('/api/links', linkRoutes);
 app.use('/api/notices', noticeRoutes);
 app.use('/api/student/notices', studentNoticeRoutes);
 app.use('/api/files', fileRoutes);
+// Register dashboard routes
+app.use('/api/dashboard', dashboardRoutes);
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({

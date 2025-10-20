@@ -2,6 +2,21 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 class LinkRepository {
+  async findHighlightsForLecturer(lecturerId, limit = 5) {
+    // Find highlighted links for admins/lecturers (priority: highlight, targetAudience: admins or all)
+    return await prisma.link.findMany({
+      where: {
+        priority: 'highlight',
+        isActive: true,
+        OR: [
+          { targetAudience: 'admins' },
+          { targetAudience: 'all' }
+        ]
+      },
+      orderBy: { createdAt: 'desc' },
+      take: limit
+    });
+  }
   async create(data) {
     try {
       return await prisma.link.create({

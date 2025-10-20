@@ -1,6 +1,24 @@
 const prisma = require('../infrastructure/prisma');
 
 class StudentRepository {
+  async findByLecturer(lecturerId) {
+    // Find all students enrolled in course offerings taught by this lecturer
+    // This assumes Enrollment and CourseOffering relations are set up in Prisma
+    // Returns unique students
+    const enrollments = await prisma.enrollment.findMany({
+      where: {
+        courseOffering: {
+          lecturerId: lecturerId
+        }
+      },
+      select: {
+        studentId: true
+      }
+    });
+    const studentIds = [...new Set(enrollments.map(e => e.studentId))];
+    if (studentIds.length === 0) return [];
+    return await prisma.student.findMany({ where: { id: { in: studentIds } } });
+  }
   async findByStudentNo(studentNo) {
     return await prisma.student.findUnique({ where: { studentNo } });
   }

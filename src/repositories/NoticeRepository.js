@@ -2,6 +2,20 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 class NoticeRepository {
+  async findRecentForLecturer(lecturerId, limit = 5) {
+    // Find recent notices created by this lecturer (userId)
+    return await prisma.notice.findMany({
+      where: {
+        isActive: true,
+        OR: [
+          { targetAudience: 'admins' },
+          { targetAudience: 'all' }
+        ]
+      },
+      orderBy: { createdAt: 'desc' },
+      take: limit
+    });
+  }
   
   async create(noticeData, attachments = []) {
     const notice = await prisma.notice.create({

@@ -2,6 +2,20 @@
 const prisma = require('../infrastructure/prisma');
 
 class MedicalReportRepository {
+  async getMedicalReportsForAdminCourseOfferings(lecturerId, options = {}) {
+    // Find all medical reports for course offerings assigned to this lecturer
+    // Assumes courseOffering.lecturerId is available in medicalReport's relations
+    return await prisma.medicalReport.findMany({
+      where: {
+        classSession: {
+          courseOffering: {
+            lecturerId: lecturerId
+          }
+        }
+      },
+      ...options
+    });
+  }
   async findById(id) {
     return await prisma.medicalReport.findUnique({
       where: { id },

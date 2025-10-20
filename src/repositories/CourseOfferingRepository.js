@@ -1,6 +1,10 @@
 const prisma = require('../infrastructure/prisma');
 
 class CourseOfferingRepository {
+  async findByLecturer(lecturerId, options = {}) {
+    // Find all course offerings for a given lecturer
+    return await this.findByFilters({ lecturerId }, options);
+  }
   async create(data) {
     return await prisma.courseOffering.create({ data });
   }

@@ -1,5 +1,6 @@
 const { SemesterRepository } = require('../repositories');
 const { SemesterDTO } = require('../dto/SemesterDTO');
+const logger = require('../config/logger');
 class SemesterUseCase {
   constructor() {
     this.semesterRepository = new SemesterRepository();
@@ -39,6 +40,7 @@ class SemesterUseCase {
   async startNextSemesterForBatch(batchId) {
     // Find all semesters for the batch, ordered by startDate
     const semesters = await this.semesterRepository.findAll({ batchId });
+    logger.info(`Found semesters for batch ${batchId}: ${semesters.map(s => s.id).join(', ')}`);
     if (!semesters || semesters.length === 0) throw new Error('No semesters found for batch');
     // Find current inprogress semester
     const current = semesters.find(s => s.status === 'inprogress');

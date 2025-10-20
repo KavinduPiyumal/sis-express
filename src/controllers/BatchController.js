@@ -25,13 +25,20 @@ module.exports = {
             if (year === 2) name = `2nd Year Semester ${sem}`;
             else if (year === 3) name = `3rd Year Semester ${sem}`;
             else if (year > 3) name = `${year}th Year Semester ${sem}`;
+            // Calculate start and end date: each semester is 6 months, sequential
+            // Start from batch start year, Jan 1
+            const baseDate = new Date(batch.startYear, 0, 1); // Jan 1 of start year
+            const semesterIndex = (year - 1) * 2 + (sem - 1); // 0-based
+            const startDate = new Date(baseDate);
+            startDate.setMonth(startDate.getMonth() + semesterIndex * 6);
+            const endDate = new Date(startDate);
+            endDate.setMonth(endDate.getMonth() + 6);
             semestersToCreate.push({
               name,
               batchId: batch.id,
               status: (year === 1 && sem === 1) ? 'inprogress' : 'pending',
-              // startDate and endDate can be set later by admin
-              startDate: new Date(),
-              endDate: new Date()
+              startDate,
+              endDate
             });
           }
         }

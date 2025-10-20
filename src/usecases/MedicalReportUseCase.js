@@ -98,17 +98,17 @@ class MedicalReportUseCase {
     if (report.status !== 'pending') throw new Error('Already reviewed');
 
     // Update report
-    await this.medicalReportRepository.update({
+    await this.medicalReportRepository.update(reportId, {
       status,
       reviewedBy: reviewerId,
       reviewNotes,
       reviewedAt: new Date()
-    }, { id: reportId });
+    });
 
     // If approved, update attendance records linked to this report
     if (status === 'approved' && Array.isArray(report.attendances)) {
       for (const attendance of report.attendances) {
-        await this.attendanceRepository.update({ status: 'excused' }, { id: attendance.id });
+        await this.attendanceRepository.update(attendance.id, { status: 'excused' });
       }
     }
     const updated = await this.medicalReportRepository.findById(reportId);

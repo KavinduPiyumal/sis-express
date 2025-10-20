@@ -20,16 +20,17 @@ router.delete('/:id', authenticate, requireStudent, auditLogger('delete', 'medic
 // Admin/lecturer reviews medical report
 router.put('/:id/review', authenticate, requireAdminOrSuperAdmin, auditLogger('update', 'medical_report', { module: 'medical_report', description: 'Medical report reviewed', entityType: 'MedicalReport' }), controller.review);
 
-
 // Get medical report summary stats for the authenticated student
 router.get('/student/summary', authenticate, controller.getStudentSummaryStats);
 
 // Get all reports for a student
 router.get('/student/:studentId', authenticate, controller.getByStudent);
 
-
 // Admin: Get all medical reports for course offerings assigned to admin (with all relations)
 router.get('/admin/course-offerings', authenticate, requireAdminOrSuperAdmin, controller.getByAdminCourseOfferings);
+
+// Lecturer: Get medical report summary stats for their courses
+router.get('/lecturer/summary', authenticate, controller.getLecturerSummaryStats);
 
 // Delete a medical report attachment by id (fileId)
 router.delete('/attachments/:fileId', authenticate, requireStudent, controller.deleteAttachment);

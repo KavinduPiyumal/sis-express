@@ -7,7 +7,21 @@ class MedicalReportRepository {
       where: { id },
       include: {
         attachments: true,
-        attendances: true
+        attendances: true,
+        student: {
+          include: {
+            user: true
+          }
+        },
+        classSession: {
+          include: {
+            courseOffering: {
+              include: {
+                subject: true
+              }
+            }
+          }
+        }
       }
     });
   }
@@ -19,7 +33,20 @@ class MedicalReportRepository {
       include: {
         attachments: true,
         attendances: true,
-        classSession: true,
+        student: {
+          include: {
+            user: true
+          }
+        },
+        classSession: {
+          include: {
+            courseOffering: {
+              include: {
+                subject: true
+              }
+            }
+          }
+        }
       }
     });
   }

@@ -1,6 +1,46 @@
 const MedicalReportUseCase = require('../usecases/MedicalReportUseCase');
 
 class MedicalReportController {
+  // Get medical report summary stats for the authenticated lecturer
+  getLecturerSummaryStats = async (req, res, next) => {
+    try {
+      if (!req.user.lecturer || !req.user.lecturer.id) {
+        return res.status(403).json({ success: false, message: 'No lecturer record for user' });
+      }
+      const lecturerId = req.user.lecturer.id;
+      // Get all medical reports for course offerings assigned to this lecturer
+      const reports = await this.useCase.getMedicalReportsForAdminCourseOfferings(lecturerId);
+      const total = reports.length;
+      const approved = reports.filter(r => r.status === 'approved').length;
+      const pending = reports.filter(r => r.status === 'pending').length;
+      const rejected = reports.filter(r => r.status === 'rejected').length;
+
+      // Basic analysis
+      let analysis = '';
+      if (total === 0) {
+        analysis = 'No medical reports submitted for your courses.';
+      } else if (approved / total > 0.7) {
+        analysis = 'Most medical reports are approved.';
+      } else if (rejected / total > 0.5) {
+        analysis = 'High rejection rate. Please review submission quality.';
+      } else if (pending > 0) {
+        analysis = 'There are pending requests awaiting your review.';
+      } else {
+        analysis = 'Submission stats are within normal range.';
+      }
+
+      res.json({
+        success: true,
+        summary: {
+          totalSubmissions: total,
+          approved,
+          pending,
+          rejected,
+          analysis
+        }
+      });
+    } catch (err) { next(err); }
+  };
   // Get medical report summary stats for the authenticated student
   getStudentSummaryStats = async (req, res, next) => {
     try {
@@ -43,8 +83,11 @@ class MedicalReportController {
   // Admin: Get all medical reports for course offerings assigned to admin (with all relations)
   getByAdminCourseOfferings = async (req, res, next) => {
     try {
-      const adminId = req.user.id;
-      const reports = await this.useCase.getMedicalReportsForAdminCourseOfferings(adminId);
+      if (!req.user.lecturer || !req.user.lecturer.id) {
+        return res.status(403).json({ success: false, message: 'No lecturer record for user' });
+      }
+      const lecturerId = req.user.lecturer.id;
+      const reports = await this.useCase.getMedicalReportsForAdminCourseOfferings(lecturerId);
       res.json({ success: true, data: reports });
     } catch (err) { next(err); }
   };

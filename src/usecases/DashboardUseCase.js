@@ -24,32 +24,123 @@ class DashboardUseCase {
     const student = await StudentRepository.findById(studentId);
     const batch = await BatchRepository.findById(student.batchId);
     const degreeProgram = await DegreeProgramRepository.findById(batch.programId);
-    // Academic
-    const cgpa = await CGPARepository.findLatestByStudent(studentId);
-    const semesterGPA = await SemesterGPARepository.findLatestByStudent(studentId);
-    // Attendance
-    const attendanceStats = await AttendanceRepository.getAttendanceStats(studentId);
-    // Medical Reports
-    const medicalReports = await MedicalReportRepository.findAll({ studentId });
-    // Results
-    const results = await ResultRepository.findLatestByStudent(studentId, 5);
+    // Find current semester for this batch
+    const semesters = await (require('../repositories/SemesterRepository')).prototype.findAll({ batchId: batch.id, status: 'inprogress' });
+    const currentSemester = semesters && semesters.length > 0 ? semesters[0] : null;
+        let currentSemesterResults = [];
+    if (currentSemester) {
+      currentSemesterResults = await ResultRepository.findByFilters({ studentId, courseOffering: { semesterId: semesters[0].id } });
+    }
+  // Academic (calculate from results if CGPA/SemesterGPA not available)
+  // Get all results for this student
+  const allResults = await ResultRepository.findByFilters({ studentId });
+  // Calculate overall GPA (all results with gradePoint)
+  const allGradePoints = allResults.filter(r => r.gradePoint !== null && r.gradePoint !== undefined).map(r => Number(r.gradePoint));
+  const overallGPA = allGradePoints.length ? (allGradePoints.reduce((a, b) => a + b, 0) / allGradePoints.length) : 0;
+  // Calculate current semester GPA (currentSemesterResults)
+  const semesterGradePoints = currentSemesterResults.filter(r => r.gradePoint !== null && r.gradePoint !== undefined).map(r => Number(r.gradePoint));
+  const currentSemesterGPA = semesterGradePoints.length ? (semesterGradePoints.reduce((a, b) => a + b, 0) / semesterGradePoints.length) : 0;
+  // For compatibility, set cgpa and semesterGPA fields
+  const cgpa = { cgpaValue: overallGPA };
+  const semesterGPA = { gpaValue: currentSemesterGPA };
+    // Results (all for current semester)
+
+    // Subjects completed (passed in current semester)
+    const subjectsCompleted = currentSemesterResults.filter(r => r.grade && r.grade.toUpperCase() !== 'F').length;
+    // Credits completed (current/total)
+    const creditsCompleted = currentSemesterResults.reduce((sum, r) => sum + (r.courseOffering?.subject?.credits || 0), 0);
+    const minCreditsToGraduate = degreeProgram.minCreditsToGraduate || 120;
+    const creditsProgress = minCreditsToGraduate > 0 ? Math.round((creditsCompleted / minCreditsToGraduate) * 100) : 0;
+    // Attendance overview (subject-wise for current semester)
+    let attendanceOverview = [];
+    if (currentSemester) {
+      // Get all course offerings for this student in current semester
+      const enrollments = await (require('../repositories/EnrollmentRepository')).prototype.findAll({ studentId, courseOffering: { semesterId: currentSemester.id } }, { include: { courseOffering: { include: { subject: true } } } });
+      for (const enrollment of enrollments) {
+        const courseOffering = enrollment.courseOffering;
+        if (!courseOffering) continue;
+        const attStats = await AttendanceRepository.getAttendanceStats(studentId, courseOffering.id);
+        attendanceOverview.push({
+          subject: courseOffering.subject,
+          courseOfferingId: courseOffering.id,
+          attendancePercentage: attStats.attendancePercentage
+        });
+      }
+    }
+    // Attendance rate (overall for current semester)
+    let attendanceRate = null;
+    if (attendanceOverview.length > 0) {
+      const total = attendanceOverview.reduce((sum, s) => sum + s.attendancePercentage, 0);
+      attendanceRate = Math.round((total / attendanceOverview.length) * 100) / 100;
+    }
+    // Academic performance (GPA trend over semesters)
+    let gpaTrend = [];
+    const allSemesterGPAs = await SemesterGPARepository.findAll({ studentId });
+    // Get all semesters for this batch (for name/status lookup)
+    const allSemesters = await (require('../repositories/SemesterRepository')).prototype.findAll({ batchId: batch.id });
+    const semesterMap = {};
+    for (const s of allSemesters) {
+      semesterMap[s.id] = { name: s.name, status: s.status };
+    }
+    if (allSemesterGPAs && allSemesterGPAs.length > 0) {
+      gpaTrend = allSemesterGPAs.map(g => ({
+        semesterId: g.semesterId,
+        semesterName: semesterMap[g.semesterId]?.name || null,
+        semesterStatus: semesterMap[g.semesterId]?.status || null,
+        gpa: Number(g.gpaValue)
+      }));
+    } else {
+      // Fallback: calculate GPA trend from results grouped by semester
+      const resultsBySemester = {};
+      for (const r of allResults) {
+        const semesterId = r.courseOffering?.semesterId;
+        if (!semesterId) continue;
+        if (!resultsBySemester[semesterId]) resultsBySemester[semesterId] = [];
+        if (r.gradePoint !== null && r.gradePoint !== undefined) {
+          resultsBySemester[semesterId].push(Number(r.gradePoint));
+        }
+      }
+      gpaTrend = Object.entries(resultsBySemester).map(([semesterId, gradePoints]) => ({
+        semesterId,
+        semesterName: semesterMap[semesterId]?.name || null,
+        semesterStatus: semesterMap[semesterId]?.status || null,
+        gpa: gradePoints.length ? (gradePoints.reduce((a, b) => a + b, 0) / gradePoints.length) : 0
+      })).sort((a, b) => a.semesterId.localeCompare(b.semesterId));
+    }
+    // Recent results (latest for current semester)
+    const recentResults = currentSemesterResults.slice(0, 5).map(r => ({
+      subjectCode: r.courseOffering?.subject?.code,
+      subjectName: r.courseOffering?.subject?.name,
+      marks: r.marks,
+      grade: r.grade,
+      credits: r.courseOffering?.subject?.credits,
+      date: r.courseOffering?.semester?.startDate
+    }));
     // Notices
     const notices = await NoticeRepository.findRecentForStudent(studentId, 5);
     // Links
     const links = await LinkRepository.findHighlightsForStudent(studentId, 5);
     // Upcoming Sessions
-    const sessions = await ClassSessionRepository.findUpcomingForStudent(studentId, 3);
+    const sessions = await ClassSessionRepository.findUpcomingForStudent(studentId, 5);
     return {
       profile: { name: user.firstName + ' ' + user.lastName, studentNo: student.studentNo, batch: batch.name, degreeProgram: degreeProgram.name, status: student.status },
-      academic: { cgpa, semesterGPA, graduationStatus: cgpa?.graduationStatus, creditsEarned: student.creditsEarned, minCreditsToGraduate: degreeProgram.minCreditsToGraduate },
-      attendance: attendanceStats,
-      medicalReports: {
-        total: medicalReports.length,
-        approved: medicalReports.filter(r => r.status === 'approved').length,
-        pending: medicalReports.filter(r => r.status === 'pending').length,
-        rejected: medicalReports.filter(r => r.status === 'rejected').length
+      academic: {
+        cgpa,
+        semesterGPA,
+        graduationStatus: cgpa?.graduationStatus,
+        creditsCompleted,
+        minCreditsToGraduate,
+        creditsProgress,
+        subjectsCompleted
       },
-      results,
+      attendance: {
+        rate: attendanceRate,
+        overview: attendanceOverview
+      },
+      academicPerformance: {
+        gpaTrend
+      },
+      recentResults,
       notices,
       links,
       upcomingSessions: sessions

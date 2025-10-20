@@ -2,6 +2,23 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 class NoticeRepository {
+  async findRecentForStudent(studentId, limit = 5) {
+    // Find recent notices for students (targetAudience: students or all)
+    return await prisma.notice.findMany({
+      where: {
+        isActive: true,
+        OR: [
+          { targetAudience: 'students' },
+          { targetAudience: 'all' }
+        ]
+      },
+      orderBy: [
+        { priority: 'desc' }, // highlight > normal
+        { createdAt: 'desc' }
+      ],
+      take: limit
+    });
+  }
   async findRecentForLecturer(lecturerId, limit = 5) {
     // Find recent notices created by this lecturer (userId)
     return await prisma.notice.findMany({
@@ -12,7 +29,10 @@ class NoticeRepository {
           { targetAudience: 'all' }
         ]
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [
+        { priority: 'desc' }, // highlight > normal
+        { createdAt: 'desc' }
+      ],
       take: limit
     });
   }

@@ -116,14 +116,12 @@ class AttendanceRepository {
     const totalSessions = await prisma.attendance.count({ where });
     const present = await prisma.attendance.count({ where: { ...where, status: 'present' } });
     const absent = await prisma.attendance.count({ where: { ...where, status: 'absent' } });
-    const late = await prisma.attendance.count({ where: { ...where, status: 'late' } });
     const excused = await prisma.attendance.count({ where: { ...where, status: 'excused' } });
-    const attendancePercentage = totalSessions > 0 ? ((present + late + excused) / totalSessions) * 100 : 0;
+      const attendancePercentage = totalSessions > 0 ? ((present + excused) / totalSessions) * 100 : 0;
     return {
       totalSessions,
       present,
       absent,
-      late,
       excused,
       attendancePercentage: Math.round(attendancePercentage * 100) / 100,
     };

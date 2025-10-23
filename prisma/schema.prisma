@@ -1,3 +1,18 @@
+
+// Fee types used by the Payments/Finance module
+model FeeType {
+  id           String   @id @default(uuid())
+  name         String
+  code         String?  @unique
+  defaultAmount Int?    @default(0)
+  description  String?
+  isActive     Boolean  @default(true)
+  createdBy    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("fee_types")
+}
 // Prisma schema for Student Information System (SIS)
 
 

@@ -42,6 +42,9 @@ const noticeRoutes = require('./routes/noticeRoutes');
 const studentNoticeRoutes = require('./routes/studentNoticeRoutes');
 const fileRoutes = require('./routes/fileRoutes');
 const studentPaymentRoutes = require('./routes/studentPaymentRoutes');
+const adminPaymentRoutes = require('./routes/admin/paymentRoutes');
+const adminFeeTypeRoutes = require('./routes/admin/feeTypeRoutes');
+const publicFeeTypeRoutes = require('./routes/feeTypeRoutes');
 
 
 const app = express();
@@ -115,6 +118,9 @@ app.use('/api/notices', noticeRoutes);
 app.use('/api/student/notices', studentNoticeRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/api/students/me', studentPaymentRoutes);
+app.use('/api/admin', adminPaymentRoutes);
+app.use('/api/admin/fee-types', adminFeeTypeRoutes);
+app.use('/api/fee-types', publicFeeTypeRoutes);
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({

@@ -2174,3 +2174,154 @@
 {"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-19T21:42:41.135Z"}
 {"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-19T21:42:41.137Z"}
 {"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-19T21:42:41.137Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-19T22:00:54.170Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-19T22:00:54.228Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-19T22:00:54.230Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-19T22:00:54.231Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-19T22:21:56.014Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-19T22:21:56.070Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-19T22:21:56.072Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-19T22:21:56.073Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-19T22:22:56.678Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-19T22:22:56.853Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-19T22:22:56.857Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-19T22:22:56.857Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T10:45:36.104Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T10:45:36.315Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T10:45:36.318Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T10:45:36.319Z"}
+{"level":"info","message":"User 7ad14fb7-041c-4639-a5e0-fffdc93e5d7d logged out","service":"sis-backend","timestamp":"2025-10-20T11:09:23.424Z"}
+{"level":"info","message":"User 5b12dcf3-cc2b-4870-bb13-369c17542012 logged out","service":"sis-backend","timestamp":"2025-10-20T14:18:41.362Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T15:12:49.879Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T15:12:49.940Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T15:12:49.942Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T15:12:49.942Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T16:13:28.841Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T16:13:28.907Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T16:13:28.910Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T16:13:28.911Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T17:04:01.008Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T17:04:01.077Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T17:04:01.079Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T17:04:01.080Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T17:04:01.913Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T17:04:01.972Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T17:04:01.974Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T17:04:01.974Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T17:04:34.834Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T17:04:34.906Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T17:04:34.909Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T17:04:34.909Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T17:04:35.533Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T17:04:35.592Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T17:04:35.594Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T17:04:35.594Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T17:04:43.829Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T17:04:44.577Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T17:04:44.637Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T17:04:44.639Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T17:04:44.639Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T17:04:56.074Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T17:04:56.133Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T17:04:56.135Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T17:04:56.136Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T17:06:41.554Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T17:06:41.611Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T17:22:24.843Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T17:22:25.397Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T17:22:25.399Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T17:22:25.399Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T19:14:30.894Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T19:14:30.957Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T19:14:30.959Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T19:14:30.959Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T19:15:04.773Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T19:15:04.831Z"}
+{"level":"info","message":"User 5b12dcf3-cc2b-4870-bb13-369c17542012 logged out","service":"sis-backend","timestamp":"2025-10-20T19:23:43.791Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T19:40:08.847Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T19:40:08.907Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T19:40:08.909Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T19:40:08.909Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T21:25:50.387Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T21:25:50.452Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T21:25:50.455Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T21:25:50.455Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T21:26:15.547Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T21:26:15.615Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T21:26:15.618Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T21:26:15.618Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T21:26:16.357Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T21:26:16.564Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T21:26:16.569Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T21:26:16.569Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T21:26:24.165Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T21:26:24.230Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T21:26:24.233Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T21:26:24.234Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T21:26:24.912Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T21:26:25.079Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T21:26:25.081Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T21:26:25.082Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T21:26:31.786Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T21:26:31.852Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T21:26:31.855Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T21:26:31.855Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T21:26:32.475Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T21:26:32.533Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T21:26:32.535Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T21:26:32.536Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T21:26:37.555Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T21:26:37.622Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T21:26:37.624Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T21:26:37.624Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T21:26:38.320Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T21:26:38.379Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T21:26:38.381Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T21:26:38.382Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T21:26:48.603Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T21:26:48.769Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T21:26:48.772Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T21:26:48.773Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T21:27:20.798Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T21:27:20.861Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T21:40:51.488Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T21:40:51.553Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T21:40:51.555Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T21:40:51.555Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T21:41:40.937Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T21:41:41.004Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T21:41:41.006Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T21:41:41.007Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T21:41:47.077Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T21:41:47.140Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T21:41:47.142Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T21:41:47.143Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T21:55:07.597Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T21:55:07.664Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T21:55:07.666Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T21:55:07.666Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T22:01:06.905Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T22:01:06.971Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T22:01:06.973Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T22:01:06.973Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T22:01:12.784Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T22:01:12.951Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T22:01:12.953Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T22:01:12.953Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T22:02:05.592Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T22:02:05.656Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T22:02:05.658Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T22:02:05.658Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T22:03:06.248Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T22:03:06.313Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T22:03:06.315Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T22:03:06.316Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T22:03:13.667Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T22:03:13.730Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T22:03:13.732Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T22:03:13.733Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"sis-backend","timestamp":"2025-10-20T22:04:32.727Z"}
+{"level":"info","message":"Socket.IO service initialized","service":"sis-backend","timestamp":"2025-10-20T22:05:21.469Z"}
+{"level":"info","message":"Connected to database with Prisma","service":"sis-backend","timestamp":"2025-10-20T22:05:21.536Z"}
+{"level":"info","message":"Server running on port 3000 in development mode","service":"sis-backend","timestamp":"2025-10-20T22:05:21.539Z"}
+{"level":"info","message":"Health check available at http://localhost:3000/health","service":"sis-backend","timestamp":"2025-10-20T22:05:21.539Z"}

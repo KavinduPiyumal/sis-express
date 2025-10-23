@@ -2,6 +2,40 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 class LinkRepository {
+  async findHighlightsForStudent(studentId, limit = 5) {
+    // Get all links for students, but order by highlight first, then createdAt desc
+    return await prisma.link.findMany({
+      where: {
+        isActive: true,
+        OR: [
+          { targetAudience: 'students' },
+          { targetAudience: 'all' }
+        ]
+      },
+      orderBy: [
+        { priority: 'desc' }, // highlight > normal
+        { createdAt: 'desc' }
+      ],
+      take: limit
+    });
+  }
+  async findHighlightsForLecturer(lecturerId, limit = 5) {
+    // Find highlighted links for admins/lecturers (priority: highlight, targetAudience: admins or all)
+    return await prisma.link.findMany({
+      where: {
+        isActive: true,
+        OR: [
+          { targetAudience: 'admins' },
+          { targetAudience: 'all' }
+        ]
+      },
+      orderBy: [
+        { priority: 'desc' }, // highlight > normal
+        { createdAt: 'desc' }
+      ],
+      take: limit
+    });
+  }
   async create(data) {
     try {
       return await prisma.link.create({

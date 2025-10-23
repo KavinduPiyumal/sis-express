@@ -25,13 +25,20 @@ module.exports = {
             if (year === 2) name = `2nd Year Semester ${sem}`;
             else if (year === 3) name = `3rd Year Semester ${sem}`;
             else if (year > 3) name = `${year}th Year Semester ${sem}`;
+            // Calculate start and end date: each semester is 6 months, sequential
+            // Start from batch start year, Jan 1
+            const baseDate = new Date(batch.startYear, 0, 1); // Jan 1 of start year
+            const semesterIndex = (year - 1) * 2 + (sem - 1); // 0-based
+            const startDate = new Date(baseDate);
+            startDate.setMonth(startDate.getMonth() + semesterIndex * 6);
+            const endDate = new Date(startDate);
+            endDate.setMonth(endDate.getMonth() + 6);
             semestersToCreate.push({
               name,
               batchId: batch.id,
               status: (year === 1 && sem === 1) ? 'inprogress' : 'pending',
-              // startDate and endDate can be set later by admin
-              startDate: new Date(),
-              endDate: new Date()
+              startDate,
+              endDate
             });
           }
         }
@@ -67,16 +74,31 @@ module.exports = {
       // Adjust page if it's out of range
       const safePage = page > totalPages ? totalPages : page;
 
+      // Fetch batches with their current semester (status: inprogress)
       const batches = await prisma.batch.findMany({
         where,
         skip: (safePage - 1) * perPage,
         take: perPage,
-        orderBy: { name: 'asc' }
+        orderBy: { name: 'asc' },
+        include: {
+          semesters: {
+            where: { status: 'inprogress' },
+            orderBy: { startDate: 'asc' }
+          }
+        }
+      });
+
+      // Attach currentSemester (first inprogress semester if exists) to each batch
+      const batchesWithCurrent = batches.map(batch => {
+        const currentSemester = batch.semesters && batch.semesters.length > 0 ? batch.semesters[0] : null;
+        // Remove semesters array to avoid confusion, attach currentSemester only
+        const { semesters, ...rest } = batch;
+        return { ...rest, currentSemester };
       });
 
       res.json({
         success: true,
-        data: batches,
+        data: batchesWithCurrent,
         meta: {
           total,
           totalPages,

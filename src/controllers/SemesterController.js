@@ -1,3 +1,4 @@
+
 const SemesterUseCase = require('../usecases/SemesterUseCase');
 
 class SemesterController {
@@ -44,6 +45,14 @@ class SemesterController {
     try {
       await this.useCase.deleteSemester(req.params.id);
       res.json({ success: true, message: 'Deleted' });
+    } catch (err) { next(err); }
+  };
+
+    // Start next semester for a batch (super_admin only)
+  startNextSemesterForBatch = async (req, res, next) => {
+    try {
+      const result = await this.useCase.startNextSemesterForBatch(req.params.batchId);
+      res.json({ success: true, data: result });
     } catch (err) { next(err); }
   };
 }

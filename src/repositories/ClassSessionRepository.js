@@ -2,6 +2,59 @@
 const prisma = require('../infrastructure/prisma');
 
 class ClassSessionRepository {
+  async findUpcomingForStudent(studentId, limit = 3) {
+    // Find upcoming class sessions for a student (future sessions, ordered by date)
+    const now = new Date();
+    // Find all courseOfferingIds the student is enrolled in
+    const enrollments = await prisma.enrollment.findMany({
+      where: { studentId },
+      select: { courseOfferingId: true }
+    });
+    const courseOfferingIds = enrollments.map(e => e.courseOfferingId);
+    if (courseOfferingIds.length === 0) return [];
+    return await prisma.classSession.findMany({
+      where: {
+        courseOfferingId: { in: courseOfferingIds },
+        date: { gte: now }
+      },
+      include: {
+        courseOffering: {
+          select: {
+            year: true,
+            subject: { select: { name: true } }
+          }
+        }
+      },
+      orderBy: { date: 'asc' },
+      take: limit
+    });
+  }
+  async findUpcomingForLecturer(lecturerId, limit = 3) {
+    // Find upcoming class sessions for a lecturer (future sessions, ordered by date)
+    const now = new Date();
+    return await prisma.classSession.findMany({
+      where: {
+        courseOffering: {
+          lecturerId: lecturerId
+        },
+        date: {
+          gte: now
+        }
+      },
+      include: {
+        courseOffering: {
+          select: {
+            year: true,
+            subject: {
+              select: { name: true }
+            }
+          }
+        }
+      },
+      orderBy: { date: 'asc' },
+      take: limit
+    });
+  }
   async findById(id) {
     return await prisma.classSession.findUnique({ where: { id } });
   }

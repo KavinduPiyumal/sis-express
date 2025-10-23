@@ -58,6 +58,7 @@ class FileResponseDTO {
     this.fileName = file.fileName || file.filename;
     this.originalName = file.originalName || file.originalname;
     this.fileSize = file.fileSize || file.size;
+    this.filePath = file.filePath || file.path;
     this.mimeType = file.mimeType || file.mimetype;
     this.url = file.url || file.path;
     this.uploadedAt = new Date().toISOString();

@@ -40,6 +40,7 @@ const logRoutes = require('./routes/logRoutes');
 const linkRoutes = require('./routes/linkRoutes');
 const noticeRoutes = require('./routes/noticeRoutes');
 const studentNoticeRoutes = require('./routes/studentNoticeRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 const fileRoutes = require('./routes/fileRoutes');
 const studentPaymentRoutes = require('./routes/studentPaymentRoutes');
 const adminPaymentRoutes = require('./routes/admin/paymentRoutes');
@@ -117,6 +118,8 @@ app.use('/api/links', linkRoutes);
 app.use('/api/notices', noticeRoutes);
 app.use('/api/student/notices', studentNoticeRoutes);
 app.use('/api/files', fileRoutes);
+// Register dashboard routes
+app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/students/me', studentPaymentRoutes);
 app.use('/api/admin', adminPaymentRoutes);
 app.use('/api/admin/fee-types', adminFeeTypeRoutes);

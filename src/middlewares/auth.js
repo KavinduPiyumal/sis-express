@@ -43,6 +43,19 @@ const authenticate = async (req, res, next) => {
         message: 'Account is deactivated'
       });
     }
+    // Attach student or lecturer object if applicable
+    if (user.role === 'student') {
+      const StudentRepository = require('../repositories/StudentRepository');
+      const studentRepo = new StudentRepository();
+      const student = await studentRepo.findOne({ userId: user.id });
+      if (student) user.student = student;
+    }
+    if (user.role === 'lecturer' || user.role === 'admin') {
+      const LecturerRepository = require('../repositories/LecturerRepository');
+      const lecturerRepo = new LecturerRepository();
+      const lecturer = await lecturerRepo.findOne({ userId: user.id });
+      if (lecturer) user.lecturer = lecturer;
+    }
     req.user = user;
     next();
   } catch (error) {

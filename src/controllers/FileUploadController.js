@@ -7,7 +7,9 @@ class FileUploadController {
   
   async uploadFiles(req, res) {
     try {
-      const upload = getUploadMiddleware({ subDir: 'assets' });
+      // Use 'medicals' subDir for medical-report, otherwise 'assets'
+      const subDir = req.body.type === 'medical-report' ? 'medicals' : 'assets';
+      const upload = getUploadMiddleware({ subDir });
       const uploadSingle = upload.array('files', 10); // Allow up to 10 files
 
       uploadSingle(req, res, async (err) => {
@@ -36,7 +38,7 @@ class FileUploadController {
 
           const uploads = req.files.map(file => {
             // Extract UUID from filename (first part before the first dash)
-            const fileId = file.filename.split('-')[0];
+            const fileId = file.filename.substring(0, 36);
             const fileData = {
               id: fileId,
               fileName: file.filename,

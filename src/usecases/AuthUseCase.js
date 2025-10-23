@@ -109,22 +109,36 @@ class AuthUseCase {
       }
 
       let profile = null;
+      let lecturerProfile = null;
+      const userDto = new UserDTO(user);
+
       if (user.role === 'student') {
         const StudentRepository = require('../repositories/StudentRepository');
         const studentRepo = new StudentRepository();
         profile = await studentRepo.findOne({ userId });
-      }
-
-      // Merge user and student fields for profile response
-      const userDto = new UserDTO(user);
-      if (profile) {
-        // Only include the updatable student fields
-        userDto.parentName = profile.parentName;
-        userDto.parentPhone = profile.parentPhone;
-        userDto.emergencyContactName = profile.emergencyContactName;
-        userDto.emergencyContactPhone = profile.emergencyContactPhone;
-        userDto.uniRegistrationDate = profile.uniRegistrationDate;
-        userDto.studentNo = profile.studentNo;
+        if (profile) {
+          userDto.studentProfile = profile;
+          // Optionally, copy updatable student fields for backward compatibility
+          userDto.parentName = profile.parentName;
+          userDto.parentPhone = profile.parentPhone;
+          userDto.emergencyContactName = profile.emergencyContactName;
+          userDto.emergencyContactPhone = profile.emergencyContactPhone;
+          userDto.uniRegistrationDate = profile.uniRegistrationDate;
+          userDto.studentNo = profile.studentNo;
+        }
+      } else if (user.role === 'lecturer' || user.role === 'admin') {
+        const LecturerRepository = require('../repositories/LecturerRepository');
+        const lecturerRepo = new LecturerRepository();
+        lecturerProfile = await lecturerRepo.findOne({ userId });
+        if (lecturerProfile) {
+          userDto.lecturerProfile = lecturerProfile;
+          // Optionally, copy updatable lecturer fields for backward compatibility
+          userDto.lecturerId = lecturerProfile.lecturerId;
+          userDto.departmentId = lecturerProfile.departmentId;
+          userDto.status = lecturerProfile.status;
+          userDto.emergencyContactName = lecturerProfile.emergencyContactName;
+          userDto.emergencyContactPhone = lecturerProfile.emergencyContactPhone;
+        }
       }
       return userDto;
     } catch (error) {
@@ -191,7 +205,29 @@ class AuthUseCase {
             }
           }
           if (Object.keys(studentFields).length > 0) {
-            await studentRepo.update(studentFields, { userId });
+            // studentRepo.update expects (id, data). Use student.id (PK) to update.
+            await studentRepo.update(student.id, studentFields);
+          }
+        }
+      }
+
+      if (user.role === 'lecturer' || user.role === 'admin') {
+        const LecturerRepository = require('../repositories/LecturerRepository');
+        const lecturerRepo = new LecturerRepository();
+        const lecturer = await lecturerRepo.findOne({ userId });
+        if (lecturer) {
+          const lecturerFields = {};
+          const lecturerUpdatable = [
+            'emergencyContactName', 'emergencyContactPhone'
+          ];
+          for (const key of lecturerUpdatable) {
+            if (allowedUpdates[key] !== undefined) {
+              lecturerFields[key] = allowedUpdates[key];
+            }
+          }
+          if (Object.keys(lecturerFields).length > 0) {
+            // lecturerRepo.update expects (id, data). Use lecturer.id (PK) to update.
+            await lecturerRepo.update(lecturer.id, lecturerFields);
           }
         }
       }

@@ -10,6 +10,7 @@ model FeeType {
   createdBy    String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  payments     Payment[]
 
   @@map("fee_types")
 }
@@ -455,7 +456,10 @@ model Payment {
   id        String   @id @default(uuid())
   studentId String
   amount    Decimal  @db.Decimal(10,2)
-  paymentType PaymentType
+  // paymentType kept for legacy enum values but made optional so we can reference dynamic FeeType via feeTypeId
+  paymentType PaymentType?
+  feeTypeId String?
+  feeType   FeeType? @relation(fields: [feeTypeId], references: [id])
   description String?
   paymentDate DateTime
   receiptNumber String?

@@ -3,6 +3,8 @@ const prisma = new PrismaClient();
 const path = require('path');
 const fs = require('fs');
 const { AdminPaymentListDTO, AdminPaymentActionDTO, AdminNoteDTO } = require('../../dto/AdminPaymentDTO');
+const logger = require('../../config/logger');
+const { log } = require('console');
 
 class PaymentAdminController {
   constructor() {}
@@ -33,16 +35,37 @@ class PaymentAdminController {
         orderBy: { paymentDate: dto.sortDir },
         skip: (dto.page - 1) * dto.perPage,
         take: dto.perPage,
-        // Payment.student is a relation to User. Include the related Student record (User.student)
         include: { student: { include: { student: true } } }
       });
+
+      // Additional counts
+      const [pendingCount, approvedTodayCount, rejectedTodayCount] = await Promise.all([
+        prisma.payment.count({ where: { status: 'pending' } }),
+        prisma.payment.count({
+          where: {
+            status: 'approved',
+            reviewedAt: {
+              gte: new Date(new Date().setHours(0, 0, 0, 0)),
+              lt: new Date(new Date().setHours(23, 59, 59, 999))
+            }
+          }
+        }),
+        prisma.payment.count({
+          where: {
+            status: 'rejected',
+            reviewedAt: {
+              gte: new Date(new Date().setHours(0, 0, 0, 0)),
+              lt: new Date(new Date().setHours(23, 59, 59, 999))
+            }
+          }
+        })
+      ]);
 
       const mapped = payments.map(p => ({
         id: p.id,
         studentId: p.studentId,
-  // p.student is User; User may have an associated Student record at p.student.student
-  studentName: p.student ? `${p.student.firstName || ''} ${p.student.lastName || ''}`.trim() : null,
-  studentNo: p.student && p.student.student ? p.student.student.studentNo : null,
+        studentName: p.student ? `${p.student.firstName || ''} ${p.student.lastName || ''}`.trim() : null,
+        studentNo: p.student && p.student.student ? p.student.student.studentNo : null,
         feeType: p.paymentType,
         semesterId: p.semester || null,
         amount: p.amount,
@@ -57,7 +80,18 @@ class PaymentAdminController {
         approvedBy: p.reviewedBy || null
       }));
 
-      return res.status(200).json({ success: true, data: { payments: mapped, page: dto.page, perPage: dto.perPage, total } });
+      return res.status(200).json({
+        success: true,
+        data: {
+          payments: mapped,
+          page: dto.page,
+          perPage: dto.perPage,
+          total,
+          pendingCount,
+          approvedTodayCount,
+          rejectedTodayCount
+        }
+      });
     } catch (error) {
       console.error('Admin list payments error', error);
       return res.status(500).json({ success: false, message: 'Failed to list payments', error: error.message });
@@ -83,7 +117,7 @@ class PaymentAdminController {
         paymentType: payment.paymentType,
         method: null,
         receiptNumber: payment.receiptNumber || null,
-        attachments: payment.filePath ? [{ filename: path.basename(payment.filePath), url: `/api/admin/payments/${payment.id}/attachments/${encodeURIComponent(path.basename(payment.filePath))}` }] : [],
+        attachments: payment.filePath ? [{ filename: path.basename(payment.filePath), url: `http://localhost:3000/api/admin/payments/${payment.id}/attachments/${encodeURIComponent(path.basename(payment.filePath))}` }] : [],
         status: payment.status,
         paymentDate: payment.paymentDate,
         submittedBy: payment.studentId,
@@ -109,17 +143,21 @@ class PaymentAdminController {
 
       // Resolve local path
       let filePath = payment.filePath;
+      logger.info(`Streaming attachment from path: ${filePath}`);
       const base = process.env.UPLOAD_PATH || 'uploads';
       if (!path.isAbsolute(filePath)) {
         // remove leading uploads/ if present
         filePath = filePath.replace(/^uploads[\\/]/, '');
-        filePath = path.join(process.cwd(), base, filePath);
+        logger.info(`Resolved relative attachment path: ${filePath}`);
+        // filePath = path.join(process.cwd(), base, filePath);
+        logger.info(`Final resolved attachment path: ${filePath}`);
       }
       if (!fs.existsSync(filePath)) return res.status(404).json({ success: false, message: 'File missing on disk' });
 
-      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-      const stream = fs.createReadStream(filePath);
-      stream.pipe(res);
+  res.type(filename); // Set Content-Type based on file extension
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  const stream = fs.createReadStream(filePath);
+  stream.pipe(res);
     } catch (error) {
       console.error('Attachment error', error);
       return res.status(500).json({ success: false, message: 'Failed to stream attachment', error: error.message });

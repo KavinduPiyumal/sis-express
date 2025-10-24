@@ -130,6 +130,35 @@ class FeeTypeAdminController {
       return res.status(500).json({ success: false, message: 'Failed to delete fee type', error: error.message });
     }
   }
+
+  // DELETE /api/admin/fee-types/:id/hard  (permanent hard delete)
+  async hardDelete(req, res) {
+    try {
+      if (!prisma || !prisma.feeType) {
+        return res.status(503).json({ success: false, message: 'Prisma model `feeType` is not available. Run `npx prisma migrate dev --name add_fee_type && npx prisma generate` to apply migration and regenerate Prisma Client.' });
+      }
+      const { feeTypeId } = req.params;
+      const item = await prisma.feeType.findUnique({ where: { id: feeTypeId } });
+      if (!item) return res.status(404).json({ success: false, message: 'Fee type not found' });
+
+      // Attempt hard delete. If there are FK references (e.g., payments), Prisma will throw a P2003 error.
+      await prisma.feeType.delete({ where: { id: feeTypeId } });
+      return res.status(200).json({ success: true, message: 'Fee type permanently deleted' });
+    } catch (error) {
+      console.error('FeeType hard delete error', error);
+      // Foreign key constraint
+      if (error && error.code === 'P2003') {
+        return res.status(409).json({ success: false, message: 'Cannot hard delete fee type because it is referenced by other records (for example: payments). Remove those references first or delete associated records.' });
+      }
+      if (error && error.code === 'P2025') {
+        return res.status(404).json({ success: false, message: 'Fee type not found' });
+      }
+      if (error && error.message && error.message.includes('Prisma model `feeType`')) {
+        return res.status(503).json({ success: false, message: error.message });
+      }
+      return res.status(500).json({ success: false, message: 'Failed to hard delete fee type', error: error.message });
+    }
+  }
 }
 
 module.exports = FeeTypeAdminController;

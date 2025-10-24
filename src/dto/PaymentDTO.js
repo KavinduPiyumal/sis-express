@@ -5,7 +5,9 @@ class PaymentCreateDTO {
   constructor(body, file, headers) {
     this.paymentAmount = body.paymentAmount;
     this.paymentDate = body.paymentDate;
+    // Allow either a free-text feeType (legacy) or a feeTypeId (UUID) referencing FeeType table
     this.feeType = body.feeType;
+    this.feeTypeId = body.feeTypeId || null;
     this.paymentMethod = body.paymentMethod;
     this.referenceNumber = body.referenceNumber;
     this.remarks = body.remarks;
@@ -39,8 +41,16 @@ class PaymentCreateDTO {
       }
     }
 
-    if (!this.feeType || !allowedFeeTypes.includes(this.feeType)) {
-      errors.feeType = `feeType is required and must be one of: ${allowedFeeTypes.join(', ')}`;
+    // Accept either a feeType string (free text/code) OR a feeTypeId (UUID) that references the FeeType model.
+    if ((!this.feeType || String(this.feeType).trim() === '') && !this.feeTypeId) {
+      errors.feeType = 'feeType (string) or feeTypeId (uuid) is required';
+    }
+    // if feeTypeId is provided, do a basic UUID-ish sanity check (optional)
+    if (this.feeTypeId) {
+      const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+      if (!uuidRegex.test(String(this.feeTypeId))) {
+        errors.feeTypeId = 'feeTypeId must be a valid UUID';
+      }
     }
 
     if (!this.paymentMethod || !allowedPaymentMethods.includes(this.paymentMethod)) {

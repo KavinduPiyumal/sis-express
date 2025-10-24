@@ -1,6 +1,6 @@
 const path = require('path');
 const fs = require('fs');
-const { PaymentCreateDTO, PaymentListQueryDTO } = require('../dto/PaymentDTO');
+const { PaymentCreateDTO, PaymentListQueryDTO, allowedFeeTypes } = require('../dto/PaymentDTO');
 const getUploadMiddleware = require('../infrastructure/upload');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
@@ -214,18 +214,26 @@ class PaymentController {
         const fileName = req.file ? (req.file.filename || path.basename(req.file.path)) : null;
         const filePath = slipPath; // relative path saved earlier
 
+        // Determine paymentType (enum) only if matches allowed enums, otherwise leave null and use feeTypeId
+        let paymentTypeValue = null;
+        if (dto.feeType && allowedFeeTypes.includes(dto.feeType)) paymentTypeValue = dto.feeType;
+
+        const feeTypeIdValue = dto.feeTypeId || null;
+
         const create = await prisma.payment.create({
           data: {
             studentId,
             amount: Number(dto.paymentAmount),
             paymentDate: new Date(dto.paymentDate),
-            paymentType: dto.feeType,
+            paymentType: paymentTypeValue,
+            feeTypeId: feeTypeIdValue,
             description: dto.remarks || null,
             receiptNumber: dto.referenceNumber || null,
             fileName: fileName,
             filePath: filePath,
             status: 'pending'
-          }
+          },
+          include: { feeType: true }
         });
 
         const response = {
@@ -236,7 +244,9 @@ class PaymentController {
           method: dto.paymentMethod || null,
           reference: create.receiptNumber || null,
           status: create.status,
-          feeType: create.paymentType,
+          // Prefer returning the linked FeeType if present, otherwise return the enum paymentType (legacy)
+          feeTypeId: create.feeTypeId || null,
+          feeType: create.feeType ? { id: create.feeType.id, name: create.feeType.name, code: create.feeType.code, defaultAmount: create.feeType.defaultAmount } : (create.paymentType || null),
           remarks: create.description || null,
           slipUrl: create.filePath ? this.getSlipAccessUrl(create) : null
         };

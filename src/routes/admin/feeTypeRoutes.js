@@ -11,5 +11,6 @@ router.post('/', async (req, res) => controller.create(req, res));
 router.get('/:feeTypeId', async (req, res) => controller.get(req, res));
 router.put('/:feeTypeId', async (req, res) => controller.update(req, res));
 router.delete('/:feeTypeId', async (req, res) => controller.delete(req, res));
+router.delete('/:feeTypeId/hard', async (req, res) => controller.hardDelete(req, res));
 
 module.exports = router;

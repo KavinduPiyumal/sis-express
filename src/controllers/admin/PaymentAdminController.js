@@ -32,10 +32,13 @@ class PaymentAdminController {
       const total = await prisma.payment.count({ where });
       const payments = await prisma.payment.findMany({
         where,
-        orderBy: { paymentDate: dto.sortDir },
+        orderBy: { createdAt: 'desc' },
         skip: (dto.page - 1) * dto.perPage,
         take: dto.perPage,
-        include: { student: { include: { student: true } } }
+        include: {
+          student: { include: { student: true } },
+          feeType: true
+        }
       });
 
       // Additional counts
@@ -67,6 +70,7 @@ class PaymentAdminController {
         studentName: p.student ? `${p.student.firstName || ''} ${p.student.lastName || ''}`.trim() : null,
         studentNo: p.student && p.student.student ? p.student.student.studentNo : null,
         feeType: p.paymentType,
+        feeTypeDueDate: p.feeType ? p.feeType.dueDate : null,
         semesterId: p.semester || null,
         amount: p.amount,
         paymentType: p.paymentType,
@@ -77,7 +81,9 @@ class PaymentAdminController {
         submittedAt: p.paymentDate,
         submittedBy: p.studentId,
         approvedAt: p.reviewedAt || null,
-        approvedBy: p.reviewedBy || null
+        approvedBy: p.reviewedBy || null,
+        createdAt: p.createdAt,
+        updatedAt: p.updatedAt
       }));
 
       return res.status(200).json({
@@ -102,16 +108,20 @@ class PaymentAdminController {
   async get(req, res) {
     try {
       const { paymentId } = req.params;
-  const payment = await prisma.payment.findUnique({ where: { id: paymentId }, include: { student: { include: { student: true } } } });
+      const payment = await prisma.payment.findUnique({
+        where: { id: paymentId },
+        include: { student: { include: { student: true } }, feeType: true }
+      });
       if (!payment) return res.status(404).json({ success: false, message: 'Payment not found' });
 
       // Build response
       const resp = {
         id: payment.id,
         studentId: payment.studentId,
-  studentName: payment.student ? `${payment.student.firstName || ''} ${payment.student.lastName || ''}`.trim() : null,
-  studentNo: payment.student && payment.student.student ? payment.student.student.studentNo : null,
+        studentName: payment.student ? `${payment.student.firstName || ''} ${payment.student.lastName || ''}`.trim() : null,
+        studentNo: payment.student && payment.student.student ? payment.student.student.studentNo : null,
         feeType: payment.paymentType,
+        feeTypeDueDate: payment.feeType ? payment.feeType.dueDate : null,
         semesterId: payment.semester || null,
         amount: payment.amount,
         paymentType: payment.paymentType,
@@ -123,7 +133,9 @@ class PaymentAdminController {
         submittedBy: payment.studentId,
         reviewedAt: payment.reviewedAt || null,
         reviewedBy: payment.reviewedBy || null,
-        reviewNotes: payment.reviewNotes || null
+        reviewNotes: payment.reviewNotes || null,
+        createdAt: payment.createdAt,
+        updatedAt: payment.updatedAt
       };
 
       return res.status(200).json({ success: true, data: resp });

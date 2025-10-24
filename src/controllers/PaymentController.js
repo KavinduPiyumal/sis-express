@@ -34,25 +34,127 @@ class PaymentController {
       const userId = req.user && req.user.id ? req.user.id : null;
       if (!userId) return res.status(401).json({ message: 'Authentication required' });
 
-      const semester = req.query.semester;
-      if (!semester) return res.status(400).json({ errors: { semester: 'semester query param is required' } });
 
-      // Placeholder: compute fees; in real app query DB
-      const fees = [
-        { id: 1, type: 'Tuition Fee', amount: 2000, paid: 1000, balance: 1000, dueDate: '2025-10-15', status: 'partial' },
-        { id: 2, type: 'Library Fee', amount: 200, paid: 200, balance: 0, dueDate: '2025-09-01', status: 'paid' }
-      ];
+      // Fetch student with batch
+      const student = await prisma.student.findUnique({
+        where: { userId },
+        include: { batch: true }
+      });
+      if (!student) return res.status(404).json({ message: 'Student not found' });
 
-      const totalDue = fees.reduce((s, f) => s + f.balance, 0);
-      const totalPaid = fees.reduce((s, f) => s + f.paid, 0);
+      // Determine semesterId: use query param if present, else find inprogress semester for student's batch
+      let semesterId = null;
+      let semester = null;
+      if (semesterId) {
+        semester = await prisma.semester.findUnique({
+          where: { id: semesterId },
+          include: { batch: true }
+        });
+        if (!semester) return res.status(404).json({ message: 'Semester not found' });
+      } else {
+        semester = await prisma.semester.findFirst({
+          where: { batchId: student.batchId, status: 'inprogress' },
+          orderBy: { startDate: 'desc' },
+          include: { batch: true }
+        });
+        if (!semester) return res.status(404).json({ message: 'No in-progress semester found for your batch' });
+        semesterId = semester.id;
+      }
+
+      // Fetch all relevant fee types
+      const feeTypes = await prisma.feeType.findMany({
+        where: {
+          OR: [
+            { type: 'general', isActive: true },
+            { type: 'batchwise', batchId: student.batchId, isActive: true },
+            { type: 'semesterwise', semesterId: semesterId, isActive: true }
+          ]
+        },
+        include: {
+          batch: true,
+          semester: { include: { batch: true } }
+        }
+      });
+
+
+      // Fetch all payments for this student and these feeTypes
+      const feeTypeIds = feeTypes.map(f => f.id);
+      const payments = await prisma.payment.findMany({
+        where: {
+          studentId: userId,
+          feeTypeId: { in: feeTypeIds },
+          status: { in: ['pending', 'approved'] }
+        }
+      });
+
+      // Group payments by feeTypeId
+      const paymentsByFeeType = {};
+      for (const p of payments) {
+        if (!paymentsByFeeType[p.feeTypeId]) paymentsByFeeType[p.feeTypeId] = [];
+        paymentsByFeeType[p.feeTypeId].push(p);
+      }
+
+      // Categorize fees by type, with paid/balance/status
+      const categorizedFees = {
+        general: [],
+        batchwise: [],
+        semesterwise: []
+      };
+      for (const f of feeTypes) {
+        const relatedPayments = paymentsByFeeType[f.id] || [];
+        const amount = Number(f.defaultAmount) || 0;
+        // Sum both approved and pending payments for paid calculation
+        const paid = relatedPayments
+          .filter(p => p.status === 'approved' || p.status === 'pending')
+          .reduce((sum, p) => sum + Number(p.amount), 0);
+        // Sum only approved payments
+        const approvedPaid = relatedPayments
+          .filter(p => p.status === 'approved')
+          .reduce((sum, p) => sum + Number(p.amount), 0);
+        const balance = Math.max(amount - paid, 0);
+        let status = 'pending';
+        if (paid >= amount && amount > 0) {
+          // If approved payments also cover amount, mark as verified
+          if (approvedPaid >= amount) status = 'verified';
+          else status = 'paid';
+        } else if (paid > 0 && paid < amount) {
+          status = 'partial';
+        }
+
+        const feeObj = {
+          id: f.id,
+          name: f.name,
+          code: f.code,
+          amount: f.defaultAmount,
+          description: f.description,
+          isActive: f.isActive,
+          type: f.type,
+          batchId: f.batchId,
+          semesterId: f.semesterId,
+          dueDate: f.dueDate,
+          createdBy: f.createdBy,
+          createdAt: f.createdAt,
+          updatedAt: f.updatedAt,
+          batch: f.batchId && f.batch ? { id: f.batch.id, name: f.batch.name } : null,
+          semester: f.semesterId && f.semester ? {
+            id: f.semester.id,
+            name: f.semester.name,
+            batch: f.semester.batch ? { id: f.semester.batch.id, name: f.semester.batch.name } : null
+          } : null,
+          paid,
+          balance,
+          status
+        };
+        if (f.type === 'general') categorizedFees.general.push(feeObj);
+        else if (f.type === 'batchwise') categorizedFees.batchwise.push(feeObj);
+        else if (f.type === 'semesterwise') categorizedFees.semesterwise.push(feeObj);
+      }
 
       return res.status(200).json({
         studentId: userId,
-        semester,
-        totalDue,
-        totalPaid,
-        nextDueDate: '2025-10-15',
-        fees
+        batch: student.batch ? { id: student.batch.id, name: student.batch.name } : null,
+        semester: { id: semester.id, name: semester.name, batch: semester.batch ? { id: semester.batch.id, name: semester.batch.name } : null },
+        fees: categorizedFees
       });
     } catch (error) {
       return res.status(500).json({ message: 'Failed to fetch fees', error: error.message });
@@ -218,7 +320,16 @@ class PaymentController {
         let paymentTypeValue = null;
         if (dto.feeType && allowedFeeTypes.includes(dto.feeType)) paymentTypeValue = dto.feeType;
 
+
         const feeTypeIdValue = dto.feeTypeId || null;
+        // Validate feeTypeId is set and valid
+        if (!feeTypeIdValue) {
+          return res.status(400).json({ errors: { feeTypeId: 'feeTypeId is required' } });
+        }
+        const feeType = await prisma.feeType.findUnique({ where: { id: feeTypeIdValue } });
+        if (!feeType) {
+          return res.status(400).json({ errors: { feeTypeId: 'Invalid feeTypeId' } });
+        }
 
         const create = await prisma.payment.create({
           data: {

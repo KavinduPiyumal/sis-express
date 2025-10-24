@@ -5,6 +5,9 @@ class FeeTypeCreateDTO {
     this.code = body.code ? String(body.code).trim() : null;
     this.description = body.description ? String(body.description).trim() : null;
     this.isActive = typeof body.isActive === 'undefined' ? true : Boolean(body.isActive);
+    this.type = body.type || 'general';
+    this.batchId = body.batchId || null;
+    this.semesterId = body.semesterId || null;
   }
 
   validate() {
@@ -13,6 +16,9 @@ class FeeTypeCreateDTO {
     if (this.defaultAmount !== null && (Number.isNaN(this.defaultAmount) || this.defaultAmount < 0)) errors.defaultAmount = 'defaultAmount must be a non-negative number';
     if (this.code && this.code.length > 50) errors.code = 'code max length 50 chars';
     if (this.description && this.description.length > 2000) errors.description = 'description max length 2000 chars';
+    if (!['general', 'batchwise', 'semesterwise'].includes(this.type)) errors.type = 'type must be general, batchwise, or semesterwise';
+    if (this.type === 'batchwise' && !this.batchId) errors.batchId = 'batchId is required for batchwise fee type';
+    if (this.type === 'semesterwise' && !this.semesterId) errors.semesterId = 'semesterId is required for semesterwise fee type';
     return { isValid: Object.keys(errors).length === 0, errors };
   }
 }

@@ -23,9 +23,15 @@ class SemesterUseCase {
   }
 
   async getSemestersByBatchId(batchId) {
-    const semesters = await this.semesterRepository.findAll({ batchId });
-    return semesters.map(s => new SemesterDTO(s));
-  }
+  let semesters = await this.semesterRepository.findAll({ batchId });
+  semesters.sort((a, b) => {
+    const [yearA, semA] = semesterSortKey(a.name);
+    const [yearB, semB] = semesterSortKey(b.name);
+    return yearA - yearB || semA - semB;
+  });
+  return semesters.map(s => new SemesterDTO(s));
+}
+
 
   async updateSemester(id, data) {
     await this.semesterRepository.update(id, data);
@@ -65,3 +71,10 @@ class SemesterUseCase {
 }
 
 module.exports = SemesterUseCase;
+function semesterSortKey(name) {
+  // Example: "1st Year Semester 2"
+  const match = name.match(/(\d+)[a-z]{2} Year Semester (\d+)/i);
+  if (!match) return [Infinity, Infinity];
+  return [parseInt(match[1]), parseInt(match[2])];
+}
+

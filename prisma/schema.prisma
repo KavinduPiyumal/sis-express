@@ -1,21 +1,4 @@
-
-// Fee types used by the Payments/Finance module
-model FeeType {
-  id           String   @id @default(uuid())
-  name         String
-  code         String?  @unique
-  defaultAmount Int?    @default(0)
-  description  String?
-  isActive     Boolean  @default(true)
-  createdBy    String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  payments     Payment[]
-
-  @@map("fee_types")
-}
 // Prisma schema for Student Information System (SIS)
-
 
 generator client {
   provider = "prisma-client-js"
@@ -25,8 +8,6 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
-
 
 enum TargetAudience {
   all
@@ -131,409 +112,440 @@ enum OpenMode {
   sametab
 }
 
+enum FeeTypeCategory {
+  general
+  batchwise
+  semesterwise
+}
+
 // MODELS
 
 model User {
-  id          String   @id @default(uuid())
-  username    String   @unique
-  firstName   String
-  lastName    String
-  email       String   @unique
-  password    String
-  role        String
-  phone       String?
-  profileId   String?
-  permissions String[]
-  address     String?
-  dateOfBirth DateTime?
-  isActive    Boolean  @default(true)
-  lastLoginAt DateTime?
-  profileImage String?
-  gender      String?
-  resetPasswordToken String?
-  resetPasswordExpires DateTime?
-  changePasswordOtp String?
+  id                       String          @id @default(uuid())
+  username                 String          @unique
+  firstName                String
+  lastName                 String
+  email                    String          @unique
+  password                 String
+  role                     String
+  phone                    String?
+  profileId                String?
+  permissions              String[]
+  address                  String?
+  dateOfBirth              DateTime?
+  isActive                 Boolean         @default(true)
+  lastLoginAt              DateTime?
+  profileImage             String?
+  gender                   String?
+  resetPasswordToken       String?
+  resetPasswordExpires     DateTime?
+  changePasswordOtp        String?
   changePasswordOtpExpires DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  student     Student?
-  lecturer    Lecturer?
-  logs        Log[]
-  notifications Notification[]
-  payments    Payment[] @relation("PaymentStudent")
-  semesterGPAs SemesterGPA[]
-  cgpas       CGPA[] @relation("UserCGPA")
-  transcripts Transcript[]
-  reviewedPayments Payment[] @relation("PaymentReviewedBy")
-  reviewedMedicalReports MedicalReport[] @relation("MedicalReportReviewedBy")
-  markedAttendances Attendance[] @relation("AttendanceMarkedBy")
-  enteredResults Result[] @relation("ResultEnteredBy")
-  notices     Notice[] @relation("UserNotices")
-  links       Link[]   @relation("UserLinks")
-  linkViews   LinkView[] @relation("UserLinkViews")
-  noticeReads NoticeRead[] @relation("UserNoticeReads")
+  createdAt                DateTime        @default(now())
+  updatedAt                DateTime        @updatedAt
+  student                  Student?
+  lecturer                 Lecturer?
+  logs                     Log[]
+  notifications            Notification[]
+  payments                 Payment[]       @relation("PaymentStudent")
+  semesterGPAs             SemesterGPA[]
+  cgpas                    CGPA[]          @relation("UserCGPA")
+  transcripts              Transcript[]
+  reviewedPayments         Payment[]       @relation("PaymentReviewedBy")
+  reviewedMedicalReports   MedicalReport[] @relation("MedicalReportReviewedBy")
+  markedAttendances        Attendance[]    @relation("AttendanceMarkedBy")
+  enteredResults           Result[]        @relation("ResultEnteredBy")
+  notices                  Notice[]        @relation("UserNotices")
+  links                    Link[]          @relation("UserLinks")
+  linkViews                LinkView[]      @relation("UserLinkViews")
+  noticeReads              NoticeRead[]    @relation("UserNoticeReads")
 }
 
 model Student {
-  id          String   @id @default(uuid())
-  userId      String   @unique
-  studentNo   String   @unique
-  batchId     String
-  status      StudentStatus @default(active)
-  parentName  String?
-  parentPhone String?
-  emergencyContactName String?
+  id                    String          @id @default(uuid())
+  userId                String          @unique
+  studentNo             String          @unique
+  batchId               String
+  status                StudentStatus   @default(active)
+  parentName            String?
+  parentPhone           String?
+  emergencyContactName  String?
   emergencyContactPhone String?
-  uniRegistrationDate DateTime?
-  user        User     @relation(fields: [userId], references: [id])
-  batch       Batch    @relation(fields: [batchId], references: [id])
-  enrollments Enrollment[]
-  cgpas       CGPA[] @relation("StudentCGPA")
-  semesterGPAs SemesterGPA[] @relation("StudentSemesterGPA")
-  transcripts Transcript[] @relation("StudentTranscript")
-  attendances Attendance[] @relation("StudentAttendance")
-  medicalReports MedicalReport[] @relation("StudentMedicalReports")
-  results     Result[] @relation("StudentResult")
+  uniRegistrationDate   DateTime?
+  user                  User            @relation(fields: [userId], references: [id])
+  batch                 Batch           @relation(fields: [batchId], references: [id])
+  enrollments           Enrollment[]
+  cgpas                 CGPA[]          @relation("StudentCGPA")
+  semesterGPAs          SemesterGPA[]   @relation("StudentSemesterGPA")
+  transcripts           Transcript[]    @relation("StudentTranscript")
+  attendances           Attendance[]    @relation("StudentAttendance")
+  medicalReports        MedicalReport[] @relation("StudentMedicalReports")
+  results               Result[]        @relation("StudentResult")
 }
 
 model Lecturer {
-  id        String   @id @default(uuid())
-  userId    String   @unique
-  lecturerId   String   @unique
-  status      LecturerStatus @default(active)
-  departmentId String?
-  emergencyContactName String?
+  id                    String           @id @default(uuid())
+  userId                String           @unique
+  lecturerId            String           @unique
+  status                LecturerStatus   @default(active)
+  departmentId          String?
+  emergencyContactName  String?
   emergencyContactPhone String?
-  user      User     @relation(fields: [userId], references: [id])
-  department Department? @relation(fields: [departmentId], references: [id])
-  courseOfferings CourseOffering[]
+  user                  User             @relation(fields: [userId], references: [id])
+  department            Department?      @relation(fields: [departmentId], references: [id])
+  courseOfferings       CourseOffering[]
 }
 
 model Faculty {
-  id        String   @id @default(uuid())
-  name      String
-  deanName  String?
-  contactInfo String?
-  departments Department[]
+  id             String          @id @default(uuid())
+  name           String
+  deanName       String?
+  contactInfo    String?
+  departments    Department[]
   degreePrograms DegreeProgram[]
 }
 
 model Department {
-  id        String   @id @default(uuid())
-  name      String
-  facultyId String
-  faculty   Faculty  @relation(fields: [facultyId], references: [id])
+  id             String          @id @default(uuid())
+  name           String
+  facultyId      String
+  faculty        Faculty         @relation(fields: [facultyId], references: [id])
   degreePrograms DegreeProgram[]
-  lecturers  Lecturer[]
+  lecturers      Lecturer[]
 }
+
 model DegreeProgram {
-  id        String   @id @default(uuid())
-  name      String
-  duration  Int
-  facultyId String
-  departmentId String?
+  id                   String       @id @default(uuid())
+  name                 String
+  duration             Int
+  facultyId            String
+  departmentId         String?
   minCreditsToGraduate Int?
-  minCGPARequired Float?
-  honorsCriteria String?
-  faculty   Faculty  @relation(fields: [facultyId], references: [id])
-  department Department? @relation(fields: [departmentId], references: [id])
-  batches   Batch[]
-  degreeRules DegreeRule[]
+  minCGPARequired      Float?
+  honorsCriteria       String?
+  faculty              Faculty      @relation(fields: [facultyId], references: [id])
+  department           Department?  @relation(fields: [departmentId], references: [id])
+  batches              Batch[]
+  degreeRules          DegreeRule[]
 }
 
 model Batch {
-  id        String   @id @default(uuid())
-  name      String
-  programId String
-  startYear Int
-  program   DegreeProgram @relation(fields: [programId], references: [id])
-  students  Student[]
-  semesters Semester[]
+  id              String           @id @default(uuid())
+  name            String
+  programId       String
+  startYear       Int
+  program         DegreeProgram    @relation(fields: [programId], references: [id])
+  students        Student[]
+  semesters       Semester[]
   courseOfferings CourseOffering[]
+  feeTypes        FeeType[]
 }
 
 model Semester {
-  id        String   @id @default(uuid())
-  name      String
-  batchId   String
-  startDate DateTime
-  endDate   DateTime
-  status    SemesterStatus @default(pending)
-  batch     Batch    @relation(fields: [batchId], references: [id])
+  id              String           @id @default(uuid())
+  name            String
+  batchId         String
+  startDate       DateTime
+  endDate         DateTime
+  status          SemesterStatus   @default(pending)
+  batch           Batch            @relation(fields: [batchId], references: [id])
   courseOfferings CourseOffering[]
-  semesterGPAs SemesterGPA[]
+  semesterGPAs    SemesterGPA[]
+  feeTypes        FeeType[]
 }
 
 model Subject {
-  id        String   @id @default(uuid())
-  code      String   @unique
-  name      String
-  credits   Int
-  description String?
+  id              String           @id @default(uuid())
+  code            String           @unique
+  name            String
+  credits         Int
+  description     String?
   courseOfferings CourseOffering[]
 }
 
 model CourseOffering {
-  id        String   @id @default(uuid())
-  subjectId String
-  semesterId String
-  batchId   String
-  lecturerId String
-  year      Int
-  mode      String?
-  capacity  Int?
-  subject   Subject  @relation(fields: [subjectId], references: [id])
-  semester  Semester @relation(fields: [semesterId], references: [id])
-  batch     Batch    @relation(fields: [batchId], references: [id])
-  lecturer  Lecturer @relation(fields: [lecturerId], references: [id])
-  enrollments Enrollment[]
+  id            String         @id @default(uuid())
+  subjectId     String
+  semesterId    String
+  batchId       String
+  lecturerId    String
+  year          Int
+  mode          String?
+  capacity      Int?
+  subject       Subject        @relation(fields: [subjectId], references: [id])
+  semester      Semester       @relation(fields: [semesterId], references: [id])
+  batch         Batch          @relation(fields: [batchId], references: [id])
+  lecturer      Lecturer       @relation(fields: [lecturerId], references: [id])
+  enrollments   Enrollment[]
   classSessions ClassSession[]
-  attendances Attendance[] @relation("CourseOfferingAttendance")
-  results    Result[] @relation("CourseOfferingResult")
+  attendances   Attendance[]   @relation("CourseOfferingAttendance")
+  results       Result[]       @relation("CourseOfferingResult")
 }
 
 model ClassSession {
-  id        String   @id @default(uuid())
+  id               String          @id @default(uuid())
   courseOfferingId String
-  date      DateTime
-  topic     String?
-  location  String?
-  remarks String?
-  durationMinutes Int?
-  courseOffering CourseOffering @relation(fields: [courseOfferingId], references: [id])
-  attendances Attendance[]
-  medicalReports MedicalReport[]
+  date             DateTime
+  topic            String?
+  location         String?
+  remarks          String?
+  durationMinutes  Int?
+  courseOffering   CourseOffering  @relation(fields: [courseOfferingId], references: [id])
+  attendances      Attendance[]
+  medicalReports   MedicalReport[]
 }
 
 model Attendance {
-  id        String   @id @default(uuid())
-  classSessionId String
+  id               String           @id @default(uuid())
+  classSessionId   String
   courseOfferingId String
-  studentId String
-  status    AttendanceStatus @default(present)
-  remarks   String?
-  markedBy  String
-  markedAt  DateTime @default(now())
-  medicalReportId String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  classSession ClassSession @relation(fields: [classSessionId], references: [id])
-  courseOffering CourseOffering @relation("CourseOfferingAttendance", fields: [courseOfferingId], references: [id])
-  student   Student  @relation("StudentAttendance", fields: [studentId], references: [id])
-  markedByUser User @relation("AttendanceMarkedBy", fields: [markedBy], references: [id])
-  medicalReport MedicalReport? @relation("MedicalReportAttendance", fields: [medicalReportId], references: [id])
+  studentId        String
+  status           AttendanceStatus @default(present)
+  remarks          String?
+  markedBy         String
+  markedAt         DateTime         @default(now())
+  medicalReportId  String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  classSession     ClassSession     @relation(fields: [classSessionId], references: [id])
+  courseOffering   CourseOffering   @relation("CourseOfferingAttendance", fields: [courseOfferingId], references: [id])
+  student          Student          @relation("StudentAttendance", fields: [studentId], references: [id])
+  markedByUser     User             @relation("AttendanceMarkedBy", fields: [markedBy], references: [id])
+  medicalReport    MedicalReport?   @relation("MedicalReportAttendance", fields: [medicalReportId], references: [id])
 
   @@unique([classSessionId, studentId])
 }
 
 model Enrollment {
-  id        String   @id @default(uuid())
-  studentId String
+  id               String           @id @default(uuid())
+  studentId        String
   courseOfferingId String
-  status    EnrollmentStatus @default(active)
-  enrolledDate DateTime
-  student   Student  @relation(fields: [studentId], references: [id])
-  courseOffering CourseOffering @relation(fields: [courseOfferingId], references: [id])
+  status           EnrollmentStatus @default(active)
+  enrolledDate     DateTime
+  student          Student          @relation(fields: [studentId], references: [id])
+  courseOffering   CourseOffering   @relation(fields: [courseOfferingId], references: [id])
 }
 
-
 model MedicalReport {
-  id        String   @id @default(uuid())
-  studentId String
-  reason     String
-  description String?
-  submitDate DateTime @default(now())
-  status    MedicalStatus @default(pending)
-  reviewedBy String?
-  reviewNotes String?
-  reviewedAt DateTime?
+  id             String                    @id @default(uuid())
+  studentId      String
+  reason         String
+  description    String?
+  submitDate     DateTime                  @default(now())
+  status         MedicalStatus             @default(pending)
+  reviewedBy     String?
+  reviewNotes    String?
+  reviewedAt     DateTime?
   classSessionId String
-  classSession  ClassSession @relation(fields: [classSessionId], references: [id])
-  student   Student  @relation("StudentMedicalReports", fields: [studentId], references: [id])
-  reviewedByUser User? @relation("MedicalReportReviewedBy", fields: [reviewedBy], references: [id])
-  attendances Attendance[] @relation("MedicalReportAttendance")
-  attachments MedicalReportAttachment[]
+  classSession   ClassSession              @relation(fields: [classSessionId], references: [id])
+  student        Student                   @relation("StudentMedicalReports", fields: [studentId], references: [id])
+  reviewedByUser User?                     @relation("MedicalReportReviewedBy", fields: [reviewedBy], references: [id])
+  attendances    Attendance[]              @relation("MedicalReportAttendance")
+  attachments    MedicalReportAttachment[]
 }
 
 model MedicalReportAttachment {
-  id          String   @id @default(uuid())
+  id              String        @id @default(uuid())
   medicalReportId String
-  fileName    String
-  originalName String
-  fileSize    Int
-  mimeType    String
-  filePath    String
-  url String?
-  uploadedAt String?
-  createdAt   DateTime @default(now())
-  medicalReport MedicalReport @relation(fields: [medicalReportId], references: [id], onDelete: Cascade)
+  fileName        String
+  originalName    String
+  fileSize        Int
+  mimeType        String
+  filePath        String
+  url             String?
+  uploadedAt      String?
+  createdAt       DateTime      @default(now())
+  medicalReport   MedicalReport @relation(fields: [medicalReportId], references: [id], onDelete: Cascade)
 
   @@index([medicalReportId])
 }
 
-
 model CGPA {
-  id        String   @id @default(uuid())
-  studentId String
-  userId    String?
-  cgpaValue Decimal  @db.Decimal(3,2)
+  id               String           @id @default(uuid())
+  studentId        String
+  userId           String?
+  cgpaValue        Decimal          @db.Decimal(3, 2)
   graduationStatus TranscriptStatus
-  student   Student   @relation("StudentCGPA", fields: [studentId], references: [id])
-  user      User?     @relation("UserCGPA", fields: [userId], references: [id])
+  student          Student          @relation("StudentCGPA", fields: [studentId], references: [id])
+  user             User?            @relation("UserCGPA", fields: [userId], references: [id])
 }
 
 model SemesterGPA {
-  id        String   @id @default(uuid())
-  studentId String
-  userId    String?
+  id         String   @id @default(uuid())
+  studentId  String
+  userId     String?
   semesterId String
-  gpaValue  Decimal  @db.Decimal(3,2)
-  student   Student  @relation("StudentSemesterGPA", fields: [studentId], references: [id])
-  user      User?    @relation(fields: [userId], references: [id])
-  semester  Semester @relation(fields: [semesterId], references: [id])
+  gpaValue   Decimal  @db.Decimal(3, 2)
+  student    Student  @relation("StudentSemesterGPA", fields: [studentId], references: [id])
+  user       User?    @relation(fields: [userId], references: [id])
+  semester   Semester @relation(fields: [semesterId], references: [id])
 }
 
 model Transcript {
-  id        String   @id @default(uuid())
-  studentId String
-  userId    String?
-  issueDate DateTime
-  finalCGPA Decimal  @db.Decimal(3,2)
+  id               String           @id @default(uuid())
+  studentId        String
+  userId           String?
+  issueDate        DateTime
+  finalCGPA        Decimal          @db.Decimal(3, 2)
   graduationStatus TranscriptStatus
-  student   Student  @relation("StudentTranscript", fields: [studentId], references: [id])
-  user      User?     @relation(fields: [userId], references: [id])
+  student          Student          @relation("StudentTranscript", fields: [studentId], references: [id])
+  user             User?            @relation(fields: [userId], references: [id])
 }
 
 model GradingSystem {
-  id        String   @id @default(uuid())
+  id          String  @id @default(uuid())
   gradeLetter String
-  minMarks  Int
-  maxMarks  Int
-  gradePoint Decimal @db.Decimal(2,1)
+  minMarks    Int
+  maxMarks    Int
+  gradePoint  Decimal @db.Decimal(2, 1)
 }
 
 model DegreeRule {
-  id        String   @id @default(uuid())
-  degreeProgramId String
+  id                   String        @id @default(uuid())
+  degreeProgramId      String
   minCreditsToGraduate Int
-  minCGPARequired Decimal @db.Decimal(3,2)
-  honorsCriteria String?
-  degreeProgram DegreeProgram @relation(fields: [degreeProgramId], references: [id])
+  minCGPARequired      Decimal       @db.Decimal(3, 2)
+  honorsCriteria       String?
+  degreeProgram        DegreeProgram @relation(fields: [degreeProgramId], references: [id])
 }
 
 model Log {
-  id        String   @id @default(uuid())
-  userId    String?
-  action    String
-  entity    String
-  entityId  String?
-  module    String?
-  status    String?
+  id          String   @id @default(uuid())
+  userId      String?
+  action      String
+  entity      String
+  entityId    String?
+  module      String?
+  status      String?
   description String?
-  entityType String?
-  details   Json?
-  ipAddress String?
-  userAgent String?
-  timestamp DateTime @default(now())
-  user      User?    @relation(fields: [userId], references: [id])
+  entityType  String?
+  details     Json?
+  ipAddress   String?
+  userAgent   String?
+  timestamp   DateTime @default(now())
+  user        User?    @relation(fields: [userId], references: [id])
 }
 
 model Result {
-  id        String   @id @default(uuid())
-  studentId String
+  id               String         @id @default(uuid())
+  studentId        String
   courseOfferingId String
-  marks     Decimal? @db.Decimal(5,2)
-  grade     String?
-  gradePoint Decimal? @db.Decimal(3,2)
-  enteredBy String
-  enteredAt DateTime @default(now())
-  student   Student  @relation("StudentResult", fields: [studentId], references: [id])
-  courseOffering CourseOffering @relation("CourseOfferingResult", fields: [courseOfferingId], references: [id])
-  enteredByUser User @relation("ResultEnteredBy", fields: [enteredBy], references: [id])
+  marks            Decimal?       @db.Decimal(5, 2)
+  grade            String?
+  gradePoint       Decimal?       @db.Decimal(3, 2)
+  enteredBy        String
+  enteredAt        DateTime       @default(now())
+  student          Student        @relation("StudentResult", fields: [studentId], references: [id])
+  courseOffering   CourseOffering @relation("CourseOfferingResult", fields: [courseOfferingId], references: [id])
+  enteredByUser    User           @relation("ResultEnteredBy", fields: [enteredBy], references: [id])
 }
 
 model Payment {
-  id        String   @id @default(uuid())
-  studentId String
-  amount    Decimal  @db.Decimal(10,2)
+  id             String        @id @default(uuid())
+  studentId      String
+  amount         Decimal       @db.Decimal(10, 2)
   // paymentType kept for legacy enum values but made optional so we can reference dynamic FeeType via feeTypeId
-  paymentType PaymentType?
-  feeTypeId String?
-  feeType   FeeType? @relation(fields: [feeTypeId], references: [id])
-  description String?
-  paymentDate DateTime
-  receiptNumber String?
-  fileName  String?
-  filePath  String?
-  status    PaymentStatus @default(pending)
-  reviewedBy String?
-  reviewNotes String?
-  reviewedAt DateTime?
-  student   User     @relation("PaymentStudent", fields: [studentId], references: [id])
-  reviewedByUser User? @relation("PaymentReviewedBy", fields: [reviewedBy], references: [id])
+  paymentType    PaymentType?
+  feeTypeId      String?
+  feeType        FeeType?      @relation(fields: [feeTypeId], references: [id])
+  description    String?
+  paymentDate    DateTime
+  receiptNumber  String?
+  fileName       String?
+  filePath       String?
+  status         PaymentStatus @default(pending)
+  reviewedBy     String?
+  reviewNotes    String?
+  reviewedAt     DateTime?
+  student        User          @relation("PaymentStudent", fields: [studentId], references: [id])
+  reviewedByUser User?         @relation("PaymentReviewedBy", fields: [reviewedBy], references: [id])
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+}
+
+// Fee types used by the Payments/Finance module
+model FeeType {
+  id            String          @id @default(uuid())
+  name          String
+  code          String?         @unique
+  defaultAmount Int?            @default(0)
+  description   String?
+  isActive      Boolean         @default(true)
+  type          FeeTypeCategory @default(general)
+  batchId       String?
+  semesterId    String?
+  dueDate       DateTime?
+  batch         Batch?          @relation(fields: [batchId], references: [id])
+  semester      Semester?       @relation(fields: [semesterId], references: [id])
+  createdBy     String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  payments      Payment[]
+
+  @@map("fee_types")
 }
 
 model Notice {
-  id        String   @id @default(uuid())
-  title     String
-  content   String
-  excerpt   String?
-  category  NoticeCategory @default(general)
-  priority  NoticePriority @default(normal)
-  status    NoticeStatus @default(draft)
-  targetAudience TargetAudience @default(all)
-  tags      String[]
-  isPinned  Boolean @default(false)
-  isActive  Boolean @default(true)
-  publishDate DateTime @default(now())
-  startDate DateTime?
-  endDate   DateTime?
-  expiryDate DateTime?
-  viewCount Int @default(0)
-  readCount Int @default(0)
-  createdBy String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  createdByUser User @relation("UserNotices", fields: [createdBy], references: [id])
-  attachments NoticeAttachment[]
-  reads     NoticeRead[]
+  id             String             @id @default(uuid())
+  title          String
+  content        String
+  excerpt        String?
+  category       NoticeCategory     @default(general)
+  priority       NoticePriority     @default(normal)
+  status         NoticeStatus       @default(draft)
+  targetAudience TargetAudience     @default(all)
+  tags           String[]
+  isPinned       Boolean            @default(false)
+  isActive       Boolean            @default(true)
+  publishDate    DateTime           @default(now())
+  startDate      DateTime?
+  endDate        DateTime?
+  expiryDate     DateTime?
+  viewCount      Int                @default(0)
+  readCount      Int                @default(0)
+  createdBy      String
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  createdByUser  User               @relation("UserNotices", fields: [createdBy], references: [id])
+  attachments    NoticeAttachment[]
+  reads          NoticeRead[]
 }
 
 model Notification {
-  id        String   @id @default(uuid())
-  userId    String
-  title     String
-  message   String
-  type      NotificationType @default(general)
-  isRead    Boolean @default(false)
-  relatedEntityId String?
+  id                String           @id @default(uuid())
+  userId            String
+  title             String
+  message           String
+  type              NotificationType @default(general)
+  isRead            Boolean          @default(false)
+  relatedEntityId   String?
   relatedEntityType String?
-  readAt    DateTime?
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
+  readAt            DateTime?
+  createdAt         DateTime         @default(now())
+  user              User             @relation(fields: [userId], references: [id])
 }
 
 model Link {
-  id        String   @id @default(uuid())
-  title     String
-  url       String
-  description String?
-  category  String?
-  priority  LinkPriority @default(normal)
-  icon      String?
-  openMode  OpenMode @default(newtab)
-  isActive  Boolean @default(true)
+  id             String         @id @default(uuid())
+  title          String
+  url            String
+  description    String?
+  category       String?
+  priority       LinkPriority   @default(normal)
+  icon           String?
+  openMode       OpenMode       @default(newtab)
+  isActive       Boolean        @default(true)
   targetAudience TargetAudience @default(all)
-  order     Int @default(0)
-  startDate DateTime?
-  endDate   DateTime?
-  viewCount Int @default(0)
-  isNew     Boolean @default(false)
-  createdBy String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  createdByUser User @relation("UserLinks", fields: [createdBy], references: [id])
-  linkViews LinkView[]
+  order          Int            @default(0)
+  startDate      DateTime?
+  endDate        DateTime?
+  viewCount      Int            @default(0)
+  isNew          Boolean        @default(false)
+  createdBy      String
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  createdByUser  User           @relation("UserLinks", fields: [createdBy], references: [id])
+  linkViews      LinkView[]
 }
 
 model LinkView {
@@ -550,16 +562,16 @@ model LinkView {
 }
 
 model NoticeAttachment {
-  id          String   @id @default(uuid())
-  noticeId    String
-  fileName    String
+  id           String   @id @default(uuid())
+  noticeId     String
+  fileName     String
   originalName String
-  fileSize    Int
-  mimeType    String
-  filePath    String
-  downloadUrl String?
-  createdAt   DateTime @default(now())
-  notice      Notice   @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+  fileSize     Int
+  mimeType     String
+  filePath     String
+  downloadUrl  String?
+  createdAt    DateTime @default(now())
+  notice       Notice   @relation(fields: [noticeId], references: [id], onDelete: Cascade)
 
   @@index([noticeId])
 }
@@ -576,5 +588,3 @@ model NoticeRead {
   @@index([noticeId])
   @@index([userId])
 }
-
-

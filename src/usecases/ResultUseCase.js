@@ -534,20 +534,20 @@ class ResultUseCase {
    * @param {number} marks - Student's marks
    */
   calculateGrade(marks) {
-    // This should ideally use the GradingSystem from database
-    // For now, using a basic grading system
     if (marks >= 85) return { grade: 'A+', gradePoint: 4.0 };
-    if (marks >= 80) return { grade: 'A', gradePoint: 4.0 };
-    if (marks >= 75) return { grade: 'A-', gradePoint: 3.7 };
-    if (marks >= 70) return { grade: 'B+', gradePoint: 3.3 };
-    if (marks >= 65) return { grade: 'B', gradePoint: 3.0 };
-    if (marks >= 60) return { grade: 'B-', gradePoint: 2.7 };
-    if (marks >= 55) return { grade: 'C+', gradePoint: 2.3 };
-    if (marks >= 50) return { grade: 'C', gradePoint: 2.0 };
-    if (marks >= 45) return { grade: 'C-', gradePoint: 1.7 };
-    if (marks >= 40) return { grade: 'D', gradePoint: 1.0 };
+    if (marks >= 75) return { grade: 'A', gradePoint: 4.0 };
+    if (marks >= 70) return { grade: 'A-', gradePoint: 3.7 };
+    if (marks >= 65) return { grade: 'B+', gradePoint: 3.3 };
+    if (marks >= 60) return { grade: 'B', gradePoint: 3.0 };
+    if (marks >= 55) return { grade: 'B-', gradePoint: 2.7 };
+    if (marks >= 50) return { grade: 'C+', gradePoint: 2.3 };
+    if (marks >= 45) return { grade: 'C', gradePoint: 2.0 };
+    if (marks >= 40) return { grade: 'C-', gradePoint: 1.7 };
+    if (marks >= 35) return { grade: 'D+', gradePoint: 1.3 };
+    if (marks >= 30) return { grade: 'D', gradePoint: 1.0 };
     return { grade: 'F', gradePoint: 0.0 };
   }
+
 
   /**
    * Get grade point based on letter grade

@@ -287,6 +287,7 @@ class AuthUseCase {
 
   // Forgot password: generate token, save to user, send email
   async forgotPassword(email, req) {
+    const linkExpiryMinutes = 5;
     const user = await this.userRepository.findByEmail(email);
     if (!user) {
       // Do not reveal if user exists
@@ -294,14 +295,14 @@ class AuthUseCase {
     }
     // Generate secure token
     const resetToken = require('crypto').randomBytes(32).toString('hex');
-    const resetTokenExpiry = Date.now() + 5 * 60 * 1000; // 5 minutes
+    const resetTokenExpiry = Date.now() + linkExpiryMinutes * 60 * 1000;
     // Save token and expiry to user
     await this.userRepository.update({
       resetPasswordToken: resetToken,
       resetPasswordExpires: new Date(resetTokenExpiry)
     }, { id: user.id });
     // Send email
-    await emailService.sendPasswordResetEmail(user, resetToken);
+    await emailService.sendPasswordResetEmail(user, resetToken, linkExpiryMinutes);
     logger.info(`Password reset email sent to ${user.email}`);
   }
 

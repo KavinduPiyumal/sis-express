@@ -17,6 +17,17 @@ async function getSessionsWithAttendanceSummary(courseOfferingId) {
 
   const sessions = await classSessionRepo.findAll({ courseOfferingId });
 
+  // Ensure sessions are sorted by their date (chronological order)
+  // Some repos may already return ordered results, but sort here to be safe.
+  sessions.sort((a, b) => {
+    const da = a && a.date ? new Date(a.date) : null;
+    const db = b && b.date ? new Date(b.date) : null;
+    if (!da && !db) return 0;
+    if (!da) return -1;
+    if (!db) return 1;
+    return da - db;
+  });
+
   // Count active enrollments once (used to compute attendance rate)
   const activeEnrollmentsCount = await enrollmentRepo.count({ courseOfferingId, status: 'active' });
 

@@ -89,7 +89,9 @@ class AttendanceUseCase {
     const ClassSessionRepository = require('../repositories/ClassSessionRepository');
     const classSessionRepo = new ClassSessionRepository();
     const attendanceRepo = this.attendanceRepository;
-    const sessions = await classSessionRepo.findAll({ courseOfferingId });
+  let sessions = await classSessionRepo.findAll({ courseOfferingId });
+  // Sort sessions by date ascending
+  sessions = sessions.sort((a, b) => new Date(a.date) - new Date(b.date));
     let presentCount = 0, excusedCount = 0, absentCount = 0, markedSessionsCount = 0;
     const sessionData = await Promise.all(sessions.map(async (session) => {
       const attendance = await attendanceRepo.findBySessionAndStudent(session.id, studentId);

@@ -11,18 +11,32 @@ class PaymentController {
   // GET /api/students/me/semesters
   async getSemesters(req, res) {
     try {
-      // Simple stub: in real app read from Semester/Batch models
-      const yearFilter = req.query.year ? Number(req.query.year) : null;
-      // Example: return last 3 semesters
-      const now = new Date();
-      const year = yearFilter || now.getFullYear();
+      const userId = req.user && req.user.id ? req.user.id : null;
+      if (!userId) return res.status(401).json({ message: 'Authentication required' });
 
-      const semesters = [
-        { id: `${year}-1`, label: `Semester 1, ${year}`, startDate: `${year}-01-01`, endDate: `${year}-06-30` },
-        { id: `${year}-2`, label: `Semester 2, ${year}`, startDate: `${year}-07-01`, endDate: `${year}-12-31` }
-      ];
+      // Find the student record for this user
+      const student = await prisma.student.findUnique({
+        where: { userId },
+        include: { batch: true }
+      });
+      if (!student) return res.status(404).json({ message: 'Student not found' });
 
-      return res.status(200).json({ semesters });
+      // Fetch all semesters for the student's batch
+      const semesters = await prisma.semester.findMany({
+        where: { batchId: student.batchId },
+        orderBy: { startDate: 'asc' }
+      });
+
+      // Optionally, map to a simpler format if needed
+      const mapped = semesters.map(s => ({
+        id: s.id,
+        name: s.name,
+        startDate: s.startDate,
+        endDate: s.endDate,
+        status: s.status
+      }));
+
+      return res.status(200).json({ semesters: mapped });
     } catch (error) {
       return res.status(500).json({ message: 'Failed to fetch semesters', error: error.message });
     }
@@ -473,12 +487,103 @@ class PaymentController {
     try {
       const userId = req.user && req.user.id ? req.user.id : null;
       if (!userId) return res.status(401).json({ message: 'Authentication required' });
+      const notifications = [];
+      // // Fetch student and batch
+      // const student = await prisma.student.findUnique({
+      //   where: { userId },
+      //   include: { batch: true }
+      // });
+      // if (!student) return res.status(404).json({ message: 'Student not found' });
 
-      // Placeholder: fetch notifications from Notification model filtered by payment type
-      const notifications = [
-        { id: 'n1', type: 'reminder', title: 'Payment Reminder', message: 'Your tuition fee is due', meta: {}, createdAt: new Date() },
-        { id: 'n2', type: 'bank_details', title: 'Bank Account Details', message: 'Send payment to NBSL acc 123456', meta: { bank: 'NBSL', account: '123456' }, createdAt: new Date() }
-      ];
+      // // Find all relevant fee types for this student
+      // const feeTypes = await prisma.feeType.findMany({
+      //   where: {
+      //     OR: [
+      //       { type: 'general', isActive: true },
+      //       { type: 'batchwise', batchId: student.batchId, isActive: true },
+      //       { type: 'semesterwise', semesterId: { not: null }, isActive: true }
+      //     ]
+      //   }
+      // });
+      // const feeTypeIds = feeTypes.map(f => f.id);
+
+      // // Fetch all payments for this student and these feeTypes
+      // const payments = await prisma.payment.findMany({
+      //   where: {
+      //     studentId: userId,
+      //     feeTypeId: { in: feeTypeIds },
+      //     status: { in: ['pending', 'approved'] }
+      //   }
+      // });
+      // // Group payments by feeTypeId
+      // const paymentsByFeeType = {};
+      // for (const p of payments) {
+      //   if (!paymentsByFeeType[p.feeTypeId]) paymentsByFeeType[p.feeTypeId] = [];
+      //   paymentsByFeeType[p.feeTypeId].push(p);
+      // }
+
+      // // Generate notifications based on due dates and payment status
+      // 
+      // const now = new Date();
+      // for (const f of feeTypes) {
+      //   const relatedPayments = paymentsByFeeType[f.id] || [];
+      //   const amount = Number(f.defaultAmount) || 0;
+      //   const paid = relatedPayments
+      //     .filter(p => p.status === 'approved' || p.status === 'pending')
+      //     .reduce((sum, p) => sum + Number(p.amount), 0);
+      //   const approvedPaid = relatedPayments
+      //     .filter(p => p.status === 'approved')
+      //     .reduce((sum, p) => sum + Number(p.amount), 0);
+      //   let status = 'pending';
+      //   if (paid >= amount && amount > 0) {
+      //     if (approvedPaid >= amount) status = 'verified';
+      //     else status = 'paid';
+      //   } else if (paid > 0 && paid < amount) {
+      //     status = 'partial';
+      //   }
+
+      //   // Only notify if not fully verified
+      //   if (status !== 'verified') {
+      //     // If due date is set and in the future or near, add reminder
+      //     if (f.dueDate) {
+      //       const dueDate = new Date(f.dueDate);
+      //       const daysLeft = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
+      //       let urgency = '';
+      //       if (daysLeft < 0) urgency = 'overdue';
+      //       else if (daysLeft === 0) urgency = 'due today';
+      //       else if (daysLeft <= 7) urgency = 'due soon';
+      //       else urgency = '';
+      //       notifications.push({
+      //         id: `fee_${f.id}`,
+      //         type: 'reminder',
+      //         title: `Fee Due: ${f.name}`,
+      //         message: `Your fee "${f.name}" of amount ${f.defaultAmount} is ${urgency ? urgency : 'due'}${f.dueDate ? ` on ${dueDate.toLocaleDateString()}` : ''}.`,
+      //         meta: {
+      //           feeType: f.name,
+      //           dueDate: f.dueDate,
+      //           date: f.dueDate ? new Date(f.dueDate).toLocaleDateString() : null,
+      //           status,
+      //           amount: f.defaultAmount
+      //         },
+      //         // createdAt: now
+      //       });
+      //     }
+      //   }
+      // }
+
+      // Add bank details notification from env
+      const bankName = process.env.BANK_NAME || 'NBSL';
+      const bankBranch = process.env.BANK_BRANCH || 'Main Branch';
+      const bankAccount = process.env.BANK_ACCOUNT || '123456';
+      const bankDetailsMsg = process.env.BANK_DETAILS_MESSAGE || `Send payment to ${bankName} acc ${bankAccount}`;
+      notifications.push({
+        id: 'bank_details',
+        type: 'bank_details',
+        title: 'Bank Account Details',
+        message: bankDetailsMsg,
+        meta: { bank: bankName, branch: bankBranch, account: bankAccount },
+        // createdAt: now
+      });
 
       return res.status(200).json({ notifications });
     } catch (error) {

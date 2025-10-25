@@ -8,6 +8,10 @@ const controller = new PaymentAdminController();
 // All admin routes require authentication and then role checks (role checking middleware may be applied globally)
 router.use(authenticate);
 
+
+// Payment statistics
+router.get('/payments/stats', async (req, res) => controller.stats(req, res));
+
 // List payments
 router.get('/payments', async (req, res) => controller.list(req, res));
 
@@ -25,5 +29,7 @@ router.delete('/payments/:paymentId', async (req, res) => controller.delete(req,
 
 // Add admin note
 router.post('/payments/:paymentId/notes', async (req, res) => controller.addNote(req, res));
+
+
 
 module.exports = router;

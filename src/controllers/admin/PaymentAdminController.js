@@ -7,6 +7,56 @@ const logger = require('../../config/logger');
 const { log } = require('console');
 
 class PaymentAdminController {
+  // GET /api/admin/payments/stats
+  async stats(req, res) {
+    try {
+      // Total payments
+      const total = await prisma.payment.count();
+      // By status
+      const [pending, approved, rejected] = await Promise.all([
+        prisma.payment.count({ where: { status: 'pending' } }),
+        prisma.payment.count({ where: { status: 'approved' } }),
+        prisma.payment.count({ where: { status: 'rejected' } })
+      ]);
+      // Total amount by status
+      const [pendingAmount, approvedAmount, rejectedAmount] = await Promise.all([
+        prisma.payment.aggregate({ _sum: { amount: true }, where: { status: 'pending' } }),
+        prisma.payment.aggregate({ _sum: { amount: true }, where: { status: 'approved' } }),
+        prisma.payment.aggregate({ _sum: { amount: true }, where: { status: 'rejected' } })
+      ]);
+      // By day (last 7 days)
+      const today = new Date();
+      const last7 = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(today.getDate() - i);
+        const start = new Date(d.setHours(0, 0, 0, 0));
+        const end = new Date(d.setHours(23, 59, 59, 999));
+        const count = await prisma.payment.count({
+          where: {
+            createdAt: { gte: start, lte: end }
+          }
+        });
+        last7.push({ date: start.toISOString().slice(0, 10), count });
+      }
+      return res.status(200).json({
+        success: true,
+        data: {
+          total,
+          byStatus: { pending, approved, rejected },
+          amountByStatus: {
+            pending: pendingAmount._sum.amount || 0,
+            approved: approvedAmount._sum.amount || 0,
+            rejected: rejectedAmount._sum.amount || 0
+          },
+          last7Days: last7
+        }
+      });
+    } catch (error) {
+      console.error('Admin payment stats error', error);
+      return res.status(500).json({ success: false, message: 'Failed to get payment stats', error: error.message });
+    }
+  }
   constructor() {}
 
   // GET /api/admin/payments

@@ -1,4 +1,5 @@
 const express = require('express');
+const auditLogger = require('../middlewares/auditLogger');
 const router = express.Router();
 const PaymentController = require('../controllers/PaymentController');
 const authenticate = require('../middlewares/auth');
@@ -25,10 +26,10 @@ router.get('/payments/:paymentId', async (req, res) => controller.getPayment(req
 router.get('/payments/:paymentId/slip', async (req, res) => controller.getSlip(req, res));
 
 // Create payment (multipart)
-router.post('/payments', async (req, res) => controller.createPayment(req, res));
+router.post('/payments', auditLogger('create', 'payment', { module: 'payments', description: 'Payment created', entityType: 'Payment' }), async (req, res) => controller.createPayment(req, res));
 
 // Delete payment
-router.delete('/payments/:paymentId', async (req, res) => controller.deletePayment(req, res));
+router.delete('/payments/:paymentId', auditLogger('delete', 'payment', { module: 'payments', description: 'Payment deleted', entityType: 'Payment' }), async (req, res) => controller.deletePayment(req, res));
 
 // Payment related notifications
 router.get('/notifications/payments', async (req, res) => controller.paymentNotifications(req, res));

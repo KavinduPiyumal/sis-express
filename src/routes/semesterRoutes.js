@@ -8,7 +8,7 @@ const router = express.Router();
 router.post('/', authenticate, auditLogger('create', 'semester', { module: 'semester', description: 'Semester created', entityType: 'Semester' }), controller.create);
 
 // Start next semester for a batch (super_admin only)
-router.post('/start-next/:batchId', authenticate, requireSuperAdmin, controller.startNextSemesterForBatch);
+router.post('/start-next/:batchId', authenticate, requireSuperAdmin, auditLogger('start_next', 'semester', { module: 'semester', description: 'Started next semester for batch', entityType: 'Semester' }), controller.startNextSemesterForBatch);
 router.get('/', authenticate, controller.getAll);
 router.get('/batch/:batchId', authenticate, controller.getByBatchId);
 router.get('/:id', authenticate, controller.getById);

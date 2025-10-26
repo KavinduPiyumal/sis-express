@@ -1,4 +1,5 @@
 const express = require('express');
+const auditLogger = require('../../middlewares/auditLogger');
 const router = express.Router();
 const PaymentAdminController = require('../../controllers/admin/PaymentAdminController');
 const authenticate = require('../../middlewares/auth');
@@ -22,13 +23,13 @@ router.get('/payments/:paymentId', async (req, res) => controller.get(req, res))
 router.get('/payments/:paymentId/attachments/:filename', async (req, res) => controller.attachment(req, res));
 
 // Action (approve/reject/need_more_info)
-router.patch('/payments/:paymentId', async (req, res) => controller.action(req, res));
+router.patch('/payments/:paymentId', auditLogger('action', 'payment', { module: 'payments', description: 'Payment action (approve/reject/need_more_info)', entityType: 'Payment' }), async (req, res) => controller.action(req, res));
 
 // Delete payment
-router.delete('/payments/:paymentId', async (req, res) => controller.delete(req, res));
+router.delete('/payments/:paymentId', auditLogger('delete', 'payment', { module: 'payments', description: 'Payment deleted', entityType: 'Payment' }), async (req, res) => controller.delete(req, res));
 
 // Add admin note
-router.post('/payments/:paymentId/notes', async (req, res) => controller.addNote(req, res));
+router.post('/payments/:paymentId/notes', auditLogger('add_note', 'payment', { module: 'payments', description: 'Admin note added to payment', entityType: 'Payment' }), async (req, res) => controller.addNote(req, res));
 
 
 

@@ -2,6 +2,7 @@ const express = require('express');
 const controller = require('../controllers/ResultController');
 const authenticate = require('../middlewares/auth');
 const { requireAdminOrSuperAdmin, requireAdmin, requireStudent } = require('../middlewares/authorize');
+const auditLogger = require('../middlewares/auditLogger');
 const router = express.Router();
 
 // Student-specific routes (must come before generic routes to avoid conflicts)
@@ -13,7 +14,7 @@ router.get('/student/my-academic-record', authenticate, requireStudent, controll
 router.get('/lecturer/my-results', authenticate, requireAdmin, controller.getMyLecturerResults); // Lecturer's course results
 
 // Admin/SuperAdmin routes for bulk operations
-router.post('/bulk', authenticate, requireAdminOrSuperAdmin, controller.bulkCreate); // Bulk create results
+router.post('/bulk', authenticate, requireAdminOrSuperAdmin, auditLogger('bulk_create', 'result', { module: 'results', description: 'Bulk results created', entityType: 'Result' }), controller.bulkCreate); // Bulk create results
 
 // GPA calculation routes - Admin only
 router.get('/gpa/student/:studentId', authenticate, requireAdminOrSuperAdmin, controller.getStudentGPA); // Calculate student GPA
@@ -21,10 +22,10 @@ router.get('/academic-record/student/:studentId', authenticate, requireAdminOrSu
 
 // General result operations
 router.get('/', authenticate, requireAdminOrSuperAdmin, controller.getAll); // Get all results with filtering - Admin only
-router.post('/', authenticate, requireAdminOrSuperAdmin, controller.create); // Create single result
+router.post('/', authenticate, requireAdminOrSuperAdmin, auditLogger('create', 'result', { module: 'results', description: 'Result created', entityType: 'Result' }), controller.create); // Create single result
 router.get('/:id', authenticate, requireAdminOrSuperAdmin, controller.getById); // Get result by ID - Admin only
-router.put('/:id', authenticate, requireAdminOrSuperAdmin, controller.update); // Update result
-router.delete('/:id', authenticate, requireAdminOrSuperAdmin, controller.delete); // Delete result
+router.put('/:id', authenticate, requireAdminOrSuperAdmin, auditLogger('update', 'result', { module: 'results', description: 'Result updated', entityType: 'Result' }), controller.update); // Update result
+router.delete('/:id', authenticate, requireAdminOrSuperAdmin, auditLogger('delete', 'result', { module: 'results', description: 'Result deleted', entityType: 'Result' }), controller.delete); // Delete result
 
 // Results by relationships - Admin only
 router.get('/student/:studentId', authenticate, requireAdminOrSuperAdmin, controller.getByStudentId); // Results by student ID

@@ -79,18 +79,18 @@ const roleValidation = [
 ];
 
 // Routes
-router.post('/', authenticate, requireSuperAdmin, createUserValidation, validate, auditLogger('create', 'user', { module: 'user', description: 'User created', entityType: 'User' }), userController.createUser);
+router.post('/', authenticate, requireSuperAdmin, createUserValidation, validate, auditLogger('create', 'user', { module: 'users_accounts', description: 'User created', entityType: 'User' }), userController.createUser);
 
 // Bulk creation endpoints
-router.post('/bulk/students', authenticate, requireSuperAdmin, userController.bulkCreateStudents);
-router.post('/bulk/lecturers', authenticate, requireSuperAdmin, userController.bulkCreateLecturers);
+router.post('/bulk/students', authenticate, requireSuperAdmin, auditLogger('bulk_create', 'user', { module: 'users_accounts', description: 'Bulk students created', entityType: 'User' }), userController.bulkCreateStudents);
+router.post('/bulk/lecturers', authenticate, requireSuperAdmin, auditLogger('bulk_create', 'user', { module: 'users_accounts', description: 'Bulk lecturers created', entityType: 'User' }), userController.bulkCreateLecturers);
 router.get('/', authenticate, requireSuperAdmin, userController.getAllUsers);
 router.get('/stats', authenticate, requireSuperAdmin, userController.getUserStats);
 router.get('/students', authenticate, requireAdminOrSuperAdmin, userController.getStudents);
 router.get('/admins', authenticate, requireSuperAdmin, userController.getAdmins);
 router.get('/role/:role', authenticate, requireAdminOrSuperAdmin, roleValidation, validate, userController.getUsersByRole);
 router.get('/:id', authenticate, userIdValidation, validate, checkOwnership, userController.getUserById);
-router.put('/:id', authenticate, userIdValidation, updateUserValidation, validate, checkOwnership, auditLogger('update', 'user', { module: 'user', description: 'User updated', entityType: 'User' }), userController.updateUser);
-router.delete('/:id', authenticate, requireSuperAdmin, userIdValidation, validate, auditLogger('delete', 'user', { module: 'user', description: 'User deleted', entityType: 'User' }), userController.deleteUser);
+router.put('/:id', authenticate, userIdValidation, updateUserValidation, validate, checkOwnership, auditLogger('update', 'user', { module: 'users_accounts', description: 'User updated', entityType: 'User' }), userController.updateUser);
+router.delete('/:id', authenticate, requireSuperAdmin, userIdValidation, validate, auditLogger('delete', 'user', { module: 'users_accounts', description: 'User deleted', entityType: 'User' }), userController.deleteUser);
 
 module.exports = router;

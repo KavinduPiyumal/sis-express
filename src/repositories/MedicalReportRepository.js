@@ -40,7 +40,7 @@ class MedicalReportRepository {
     });
   }
 
-  async findAll(filter = {}) {
+  async findAll(filter = {}, options = {}) {
     // Accepts filter as a plain object, not { where: {...} }
     return await prisma.medicalReport.findMany({
       where: filter,
@@ -61,7 +61,8 @@ class MedicalReportRepository {
             }
           }
         }
-      }
+      },
+      ...options
     });
   }
 

@@ -435,16 +435,19 @@ class ResultUseCase {
     const createdResults = [];
     const errors = [];
 
+    const notificationService = require('../infrastructure/notificationService');
+    const UserRepository = require('../repositories/UserRepository');
+    const userRepo = new UserRepository();
     for (const data of resultsData) {
       try {
         let studentId = data.studentId;
+        let studentUser = null;
 
         // If studentNo is provided instead of studentId, find the student
         if (data.studentNo && !data.studentId) {
           const StudentRepository = require('../repositories/StudentRepository');
           const studentRepo = new StudentRepository();
           const student = await studentRepo.findOne({ studentNo: data.studentNo });
-          
           if (!student) {
             errors.push({
               studentNo: data.studentNo,
@@ -452,8 +455,11 @@ class ResultUseCase {
             });
             continue;
           }
-          
           studentId = student.id;
+          // Try to get user from student
+          if (student.userId) {
+            studentUser = await userRepo.findById(student.userId);
+          }
         }
 
         if (!studentId) {
@@ -462,6 +468,17 @@ class ResultUseCase {
             error: 'Either studentId or studentNo must be provided'
           });
           continue;
+        }
+
+        // If not already found, try to get user by studentId
+        if (!studentUser) {
+          // Try to get student by id, then user
+          const StudentRepository = require('../repositories/StudentRepository');
+          const studentRepo = new StudentRepository();
+          const student = await studentRepo.findById(studentId);
+          if (student && student.userId) {
+            studentUser = await userRepo.findById(student.userId);
+          }
         }
 
         // Check if result already exists
@@ -509,6 +526,50 @@ class ResultUseCase {
 
         const result = await this.resultRepository.create(resultData);
         createdResults.push(new ResultDTO(result));
+
+        // Notify student (email + notification)
+        if (studentUser && studentUser.email) {
+          // Always try to get subject name using courseOfferingId if not present
+          let subjectName = null;
+          let year = '';
+          try {
+            const CourseOfferingRepository = require('../repositories/CourseOfferingRepository');
+            const courseOfferingRepo = new CourseOfferingRepository();
+            // Try to include subject in the fetch
+            let courseOffering = await courseOfferingRepo.findById(data.courseOfferingId, { include: { subject: true } });
+            // If repo doesn't support include, fetch subject manually
+            year = courseOffering.year ? ` (${courseOffering.year})` : '';
+            if (courseOffering && !courseOffering.subject && courseOffering.subjectId) {
+              const SubjectRepository = require('../repositories/SubjectRepository');
+              const subjectRepo = new SubjectRepository();
+              const subject = await subjectRepo.findById(courseOffering.subjectId);
+              if (subject && subject.name) {
+                subjectName = subject.name;
+              }
+            } else if (courseOffering && courseOffering.subject && courseOffering.subject.name) {
+              subjectName = courseOffering.subject.name;
+            }
+          } catch (e) {
+            // ignore error, fallback to id
+          }
+          // Fallback: try to get from result object
+          if (!subjectName && result && result.courseOffering && result.courseOffering.subject && result.courseOffering.subject.name) {
+            subjectName = result.courseOffering.subject.name;
+          }
+          const subject = 'Result Published';
+          const message = subjectName
+            ? `Your result for <b>${subjectName} ${year}</b> has been published now.`
+            : `Your result for course offering <b>${data.courseOfferingId}</b> has been published now.`;
+          await notificationService.notifyUser({
+            user: studentUser,
+            title: subject,
+            message,
+            type: 'result',
+            relatedEntityId: result.id,
+            relatedEntityType: 'Result',
+            isNotifyEmail: true
+          });
+        }
       } catch (error) {
         errors.push({
           studentNo: data.studentNo || 'Unknown',

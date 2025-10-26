@@ -21,6 +21,17 @@ enum NotificationType {
   payment
   medical_report
   general
+  enrollment
+  attendance
+  fee
+  gpa
+  transcript
+  approval
+  rejection
+  info
+  warning
+  event
+  message
 }
 
 enum StudentStatus {

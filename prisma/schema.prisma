@@ -468,6 +468,7 @@ model Payment {
   reviewedBy     String?
   reviewNotes    String?
   reviewedAt     DateTime?
+  paymentMethod  String? 
   student        User          @relation("PaymentStudent", fields: [studentId], references: [id])
   reviewedByUser User?         @relation("PaymentReviewedBy", fields: [reviewedBy], references: [id])
   createdAt        DateTime         @default(now())

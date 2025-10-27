@@ -79,21 +79,35 @@ class LinkUseCase {
 
   async getActiveLinksForUser(userRole, options = {}, userId = null) {
     try {
-      // Map user role to target audience
-      let targetAudience;
-      if (userRole === 'student') {
-        targetAudience = 'students';
-      } else if (userRole === 'admin' || userRole === 'super_admin') {
-        targetAudience = 'admins';
-      } else {
-        targetAudience = 'all';
-      }
+      let links = [];
+      if (userRole === 'admin' || userRole === 'super_admin') {
+        // Fetch links for admins: targetAudience 'admins' or 'all'
+        const adminLinks = await this.linkRepository.findActiveByTargetAudienceWithUserViews('admins', options, userId);
+        const allLinks = await this.linkRepository.findActiveByTargetAudienceWithUserViews('all', options, userId);
 
-      const links = await this.linkRepository.findActiveByTargetAudienceWithUserViews(
-        targetAudience, 
-        options, 
-        userId
-      );
+        // Also fetch links with targetAudience 'students' created by this admin
+        let studentLinks = [];
+        if (userId) {
+          const studentLinksResult = await this.linkRepository.findManyWithUserViews({ targetAudience: 'students', createdBy: userId }, options, userId);
+          studentLinks = studentLinksResult.links || [];
+        }
+
+        // Merge and deduplicate by id
+        const map = new Map();
+        [...adminLinks, ...allLinks, ...studentLinks].forEach(l => map.set(l.id, l));
+        links = Array.from(map.values());
+      } else if (userRole === 'student') {
+        // Students: fetch links for 'students' and 'all'
+        const studentLinks = await this.linkRepository.findActiveByTargetAudienceWithUserViews('students', options, userId);
+        const allLinks = await this.linkRepository.findActiveByTargetAudienceWithUserViews('all', options, userId);
+        // Merge and deduplicate by id
+        const map = new Map();
+        [...studentLinks, ...allLinks].forEach(l => map.set(l.id, l));
+        links = Array.from(map.values());
+      } else {
+        // Default: just 'all'
+        links = await this.linkRepository.findActiveByTargetAudienceWithUserViews('all', options, userId);
+      }
 
       return links.map(link => this.addNewBadgeLogic(link, userId));
     } catch (error) {
@@ -204,9 +218,9 @@ class LinkUseCase {
     }
   }
 
-  async getLinkStatistics(filters = {}, requestUserId = null) {
+  async getLinkStatistics(filters = {}, requestUserId = null ,userRole = null) {
     try {
-      const statistics = await this.linkRepository.getStatisticsWithFilters(filters, requestUserId);
+      const statistics = await this.linkRepository.getStatisticsWithFilters(filters, requestUserId, userRole);
       return statistics;
     } catch (error) {
       logger.error('Error getting link statistics:', error);

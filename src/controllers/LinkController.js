@@ -192,7 +192,8 @@ class LinkController {
       };
 
       const requestUserId = req.user ? req.user.id : null;
-      const statistics = await this.linkUseCase.getLinkStatistics(filters, requestUserId);
+      const userRole = req.user ? req.user.role : null;
+      const statistics = await this.linkUseCase.getLinkStatistics(filters, requestUserId, userRole);
 
       res.json({
         success: true,

@@ -329,15 +329,51 @@ class LinkRepository {
   }
 
   // New: statistics with optional filters and requestUserId to allow creator bypass
-  async getStatisticsWithFilters(filters = {}, requestUserId = null) {
+  async getStatisticsWithFilters(filters = {}, requestUserId = null, userRole = null) {
     try {
-      const { createdBy, includeExpired = false } = filters;
+      const { createdBy, includeExpired = false, targetAudience } = filters;
       const now = new Date();
-
-      // Build date-aware base where clause
       const where = {};
 
-      if (createdBy) where.createdBy = createdBy;
+      // LOGGING: Show scenario context
+      // eslint-disable-next-line no-console
+      console.log('[LinkStats] userRole:', userRole, 'requestUserId:', requestUserId, 'targetAudience:', targetAudience, 'createdBy:', createdBy);
+
+      // Scenario logic
+      if (userRole === 'admin' || userRole === 'super_admin') {
+        if (targetAudience === 'students') {
+          // Only links created by this admin
+          where.targetAudience = 'students';
+          if (requestUserId) where['createdByUser.id'] = requestUserId;
+        } else if (targetAudience === 'admins' || targetAudience === 'all') {
+          where.targetAudience = targetAudience;
+        } else if (targetAudience) {
+          // If some other audience, restrict to that
+          where.targetAudience = targetAudience;
+        } else {
+          // If no targetAudience, restrict to admins and all
+          where.targetAudience = { in: ['admins', 'all'] };
+        }
+      } else if (userRole === 'student') {
+        // Students: only 'students' and 'all' allowed
+        if (targetAudience === 'students' || targetAudience === 'all') {
+          where.targetAudience = targetAudience;
+        } else {
+          // If not allowed, return zero stats
+          // eslint-disable-next-line no-console
+          console.log('[LinkStats] Student role, forbidden targetAudience:', targetAudience);
+          return { total: 0, active: 0, inactive: 0, totalViews: 0, byPriority: {}, byTargetAudience: {}, byCategory: {} };
+        }
+      } else {
+        // Default: just filter by targetAudience if present
+        if (targetAudience) where.targetAudience = targetAudience;
+      }
+
+  if (createdBy) where.createdBy = createdBy;
+
+  // LOGGING: Show where filter before date logic
+  // eslint-disable-next-line no-console
+  console.log('[LinkStats] where filter before date logic:', JSON.stringify(where));
 
       if (!includeExpired) {
         const startOr = [
@@ -366,6 +402,10 @@ class LinkRepository {
           { OR: endOr },
         ];
       }
+
+      // LOGGING: Show final where filter
+      // eslint-disable-next-line no-console
+      console.log('[LinkStats] FINAL where filter:', JSON.stringify(where));
 
       const [
         total,

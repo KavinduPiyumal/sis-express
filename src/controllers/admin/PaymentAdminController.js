@@ -170,12 +170,12 @@ class PaymentAdminController {
         studentId: payment.studentId,
         studentName: payment.student ? `${payment.student.firstName || ''} ${payment.student.lastName || ''}`.trim() : null,
         studentNo: payment.student && payment.student.student ? payment.student.student.studentNo : null,
-        feeType: payment.paymentType,
+        feeType: payment.feeType ? payment.feeType.name : (payment.paymentType || null),
         feeTypeDueDate: payment.feeType ? payment.feeType.dueDate : null,
         semesterId: payment.semester || null,
         amount: payment.amount,
-        paymentType: payment.paymentType,
-        method: null,
+        paymentType: payment.feeType ? payment.feeType.name : (payment.paymentType || null),
+        method: payment.paymentMethod || null,
         receiptNumber: payment.receiptNumber || null,
         attachments: payment.filePath ? [{ filename: path.basename(payment.filePath), url: `http://localhost:3000/api/admin/payments/${payment.id}/attachments/${encodeURIComponent(path.basename(payment.filePath))}` }] : [],
         status: payment.status,
@@ -262,14 +262,46 @@ class PaymentAdminController {
       }
 
       // append notes
-      const note = dto.remarks ? `${new Date().toISOString()} | ${req.user && req.user.id ? req.user.id : 'admin'}: ${dto.remarks}` : null;
+      const note = dto.remarks ? `${new Date().toISOString().slice(0, 10)} | ${req.user && req.user.role === 'super_admin' ? 'Super Admin' : 'Admin'}: ${dto.remarks}` : null;
       if (note) {
         updates.reviewNotes = payment.reviewNotes ? `${payment.reviewNotes}\n${note}` : note;
       }
 
       const updated = await prisma.payment.update({ where: { id: paymentId }, data: updates });
 
-      // TODO: send notification if dto.notifyStudent === true
+      // Notify student if payment is approved or rejected
+      try {
+        if (dto.action === 'approve' || dto.action === 'reject') {
+          const UserRepository = require('../../repositories/UserRepository');
+          const notificationService = require('../../infrastructure/notificationService');
+          const userRepo = new UserRepository();
+          const studentUser = await userRepo.findById(payment.studentId);
+          if (studentUser) {
+            let title, message;
+            if (dto.action === 'approve') {
+              title = 'Payment Approved';
+              message = `Your payment of Rs. ${payment.amount} has been approved.`;
+            } else {
+              title = 'Payment Rejected';
+              message = `Your payment of Rs. ${payment.amount} has been rejected.<br>`;
+              if (updates.reviewNotes) message += ` Reason: ${updates.reviewNotes}`;
+            }
+            // Optionally include studentNo or other info in the message
+            // if (studentRecord && studentRecord.studentNo) message += ` (Student No: ${studentRecord.studentNo})`;
+            await notificationService.notifyUser({
+              user: studentUser,
+              title,
+              message,
+              type: 'payment',
+              relatedEntityId: payment.id,
+              relatedEntityType: 'payment',
+              isNotifyEmail: true
+            });
+          }
+        }
+      } catch (notifyErr) {
+        logger.warn('Failed to send payment status notification', { error: notifyErr.message });
+      }
 
       return res.status(200).json({ success: true, data: updated });
     } catch (error) {

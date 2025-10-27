@@ -220,12 +220,14 @@ class PaymentController {
         if (qdto.endDate) where.paymentDate.lte = new Date(qdto.endDate);
       }
 
+      // Fetch payments with related feeType for richer response
       const total = await prisma.payment.count({ where });
       const payments = await prisma.payment.findMany({
         where,
         orderBy: { paymentDate: 'desc' },
         skip: (qdto.page - 1) * qdto.perPage,
-        take: qdto.perPage
+        take: qdto.perPage,
+        include: { feeType: true }
       });
 
       // Map slipUrl: if using S3 we can generate presigned URL; otherwise provide endpoint
@@ -233,11 +235,13 @@ class PaymentController {
         id: p.id,
         date: p.paymentDate,
         amount: p.amount,
-        method: null,
+        // Try to get method from paymentMethod, or fallback to description or null
+        method: p.paymentMethod || p.method || null,
         reference: p.receiptNumber || null,
         status: p.status,
         slipUrl: p.filePath ? this.getSlipAccessUrl(p) : null,
-        feeType: p.paymentType
+        // Only set feeType as the name string (if available)
+        feeType: p.feeType ? p.feeType.name : (p.paymentType || null)
       }));
 
       return res.status(200).json({ page: qdto.page, perPage: qdto.perPage, total, payments: mapped });
@@ -296,6 +300,7 @@ class PaymentController {
 
   // POST /api/students/me/payments  (multipart)
   async createPayment(req, res) {
+        const prisma = require('../infrastructure/prisma');
     try {
       const upload = getUploadMiddleware({ subDir: 'payments' });
       const uploadSingle = upload.single('slipFile');
@@ -314,9 +319,16 @@ class PaymentController {
           return res.status(400).json({ errors: validation.errors });
         }
 
-  // Create payment record
-  const studentId = req.user && req.user.id ? req.user.id : null;
-  if (!studentId) return res.status(401).json({ message: 'Authentication required' });
+
+    // Get current userId
+    const userId = req.user && req.user.id ? req.user.id : null;
+    if (!userId) return res.status(401).json({ message: 'Authentication required' });
+
+  // Find the student record for this user (for notification only)
+  const studentRecord = await prisma.student.findUnique({ where: { userId } });
+  if (!studentRecord) return res.status(404).json({ message: 'Student record not found' });
+  // For Payment.studentId, use userId (User model)
+  const studentId = userId;
 
         // Save slip path: for local storage store relative path; for s3 we expect file.location or key
         let slipPath = null;
@@ -347,7 +359,7 @@ class PaymentController {
 
         const create = await prisma.payment.create({
           data: {
-            studentId,
+            studentId, // This is userId
             amount: Number(dto.paymentAmount),
             paymentDate: new Date(dto.paymentDate),
             paymentType: paymentTypeValue,
@@ -356,10 +368,52 @@ class PaymentController {
             receiptNumber: dto.referenceNumber || null,
             fileName: fileName,
             filePath: filePath,
-            status: 'pending'
+            status: 'pending',
+            paymentMethod: dto.paymentMethod || null
           },
           include: { feeType: true }
         });
+
+        // Notify student (payment received and pending review)
+        try {
+          const notificationService = require('../infrastructure/notificationService');
+          const UserRepository = require('../repositories/UserRepository');
+          const userRepo = new UserRepository();
+          // Use studentRecord.userId to get the user
+          let studentUser = null;
+          if (studentRecord && studentRecord.userId) {
+            studentUser = await userRepo.findById(studentRecord.userId);
+            if (studentUser) {
+              await notificationService.notifyUser({
+                user: studentUser,
+                title: 'Payment Received',
+                message: `Your payment of Rs. ${create.amount} for fee "${create.feeType ? create.feeType.name : (create.paymentType || '')}" has been received and is pending review.`,
+                type: 'payment',
+                relatedEntityId: create.id,
+                relatedEntityType: 'payment',
+                isNotifyEmail: true
+              });
+            }
+          }
+
+          // Notify all super_admins (payment pending review)
+          const superAdmins = await userRepo.findByRole('super_admin');
+          for (const admin of superAdmins) {
+            await notificationService.notifyUser({
+              user: admin,
+              title: 'New Payment Pending Review',
+              message: `A new payment of Rs. ${create.amount} from student ${studentUser ? (studentUser.firstName + ' ' + studentUser.lastName) : studentRecord.userId} is pending review.`,
+              type: 'payment',
+              relatedEntityId: create.id,
+              relatedEntityType: 'payment',
+              isNotifyEmail: true
+            });
+          }
+        } catch (notifyErr) {
+          // Log but do not block response
+          const logger = require('../config/logger');
+          logger.warn('Failed to send payment notifications', { error: notifyErr.message });
+        }
 
         const response = {
           id: create.id,

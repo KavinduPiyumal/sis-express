@@ -68,6 +68,7 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
+
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -92,6 +93,9 @@ app.use('/uploads', (req, res, next) => {
   }
   next();
 }, express.static(path.join(__dirname, '../uploads')));
+
+// Serve uploaded files from /var/www/html/uploads
+app.use('/uploads', express.static(path.join('/var/www/html/uploads')));
 
 // API routes
 app.use('/api/auth', authRoutes);

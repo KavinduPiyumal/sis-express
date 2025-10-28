@@ -10,29 +10,24 @@ class EmailService {
   }
 
   initializeTransporter() {
-    if (!config.email.host || !config.email.port) {
+    const { host, port, user, password, secure } = config.email;
+
+    if (!host || !port) {
       logger.warn('Email host or port missing. Email service will not work.');
       return;
     }
 
-    const useAuth = config.email.user && config.email.password;
-
     const transporterOptions = {
-      host: config.email.host,
-      port: config.email.port,
-      secure: config.email.secure === 'true',
+      host,
+      port,
+      secure: secure === 'true',
+      auth: user && password ? { user, pass: password } : undefined,
     };
 
-    if (useAuth) {
-      transporterOptions.auth = {
-        user: config.email.user,
-        pass: config.email.password,
-      };
-    }
-
+    logger.info(`Initializing SMTP transporter for ${process.env.NODE_ENV}`);
     this.transporter = nodemailer.createTransport(transporterOptions);
-
   }
+
 
   async sendEmail(to, subject, html, text = null) {
     if (!this.transporter) {

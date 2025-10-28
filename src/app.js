@@ -77,6 +77,10 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
 // Static file serving for uploads with dynamic CORS headers for images
+const uploadsPath = process.env.NODE_ENV === 'production'
+  ? '/var/www/html/uploads'
+  : path.join(__dirname, '../uploads');
+
 app.use('/uploads', (req, res, next) => {
   const allowedOrigins = config.corsOriginList;
   const origin = req.headers.origin;
@@ -87,15 +91,12 @@ app.use('/uploads', (req, res, next) => {
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Allow-Methods', 'GET,OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-  if (req.method === 'OPTIONS') {
-    // Respond to preflight request
-    return res.sendStatus(200);
-  }
-  next();
-}, express.static(path.join(__dirname, '../uploads')));
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
 
-// Serve uploaded files from /var/www/html/uploads
-app.use('/uploads', express.static(path.join('/var/www/html/uploads')));
+  // Serve file
+  express.static(uploadsPath)(req, res, next);
+});
+
 
 // API routes
 app.use('/api/auth', authRoutes);

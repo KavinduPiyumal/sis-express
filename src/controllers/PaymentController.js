@@ -391,7 +391,7 @@ class PaymentController {
                 type: 'payment',
                 relatedEntityId: create.id,
                 relatedEntityType: 'payment',
-                isNotifyEmail: true
+                isNotifyEmail: false
               });
             }
           }
@@ -406,7 +406,7 @@ class PaymentController {
               type: 'payment',
               relatedEntityId: create.id,
               relatedEntityType: 'payment',
-              isNotifyEmail: true
+              isNotifyEmail: false
             });
           }
         } catch (notifyErr) {

@@ -60,7 +60,7 @@ app.use(cors({
   origin: config.corsOriginList,
   credentials: true
 }));
-
+app.set('trust proxy', 1); // trust first proxy (needed for Railway, Vercel, Heroku, etc.)
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes

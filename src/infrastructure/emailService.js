@@ -101,7 +101,7 @@ class EmailService {
         <table style="max-width: 600px; margin: 40px auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px #e0e7ef; overflow: hidden;">
           <tr>
             <td style="background: #2d6cdf; padding: 32px 24px; text-align: center;">
-              <img src="https://sis.affna.edu.lk/logo.png" alt="SIS Logo" style="height: 48px; margin-bottom: 12px;" />
+              <img src="https://www.tech.jfn.ac.lk/wp-content/uploads/2021/06/2.png" alt="SIS Logo" style="height: 48px; margin-bottom: 12px;" />
               <h1 style="color: #fff; font-size: 2rem; margin: 0;">Welcome to SIS!</h1>
             </td>
           </tr>
@@ -142,7 +142,7 @@ class EmailService {
         <table style="max-width: 600px; margin: 40px auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px #e0e7ef; overflow: hidden;">
           <tr>
             <td style="background: #2d6cdf; padding: 32px 24px; text-align: center;">
-              <img src="https://sis.affna.edu.lk/logo.png" alt="SIS Logo" style="height: 48px; margin-bottom: 12px;" />
+              <img src="https://www.tech.jfn.ac.lk/wp-content/uploads/2021/06/2.png" alt="SIS Logo" style="height: 48px; margin-bottom: 12px;" />
               <h1 style="color: #fff; font-size: 2rem; margin: 0;">SIS Notification</h1>
             </td>
           </tr>
@@ -177,7 +177,7 @@ class EmailService {
         <table style="max-width: 600px; margin: 40px auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px #e0e7ef; overflow: hidden;">
           <tr>
             <td style="background: #2d6cdf; padding: 32px 24px; text-align: center;">
-              <img src="https://sis.affna.edu.lk/logo.png" alt="SIS Logo" style="height: 48px; margin-bottom: 12px;" />
+              <img src="https://www.tech.jfn.ac.lk/wp-content/uploads/2021/06/2.png" alt="SIS Logo" style="height: 48px; margin-bottom: 12px;" />
               <h1 style="color: #fff; font-size: 2rem; margin: 0;">Password Reset Request</h1>
             </td>
           </tr>
@@ -210,7 +210,7 @@ class EmailService {
         <table style="max-width: 600px; margin: 40px auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px #e0e7ef; overflow: hidden;">
           <tr>
             <td style="background: #2d6cdf; padding: 32px 24px; text-align: center;">
-              <img src="https://sis.affna.edu.lk/logo.png" alt="SIS Logo" style="height: 48px; margin-bottom: 12px;" />
+              <img src="https://www.tech.jfn.ac.lk/wp-content/uploads/2021/06/2.png" alt="SIS Logo" style="height: 48px; margin-bottom: 12px;" />
               <h1 style="color: #fff; font-size: 2rem; margin: 0;">Change Password OTP</h1>
             </td>
           </tr>

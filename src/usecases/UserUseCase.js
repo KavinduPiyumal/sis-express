@@ -48,7 +48,7 @@ class UserUseCase {
 
 
         // Generate temporary password if not provided
-        const tempPassword = userData.password || this.generateTempPassword();
+        const tempPassword = userData.password ? userData.password : this.generateTempPassword();
 
         // Hash password
         const saltRounds = 12;
@@ -103,10 +103,15 @@ class UserUseCase {
         // For super_admin, no extra record
 
         // Return user and tempPassword for email sending after transaction
-        return { user, tempPassword: userData.password ? null : tempPassword };
+        return { user, tempPassword: userData.password ? userData.password : tempPassword };
       });
-      // Send welcome email after transaction
-      await emailService.sendWelcomeEmail(result.user, result.tempPassword);
+      // Send welcome email after transaction, but don't block user creation if email fails
+      try {
+        await emailService.sendWelcomeEmail(result.user, result.tempPassword);
+      } catch (emailError) {
+        logger.error('Failed to send welcome email:', emailError);
+        // Optionally, you could add a property to the response to indicate email failure
+      }
       return new UserDTO(result.user);
     } catch (error) {
       logger.error('Create user error:', error);

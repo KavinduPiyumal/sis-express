@@ -276,7 +276,8 @@ class PaymentController {
       if (!userId) return res.status(401).json({ message: 'Authentication required' });
 
       const paymentId = req.params.paymentId;
-      const payment = await prisma.payment.findUnique({ where: { id: paymentId } });
+      // Include feeType for richer response
+      const payment = await prisma.payment.findUnique({ where: { id: paymentId }, include: { feeType: true } });
       if (!payment) return res.status(404).json({ message: 'Not found' });
       if (String(payment.studentId) !== String(userId)) return res.status(403).json({ message: 'Not allowed' });
 
@@ -284,12 +285,13 @@ class PaymentController {
         id: payment.id,
         date: payment.paymentDate,
         amount: payment.amount,
-        method: null,
+        method: payment.paymentMethod || payment.method || null,
         reference: payment.receiptNumber || null,
         status: payment.status,
-        feeType: payment.paymentType,
-        remarks: payment.description || null,
-        slipUrl: payment.filePath ? this.getSlipAccessUrl(payment) : null
+        slipUrl: payment.filePath ? this.getSlipAccessUrl(payment) : null,
+        // Prefer feeType name if available, else fallback to paymentType
+        feeType: payment.feeType ? payment.feeType.name : (payment.paymentType || null),
+        remarks: payment.description || null
       };
 
       return res.status(200).json(result);

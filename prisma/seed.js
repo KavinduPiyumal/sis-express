@@ -5,16 +5,15 @@ const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
 
 async function main() {
-  // --- Faculty, Department, DegreeProgram, Batch demo data ---
   // Faculty
   const faculty = await prisma.faculty.upsert({
     where: { id: 'fac-001' },
     update: {},
     create: {
       id: 'fac-001',
-      name: 'Faculty of Science',
-      deanName: 'Dr. Alice Smith',
-      contactInfo: 'science@university.edu',
+      name: 'Faculty of Technology',
+      deanName: 'Dr. H.R.S. Fernando',
+      contactInfo: 'fot@jfn.ac.lk/',
     },
   });
 

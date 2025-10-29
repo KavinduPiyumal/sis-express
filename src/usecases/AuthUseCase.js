@@ -341,10 +341,9 @@ class AuthUseCase {
       changePasswordOtp: otp,
       changePasswordOtpExpires: new Date(otpExpiry)
     }, { id: user.id });
-    await emailService.sendEmail(
-      user.email,
-      'Change Password OTP',
-      `<p>Your OTP for password change is: <b>${otp}</b></p><p>This code will expire in 5 minutes.</p>`
+    await emailService.sendChangePasswordOtpEmail(
+      user,
+      otp
     );
     logger.info(`Change password OTP sent to ${user.email} otp: ${otp}`);
   }

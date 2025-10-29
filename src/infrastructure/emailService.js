@@ -22,22 +22,46 @@ class EmailService {
       port,
       secure: secure === 'true',
       auth: user && password ? { user, pass: password } : undefined,
+      // Helpful debug/log options when not in production
+      logger: process.env.NODE_ENV !== 'production',
+      debug: process.env.NODE_ENV !== 'production',
     };
 
     logger.info(`Initializing SMTP transporter for ${process.env.NODE_ENV}`);
     this.transporter = nodemailer.createTransport(transporterOptions);
+
+    // Verify connection config early and log detailed info for diagnostics
+    if (this.transporter && typeof this.transporter.verify === 'function') {
+      this.transporter.verify()
+        .then((info) => {
+          // info is usually true on success for many transports; log for debugging
+          logger.info('SMTP transporter verified', { info });
+        })
+        .catch((err) => {
+          logger.error('SMTP transporter verification failed', err);
+        });
+    }
   }
 
 
-  async sendEmail(to, subject, html, text = null) {
+  /**
+   * Send an email.
+   * @param {string} to
+   * @param {string} subject
+   * @param {string} html
+   * @param {string|null} text
+   * @param {boolean} debug If true, return the full nodemailer result object for debugging
+   * @returns {Promise<boolean|object>} boolean for success by default, or result object when debug=true
+   */
+  async sendEmail(to, subject, html, text = null, debug = false) {
     if (!this.transporter) {
       logger.error('Email transporter not initialized');
-      return false;
+      return debug ? { error: 'transporter-not-initialized' } : false;
     }
 
     try {
       const mailOptions = {
-        from: config.email.user,
+        from: 'kavindusimato@gmail.com',
         to,
         subject,
         html,
@@ -45,11 +69,28 @@ class EmailService {
       };
 
       const result = await this.transporter.sendMail(mailOptions);
-      logger.info(`Email sent successfully to ${to}`, { messageId: result.messageId });
-      return true;
+
+      // Log detailed result for troubleshooting
+      logger.info(`Email sent (nodemailer) to ${to}`, {
+        messageId: result.messageId,
+        accepted: result.accepted,
+        rejected: result.rejected,
+        response: result.response
+      });
+
+      // If caller requested debug info, return full result
+      if (debug) return result;
+
+      // Maintain backward compatibility for existing callers
+      return result && result.messageId ? true : false;
     } catch (error) {
-      logger.error('Failed to send email:', error);
-      return false;
+      // Nodemailer error may contain `response` with SMTP server reply
+      logger.error('Failed to send email:', {
+        message: error && error.message,
+        response: error && error.response,
+        stack: error && error.stack
+      });
+      return debug ? { error, response: error && error.response } : false;
     }
   }
 

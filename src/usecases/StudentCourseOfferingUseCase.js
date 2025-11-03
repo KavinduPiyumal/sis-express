@@ -21,10 +21,31 @@ class StudentCourseOfferingUseCase {
     if (courseOfferingIds.length === 0) return [];
     // Fetch all course offerings (no full include needed)
     const offerings = await this.courseOfferingRepository.findByFilters({ id: { in: courseOfferingIds } });
-    // Build lightweight DTOs (counts only), attach student's own enrollment (id, status)
-    return Promise.all(offerings.map(offering => {
+    
+    // Import AttendanceRepository for student's attendance statistics
+    const AttendanceRepository = require('../repositories/AttendanceRepository');
+    const attendanceRepo = new AttendanceRepository();
+    
+    // Build lightweight DTOs (counts only), attach student's own enrollment and attendance stats
+    return Promise.all(offerings.map(async offering => {
       const enrollment = enrollments.find(e => e.courseOfferingId === offering.id);
-      return CourseOfferingDTO.buildWithCounts(offering, enrollment ? { id: enrollment.id, status: enrollment.status } : undefined);
+      const dto = await CourseOfferingDTO.buildWithCounts(offering, enrollment ? { id: enrollment.id, status: enrollment.status, studentId: enrollment.studentId } : undefined);
+      
+      // Attach studentId directly to the course offering for easier access
+      if (enrollment) {
+        dto.studentId = enrollment.studentId;
+        
+        // Get student's attendance statistics for this course offering
+        const attendanceStats = await attendanceRepo.getAttendanceStats(student.id, offering.id);
+        
+        // Attach student's attendance statistics
+        dto.myAverageAttendanceRate = attendanceStats.attendancePercentage;
+        dto.myPresentCount = attendanceStats.present;
+        dto.myAbsentCount = attendanceStats.absent;
+        dto.myExcusedCount = attendanceStats.excused;
+      }
+      
+      return dto;
     }));
   }
 

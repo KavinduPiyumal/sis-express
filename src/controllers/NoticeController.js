@@ -234,8 +234,8 @@ class NoticeController {
       originalName: attachment.originalName,
       fileSize: attachment.fileSize,
       mimeType: attachment.mimeType,
-      filePath: attachment.url, // Use the URL as the file path for now
-      downloadUrl: attachment.url
+      filePath: attachment.url || attachment.downloadUrl || attachment.filePath || attachment.fileName || 'unknown',
+      downloadUrl: attachment.url || attachment.downloadUrl
     }));
   }
 

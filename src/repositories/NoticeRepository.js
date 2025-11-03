@@ -58,7 +58,7 @@ class NoticeRepository {
             originalName: att.originalName,
             fileSize: att.fileSize,
             mimeType: att.mimeType,
-            filePath: att.filePath,
+            filePath: att.filePath || att.downloadUrl || att.fileName || 'unknown',
             downloadUrl: att.downloadUrl
           }))
         } : undefined
@@ -162,10 +162,25 @@ class NoticeRepository {
   }
 
   async update(id, updateData, attachments = []) {
+    // Map fields to match Prisma schema
+    const mappedData = { ...updateData };
+    
+    // Map 'body' to 'content' to match Prisma schema
+    if (mappedData.body !== undefined) {
+      mappedData.content = mappedData.body;
+      delete mappedData.body;
+    }
+    
+    // Map 'audience' array to 'targetAudience' single value for Prisma enum
+    if (mappedData.audience !== undefined && Array.isArray(mappedData.audience)) {
+      mappedData.targetAudience = mappedData.audience[0];
+      delete mappedData.audience;
+    }
+
     // Handle attachments update
     const updatePayload = {
       data: {
-        ...updateData,
+        ...mappedData,
         updatedAt: new Date()
       },
       include: {
@@ -196,7 +211,7 @@ class NoticeRepository {
           originalName: att.originalName,
           fileSize: att.fileSize,
           mimeType: att.mimeType,
-          filePath: att.filePath,
+          filePath: att.filePath || att.downloadUrl || att.fileName || 'unknown',
           downloadUrl: att.downloadUrl
         }))
       };

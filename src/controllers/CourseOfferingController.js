@@ -6,13 +6,42 @@ module.exports = {
   async getSessionsOnly(req, res) {
     try {
       const courseOfferingId = req.params.id;
+      const user = req.user;
+      
+      // Always get the general attendance summary
       const { getSessionsWithAttendanceSummary } = require('../services/CourseOfferingSessionService');
       const sessions = await getSessionsWithAttendanceSummary(courseOfferingId);
+      
+      // If user is a student, additionally attach their personal attendance status to each session
+      if (user.role === 'student') {
+        const StudentRepository = require('../repositories/StudentRepository');
+        const AttendanceRepository = require('../repositories/AttendanceRepository');
+        const studentRepo = new StudentRepository();
+        const attendanceRepo = new AttendanceRepository();
+        
+        const student = await studentRepo.findOne({ userId: user.id });
+        
+        if (student) {
+          // Add student's personal attendance status to each session
+          for (const session of sessions) {
+            const attendance = await attendanceRepo.findBySessionAndStudent(session.id, student.id);
+            session.myAttendance = attendance ? {
+              id: attendance.id,
+              status: attendance.status,
+              remarks: attendance.remarks,
+              markedAt: attendance.markedAt,
+              medicalReport: attendance.medicalReport
+            } : null;
+          }
+        }
+      }
+      
       res.json({ success: true, data: sessions });
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });
     }
   },
+
   async create(req, res) {
     try {
       // Handle lecturerId lookup - if lecturerId is not found in lecturer table, treat it as userId

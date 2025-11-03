@@ -111,12 +111,17 @@ class CourseOfferingDTO {
     }
     
 
-    // If student's own enrollment is provided, attach it (id, status only)
+    // If student's own enrollment is provided, attach it (id, status, studentId)
     if (enrollment) {
       this.enrollment = {
         id: enrollment.id,
         status: enrollment.status
       };
+      
+      // Include studentId if provided
+      if (enrollment.studentId) {
+        this.enrollment.studentId = enrollment.studentId;
+      }
     }
 
     // Attach sessions or counts

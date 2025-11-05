@@ -189,7 +189,7 @@ class NoticeController {
   async getSearchSuggestions(req, res) {
     try {
       const { q, limit } = req.query;
-      const result = await this.getSearchSuggestionsUseCase.execute(q, parseInt(limit) || 5);
+      const result = await this.getSearchSuggestionsUseCase.execute(q, parseInt(limit) || 5, req.user);
       
       res.status(200).json({
         success: true,
@@ -207,7 +207,7 @@ class NoticeController {
   // GET /api/notices/metadata - Get Metadata
   async getMetadata(req, res) {
     try {
-      const metadata = await this.getNoticeMetadataUseCase.execute();
+      const metadata = await this.getNoticeMetadataUseCase.execute(req.user);
       
       res.status(200).json({
         success: true,

@@ -39,14 +39,14 @@ class GetNoticesUseCase {
     }
 
     try {
-      const result = await this.noticeRepository.findMany(filterDTO, user?.id);
+      const result = await this.noticeRepository.findMany(filterDTO, user?.id, user);
       
       const notices = result.notices.map(notice => 
         new NoticeResponseDTO(notice, user, true)
       );
 
       // Get aggregations
-      const aggregations = await this.getAggregations(filterDTO, user?.id);
+      const aggregations = await this.getAggregations(filterDTO, user?.id, user);
 
       return {
         notices,
@@ -64,8 +64,8 @@ class GetNoticesUseCase {
     }
   }
 
-  async getAggregations(filters, userId) {
-    const stats = await this.noticeRepository.getStats(userId);
+  async getAggregations(filters, userId, user) {
+    const stats = await this.noticeRepository.getStats(userId, user);
     return {
       categoryCount: stats.categoryStats,
       priorityCount: {
@@ -344,7 +344,7 @@ class GetNoticeStatsUseCase {
 
   async execute(user) {
     try {
-      const stats = await this.noticeRepository.getStats(user?.id);
+      const stats = await this.noticeRepository.getStats(user?.id, user);
       return new NoticeStatsDTO(stats);
     } catch (error) {
       throw new Error(`Failed to get notice stats: ${error.message}`);
@@ -357,13 +357,13 @@ class GetSearchSuggestionsUseCase {
     this.noticeRepository = new NoticeRepository();
   }
 
-  async execute(query, limit = 5) {
+  async execute(query, limit = 5, user = null) {
     try {
       if (!query || query.trim().length < 2) {
         return { suggestions: [] };
       }
 
-      const suggestions = await this.noticeRepository.getSearchSuggestions(query.trim(), limit);
+      const suggestions = await this.noticeRepository.getSearchSuggestions(query.trim(), limit, user);
       return { suggestions };
     } catch (error) {
       throw new Error(`Failed to get search suggestions: ${error.message}`);
@@ -376,9 +376,9 @@ class GetNoticeMetadataUseCase {
     this.noticeRepository = new NoticeRepository();
   }
 
-  async execute() {
+  async execute(user = null) {
     try {
-      const metadata = await this.noticeRepository.getMetadata();
+      const metadata = await this.noticeRepository.getMetadata(user);
       return metadata;
     } catch (error) {
       throw new Error(`Failed to get notice metadata: ${error.message}`);

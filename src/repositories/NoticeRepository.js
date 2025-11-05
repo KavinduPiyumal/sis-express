@@ -118,8 +118,8 @@ class NoticeRepository {
     return notice;
   }
 
-  async findMany(filters, userId = null) {
-    const where = this.buildWhereClause(filters, userId);
+  async findMany(filters, userId = null, user = null) {
+    const where = this.buildWhereClause(filters, userId, user);
     const orderBy = this.buildOrderByClause(filters.sortBy, filters.sortOrder);
 
     const [notices, total] = await Promise.all([
@@ -378,7 +378,42 @@ class NoticeRepository {
     });
   }
 
-  async getStats(userId = null) {
+  buildRoleBasedWhere(user = null) {
+    if (user && user.role === 'student') {
+      return { targetAudience: { in: ['all', 'students'] } };
+    } else if (user && ['admin', 'super_admin'].includes(user.role)) {
+      return {
+        OR: [
+          { targetAudience: { in: ['all', 'admins'] } },
+          { 
+            targetAudience: 'students',
+            createdBy: user.id
+          }
+        ]
+      };
+    }
+    return {};
+  }
+
+  async getStats(userId = null, user = null) {
+    // Base where clause for role-based filtering
+    const roleWhere = this.buildRoleBasedWhere(user);
+
+    const buildWhereWithRole = (additionalWhere = {}) => {
+      if (Object.keys(roleWhere).length === 0) {
+        return additionalWhere;
+      }
+      if (Object.keys(additionalWhere).length === 0) {
+        return roleWhere;
+      }
+      return {
+        AND: [
+          roleWhere,
+          additionalWhere
+        ]
+      };
+    };
+
     const [
       total,
       published,
@@ -390,24 +425,24 @@ class NoticeRepository {
       normal,
       categoryStats
     ] = await Promise.all([
-      prisma.notice.count(),
-      prisma.notice.count({ where: { status: 'published' } }),
-      prisma.notice.count({ where: { status: 'draft' } }),
-      prisma.notice.count({ where: { status: 'archived' } }),
+      prisma.notice.count({ where: roleWhere }),
+      prisma.notice.count({ where: buildWhereWithRole({ status: 'published' }) }),
+      prisma.notice.count({ where: buildWhereWithRole({ status: 'draft' }) }),
+      prisma.notice.count({ where: buildWhereWithRole({ status: 'archived' }) }),
       userId ? prisma.notice.count({
-        where: {
+        where: buildWhereWithRole({
           status: 'published',
           reads: {
             none: {
               userId
             }
           }
-        }
+        })
       }) : 0,
-      prisma.notice.count({ where: { priority: 'critical' } }),
-      prisma.notice.count({ where: { priority: 'high' } }),
-      prisma.notice.count({ where: { priority: 'normal' } }),
-      this.getCategoryStats()
+      prisma.notice.count({ where: buildWhereWithRole({ priority: 'critical' }) }),
+      prisma.notice.count({ where: buildWhereWithRole({ priority: 'high' }) }),
+      prisma.notice.count({ where: buildWhereWithRole({ priority: 'normal' }) }),
+      this.getCategoryStats(user)
     ]);
 
     return {
@@ -423,9 +458,12 @@ class NoticeRepository {
     };
   }
 
-  async getCategoryStats() {
+  async getCategoryStats(user = null) {
+    const roleWhere = this.buildRoleBasedWhere(user);
+
     const stats = await prisma.notice.groupBy({
       by: ['category'],
+      where: roleWhere,
       _count: {
         category: true
       }
@@ -437,17 +475,24 @@ class NoticeRepository {
     }, {});
   }
 
-  async getSearchSuggestions(query, limit = 5) {
+  async getSearchSuggestions(query, limit = 5, user = null) {
     const suggestions = [];
+    
+    // Base where clause for role-based filtering
+    const roleWhere = this.buildRoleBasedWhere(user);
+    const baseWhere = { 
+      status: 'published',
+      ...(Object.keys(roleWhere).length > 0 ? { AND: [roleWhere] } : {})
+    };
 
     // Title suggestions
     const titleMatches = await prisma.notice.findMany({
       where: {
+        ...baseWhere,
         title: {
           contains: query,
           mode: 'insensitive'
-        },
-        status: 'published'
+        }
       },
       select: { title: true },
       take: limit
@@ -464,10 +509,10 @@ class NoticeRepository {
     // Tag suggestions
     const tagMatches = await prisma.notice.findMany({
       where: {
+        ...baseWhere,
         tags: {
           hasSome: [query]
-        },
-        status: 'published'
+        }
       },
       select: { tags: true },
       take: limit
@@ -493,12 +538,12 @@ class NoticeRepository {
     return suggestions.slice(0, limit);
   }
 
-  async getMetadata() {
+  async getMetadata(user = null) {
     const [categories, priorities, audiences, allTags] = await Promise.all([
       this.getCategories(),
       this.getPriorities(),
       this.getAudiences(),
-      this.getAllTags()
+      this.getAllTags(user)
     ]);
 
     return {
@@ -537,10 +582,16 @@ class NoticeRepository {
     ];
   }
 
-  async getAllTags() {
+  async getAllTags(user = null) {
+    const roleWhere = this.buildRoleBasedWhere(user);
+    const where = { 
+      status: 'published',
+      ...(Object.keys(roleWhere).length > 0 ? { AND: [roleWhere] } : {})
+    };
+
     const notices = await prisma.notice.findMany({
       select: { tags: true },
-      where: { status: 'published' }
+      where
     });
 
     const allTags = notices.reduce((acc, notice) => {
@@ -551,94 +602,120 @@ class NoticeRepository {
     return Array.from(allTags).sort();
   }
 
-  buildWhereClause(filters, userId) {
-    const where = {};
+  buildWhereClause(filters, userId, user = null) {
+    const conditions = [];
+
+    // Role-based audience filtering
+    const roleWhere = this.buildRoleBasedWhere(user);
+    if (Object.keys(roleWhere).length > 0) {
+      conditions.push(roleWhere);
+    }
 
     // Search in title and content
     if (filters.search) {
-      where.OR = [
-        { title: { contains: filters.search, mode: 'insensitive' } },
-        { content: { contains: filters.search, mode: 'insensitive' } }
-      ];
+      conditions.push({
+        OR: [
+          { title: { contains: filters.search, mode: 'insensitive' } },
+          { content: { contains: filters.search, mode: 'insensitive' } }
+        ]
+      });
     }
 
     // Category filter
     if (filters.category.length > 0) {
-      where.category = { in: filters.category };
+      conditions.push({ category: { in: filters.category } });
     }
 
     // Priority filter
     if (filters.priority.length > 0) {
-      where.priority = { in: filters.priority };
+      conditions.push({ priority: { in: filters.priority } });
     }
 
     // Status filter
     if (filters.status.length > 0) {
-      where.status = { in: filters.status };
+      conditions.push({ status: { in: filters.status } });
     }
 
-    // Audience filter
-    if (filters.audience.length > 0) {
-      where.targetAudience = { in: filters.audience };
+    // Audience filter - only apply if not already restricted by role
+    if (filters.audience.length > 0 && (!user || !['student', 'admin', 'super_admin'].includes(user.role))) {
+      conditions.push({ targetAudience: { in: filters.audience } });
     }
 
     // Tags filter
     if (filters.tags.length > 0) {
-      where.tags = { hasSome: filters.tags };
+      conditions.push({ tags: { hasSome: filters.tags } });
     }
 
     // Pinned filter
     if (filters.isPinned !== undefined) {
-      where.isPinned = filters.isPinned;
+      conditions.push({ isPinned: filters.isPinned });
     }
 
     // Author filter
     if (filters.author) {
-      where.createdBy = filters.author;
+      conditions.push({ createdBy: filters.author });
     }
 
     // Date range filter
     if (filters.dateFrom || filters.dateTo) {
-      where.createdAt = {};
+      const dateCondition = {};
       if (filters.dateFrom) {
-        where.createdAt.gte = filters.dateFrom;
+        dateCondition.gte = filters.dateFrom;
       }
       if (filters.dateTo) {
-        where.createdAt.lte = filters.dateTo;
+        dateCondition.lte = filters.dateTo;
       }
+      conditions.push({ createdAt: dateCondition });
     }
 
     // Read/Unread filter for specific user
     if (filters.isRead !== undefined && userId) {
       if (filters.isRead) {
-        where.reads = { some: { userId } };
+        conditions.push({ reads: { some: { userId } } });
       } else {
-        where.reads = { none: { userId } };
+        conditions.push({ reads: { none: { userId } } });
       }
     }
 
-    return where;
+    // Combine all conditions
+    if (conditions.length === 0) {
+      return {};
+    } else if (conditions.length === 1) {
+      return conditions[0];
+    } else {
+      return { AND: conditions };
+    }
   }
 
   buildOrderByClause(sortBy, sortOrder) {
-    const orderBy = {};
+    const orderBy = [];
     
     switch (sortBy) {
       case 'priority':
         // Custom priority ordering: critical > high > normal
-        orderBy.priority = sortOrder;
+        // Use custom ordering for priority
+        orderBy.push({
+          priority: sortOrder === 'asc' 
+            ? 'asc' 
+            : 'desc'
+        });
         break;
       case 'title':
-        orderBy.title = sortOrder;
+        orderBy.push({ title: sortOrder });
         break;
       case 'publishDate':
-        orderBy.publishDate = sortOrder;
+        orderBy.push({ publishDate: sortOrder });
         break;
       case 'updatedAt':
-        orderBy.updatedAt = sortOrder;
+        orderBy.push({ updatedAt: sortOrder });
         break;
       default:
-        orderBy.createdAt = sortOrder;
+        orderBy.push({ createdAt: sortOrder });
+    }
+
+    // Always add a secondary sort by createdAt for consistent ordering
+    if (sortBy !== 'createdAt') {
+      orderBy.push({ createdAt: 'desc' });
     }
 
     return orderBy;
